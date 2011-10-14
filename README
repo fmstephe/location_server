@@ -1,1 +1,1 @@
-Experimental playground for a location service in go.
+A location server using websockets to keep users aware of nearby users in real time.
