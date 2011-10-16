@@ -18,13 +18,15 @@ type CJsonMsg struct {
 }
 
 // A client request to update the location of the user
-type cRelocate struct {
+type cMove struct {
 	nMNS, nMEW float64
 	oMNS, oMEW float64
 	oLat, oLng float64
 	usr        user
 	perf       inPerf
 }
+
+
 
 // A client request for all users nearby this user
 type cNearby struct {

@@ -61,7 +61,7 @@ func readWS(ws *websocket.Conn, usr *user) {
 		l4g.Info("User: %d \tConnection Terminated with %s", usr.id, err.String())
 		return
 	}
-	// Accept an endless stream of request messages - cRelocate, cNearby
+	// Accept an endless stream of request messages
 	for {
 		req, err := unmarshal(usr, buf, ws)
 		if err != nil {
@@ -116,7 +116,7 @@ func processRequest(msg *CJsonMsg, usr *user) (err os.Error) {
 		forwardNearby(lat, lng, usr)
 		return
 	case cMoveOp:
-		forwardRelocate(msg.Lat, msg.Lng, usr)
+		forwardMove(msg.Lat, msg.Lng, usr)
 		return
 	}
 	return iOpErr
@@ -131,8 +131,8 @@ func forwardNearby(lat, lng float64, usr *user) {
 }
 
 // Creates a new cRelocate request and sends it to the tree manager 
-func forwardRelocate(lat, lng float64, usr *user) {
-	rlc := new(cRelocate)
+func forwardMove(lat, lng float64, usr *user) {
+	rlc := new(cMove)
 	mNS, mEW := metresFromOrigin(lat, lng)
 	// The new metre coords
 	rlc.nMNS = mNS
@@ -149,7 +149,7 @@ func forwardRelocate(lat, lng float64, usr *user) {
 	usr.mNS = mNS
 	usr.mEW = mEW
 	rlc.usr = *usr
-	relocateChan <- *rlc
+	moveChan <- *rlc
 }
 
 //  Listen to writeChan

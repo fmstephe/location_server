@@ -15,7 +15,7 @@ const (
 //
 var addChan = make(chan user, 32)           // Global Channel for new user requests
 var removeChan = make(chan user, 32)        // Global Channel for user relocation requests
-var relocateChan = make(chan cRelocate, 32) // Global Channel for remove user requests
+var moveChan = make(chan cMove, 32) // Global Channel for remove user requests
 var nearbyChan = make(chan cNearby, 32)     // Global Channel for nearby rquests
 
 func TreeManager() {
@@ -28,8 +28,8 @@ func TreeManager() {
 			handleRemove(&usr, tree)
 		case nbyReq := <-nearbyChan:
 			handleNearby(&nbyReq, tree)
-		case rlc := <-relocateChan:
-			handleRelocate(&rlc, tree)
+		case mv := <-moveChan:
+			handleMove(&mv, tree)
 		}
 	}
 }
@@ -60,22 +60,22 @@ func handleNearby(nby *cNearby, tree quadtree.QuadTree) {
 	tree.Survey(vs, nearbyFun(&usr))
 }
 
-func handleRelocate(rlc *cRelocate, tree quadtree.QuadTree) {
-	l4g.Info("User: %d \t Relocate Request: \t oMNS: %f oMEW %f nMNS: %f nMEW %f", rlc.usr.id, rlc.oMNS, rlc.oMEW, rlc.nMNS, rlc.nMEW)
-	usr := &rlc.usr
-	deleteUsr(rlc.oMNS, rlc.oMEW, usr, tree)
-	tree.Insert(rlc.nMNS, rlc.nMEW, usr)
-	nView := nearbyView(rlc.nMNS, rlc.nMEW)
-	oView := nearbyView(rlc.oMNS, rlc.oMEW)
+func handleMove(mv *cMove, tree quadtree.QuadTree) {
+	l4g.Info("User: %d \t Relocate Request: \t oMNS: %f oMEW %f nMNS: %f nMEW %f", mv.usr.id, mv.oMNS, mv.oMEW, mv.nMNS, mv.nMEW)
+	usr := &mv.usr
+	deleteUsr(mv.oMNS, mv.oMEW, usr, tree)
+	tree.Insert(mv.nMNS, mv.nMEW, usr)
+	nView := nearbyView(mv.nMNS, mv.nMEW)
+	oView := nearbyView(mv.oMNS, mv.oMEW)
 	// Alert out of bounds users
 	oobViews := oView.Subtract(nView)
-	tree.Survey(oobViews, oobFun(rlc))
+	tree.Survey(oobViews, oobFun(mv))
 	// Alert newly visible users
 	nViews := nView.Subtract(oView)
-	tree.Survey(nViews, visibleFun(rlc))
+	tree.Survey(nViews, visibleFun(mv))
 	// Alert watching users of the relocation
 	// movedView := []*quadtree.View{nView.Intersect(oView)}
-	// tree.Survey(movedView, movedFun(rlc))
+	// tree.Survey(movedView, movedFun(mv))
 }
 
 // Deletes usr from tree at the given coords
@@ -118,31 +118,31 @@ func removeFun(usr *user) func(mNS, mEW float64, e interface{}) {
 }
 
 // Returns a function used for alerting users that another user is going out of range and should be removed
-func oobFun(rlc *cRelocate) func(mNS, mEW float64, e interface{}) {
+func oobFun(mv *cMove) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
-		oUsr.writeChan <- newSOutOfBounds(&rlc.usr)
-		rlc.usr.writeChan <- newSOutOfBounds(oUsr)
+		oUsr.writeChan <- newSOutOfBounds(&mv.usr)
+		mv.usr.writeChan <- newSOutOfBounds(oUsr)
 	}
 }
 
 // Returns a function used for alerting users that another user has just become visible and should be added
-func visibleFun(rlc *cRelocate) func(mNS, mEW float64, e interface{}) {
+func visibleFun(mv *cMove) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
-		if !rlc.usr.eq(oUsr) {
-			oUsr.writeChan <- newSVisible(&rlc.usr)
-			rlc.usr.writeChan <- newSVisible(oUsr)
+		if !mv.usr.eq(oUsr) {
+			oUsr.writeChan <- newSVisible(&mv.usr)
+			mv.usr.writeChan <- newSVisible(oUsr)
 		}
 	}
 }
 
 // Returns a function used for alerting users that another user has changed position and should be updated
-func movedFun(rlc *cRelocate) func(mNS, mEW float64, e interface{}) {
+func movedFun(mv *cMove) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
-		if !rlc.usr.eq(oUsr) {
-			oUsr.writeChan <- newSMoved(rlc.oLat, rlc.oLng, &rlc.usr)
+		if !mv.usr.eq(oUsr) {
+			oUsr.writeChan <- newSMoved(mv.oLat, mv.oLng, &mv.usr)
 		}
 	}
 }
