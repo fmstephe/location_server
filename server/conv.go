@@ -39,6 +39,6 @@ const (
 func metresFromOrigin(lat, lng float64) (mNS, mEW float64) {
 	mNS = lat * metresPerLat
 	radLng := DegToRad * lng
-	mEW = lng * (metresEarthRadius * math.Pi * math.Cos(radLng)) / 180
+	mEW = lng * (metresEarthRadius * math.Pi * math.Cos(radLng)) / 90 // TODO This doesn't look like it is accurate - check that out
 	return
 }
