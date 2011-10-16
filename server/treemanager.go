@@ -74,8 +74,8 @@ func handleRelocate(rlc *cRelocate, tree quadtree.QuadTree) {
 	nViews := nView.Subtract(oView)
 	tree.Survey(nViews, visibleFun(rlc))
 	// Alert watching users of the relocation
-	movedView := []*quadtree.View{nView.Intersect(oView)}
-	tree.Survey(movedView, movedFun(rlc))
+	// movedView := []*quadtree.View{nView.Intersect(oView)}
+	// tree.Survey(movedView, movedFun(rlc))
 }
 
 // Deletes usr from tree at the given coords
