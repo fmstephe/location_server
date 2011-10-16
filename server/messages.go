@@ -23,11 +23,13 @@ type cRelocate struct {
 	oMNS, oMEW float64
 	oLat, oLng float64
 	usr        user
+	perf       inPerf
 }
 
 // A client request for all users nearby this user
 type cNearby struct {
 	mNS, mEW float64
+	perf     inPerf
 	usr      user
 }
 
@@ -37,8 +39,9 @@ type serverOp string
 
 // Indicates that that a user has moved out of bounds - client should remove this user
 type sOutOfBounds struct {
-	Op  serverOp
-	Usr user
+	Op   serverOp
+	perf outPerf
+	Usr  user
 }
 
 func newSOutOfBounds(usr *user) *sOutOfBounds {
@@ -47,8 +50,9 @@ func newSOutOfBounds(usr *user) *sOutOfBounds {
 
 // Indicates that a user has been added - client should add this user
 type sAdd struct {
-	Op  serverOp // Always has the value "new"
-	Usr user
+	Op   serverOp // Always has the value "new"
+	perf outPerf
+	Usr  user
 }
 
 func newSAdd(usr *user) *sAdd {
@@ -59,6 +63,7 @@ func newSAdd(usr *user) *sAdd {
 type sMoved struct {
 	Op         serverOp // Always has the value "moved"
 	OLat, OLng float64
+	perf       outPerf
 	Usr        user
 }
 
@@ -68,8 +73,9 @@ func newSMoved(oLat, oLng float64, usr *user) *sMoved {
 
 //Indicates that a user has just appeared within your visible range - client should add this user
 type sVisible struct {
-	Op  serverOp // Always has the value "visible"
-	Usr user
+	Op   serverOp // Always has the value "visible"
+	perf outPerf
+	Usr  user
 }
 
 func newSVisible(usr *user) *sVisible {
@@ -78,8 +84,9 @@ func newSVisible(usr *user) *sVisible {
 
 // Indicates that a user has been removed - client should remove this user
 type sRemove struct {
-	Op  serverOp // Always has the value "remove"
-	Usr user
+	Op   serverOp // Always has the value "remove"
+	perf outPerf
+	Usr  user
 }
 
 func newSRemove(usr *user) *sRemove {
@@ -88,8 +95,9 @@ func newSRemove(usr *user) *sRemove {
 
 // Indicates that a user is nearby
 type sNearby struct {
-	Op  serverOp // Always has the value "nearby"
-	Usr user
+	Op   serverOp // Always has the value "nearby"
+	perf outPerf
+	Usr  user
 }
 
 func newSNearby(usr *user) *sNearby {

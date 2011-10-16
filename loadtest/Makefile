@@ -4,13 +4,8 @@
 
 include /home/francis/golang/go/src/Make.inc
 
-TARG=locserver
+TARG=main
 GOFILES=\
-	perf.go\
-	messages.go\
-	user.go\
-	treemanager.go\
-	id.go\
-	conv.go\
+	loadtest.go\
 
 include /home/francis/golang/go/src/Make.pkg
