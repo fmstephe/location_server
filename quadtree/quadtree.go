@@ -306,7 +306,7 @@ func (n *node) String() string {
 // External Node - each tree
 type root struct {
 	size int
-	n node
+	n    node
 }
 
 // Returns a new root ready for use as an empty quadtree

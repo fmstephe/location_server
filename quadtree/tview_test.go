@@ -184,37 +184,37 @@ func TestSubtract(t *testing.T) {
 	// Bottom Left
 	v1 = NewViewP(0, 2, 0, 2)
 	v2 = NewViewP(1, 2, 0, 1)
-	eqv = []*View{NewViewP(0, 1, 0, 2),NewViewP(0,2,1,2)}
+	eqv = []*View{NewViewP(0, 1, 0, 2), NewViewP(0, 2, 1, 2)}
 	testSubtract(t, v1, v2, eqv, 2, "Bottom left")
 	// Bottom Right
 	v1 = NewViewP(0, 2, 0, 2)
 	v2 = NewViewP(0, 1, 0, 1)
-	eqv = []*View{NewViewP(1, 2, 0, 2),NewViewP(0,2,1,2)}
+	eqv = []*View{NewViewP(1, 2, 0, 2), NewViewP(0, 2, 1, 2)}
 	testSubtract(t, v1, v2, eqv, 2, "Bottom right")
 	// Top Left
 	v1 = NewViewP(0, 2, 0, 2)
 	v2 = NewViewP(1, 2, 1, 2)
-	eqv = []*View{NewViewP(0, 1, 0, 2),NewViewP(0,2,0,1)}
+	eqv = []*View{NewViewP(0, 1, 0, 2), NewViewP(0, 2, 0, 1)}
 	testSubtract(t, v1, v2, eqv, 2, "Top left")
 	// Top Right
 	v1 = NewViewP(0, 2, 0, 2)
 	v2 = NewViewP(0, 1, 1, 2)
-	eqv = []*View{NewViewP(1, 2, 0, 2),NewViewP(0,2,0,1)}
+	eqv = []*View{NewViewP(1, 2, 0, 2), NewViewP(0, 2, 0, 1)}
 	testSubtract(t, v1, v2, eqv, 2, "Top left")
 	// Left Right
 	v1 = NewViewP(0, 3, 0, 3)
 	v2 = NewViewP(1, 2, -20, 20)
-	eqv = []*View{NewViewP(0, 1, 0, 3),NewViewP(2,3,0,3)}
+	eqv = []*View{NewViewP(0, 1, 0, 3), NewViewP(2, 3, 0, 3)}
 	testSubtract(t, v1, v2, eqv, 2, "Left right")
 	// Top Bottom
 	v1 = NewViewP(0, 3, 0, 3)
 	v2 = NewViewP(-20, 20, 1, 2)
-	eqv = []*View{NewViewP(0, 3,0, 1),NewViewP(0,3,2,3)}
+	eqv = []*View{NewViewP(0, 3, 0, 1), NewViewP(0, 3, 2, 3)}
 	testSubtract(t, v1, v2, eqv, 2, "Top bottom")
 	// Centre
 	v1 = NewViewP(0, 4, 0, 4)
 	v2 = NewViewP(1, 2, 1, 2)
-	eqv = []*View{NewViewP(0, 1, 0, 4),NewViewP(2,4,0,4),NewViewP(0,4,0,1),NewViewP(0,4,2,4)}
+	eqv = []*View{NewViewP(0, 1, 0, 4), NewViewP(2, 4, 0, 4), NewViewP(0, 4, 0, 1), NewViewP(0, 4, 2, 4)}
 	testSubtract(t, v1, v2, eqv, 4, "Centre")
 }
 
@@ -223,17 +223,17 @@ func testSubtract(t *testing.T, v1, v2 *View, eqv []*View, vNum int, prefix stri
 	if len(vs) != vNum {
 		t.Errorf("%s subtract, expecting %d view found %d", prefix, vNum, len(vs))
 	}
-		for ei := range eqv {
-			for vi := range vs {
-				if eqv[ei].eq(vs[vi]) {
-					break
-				}
-				if vi == len(vs)-1 {
-					t.Errorf("%s subtract, expected %v found %v", prefix, eqv, vs)
-					return
-				}
+	for ei := range eqv {
+		for vi := range vs {
+			if eqv[ei].eq(vs[vi]) {
+				break
+			}
+			if vi == len(vs)-1 {
+				t.Errorf("%s subtract, expected %v found %v", prefix, eqv, vs)
+				return
 			}
 		}
+	}
 }
 
 func overlap() (v1, v2 *View) {
