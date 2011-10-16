@@ -12,8 +12,8 @@ const one_second = 1000000000
 
 func main() {
 	for i := 0; i < 1000; i++ {
-		go run_test("Test_"+strconv.Itoa(i))
-		time.Sleep(one_second/8)
+		go run_test("Test_" + strconv.Itoa(i))
+		time.Sleep(one_second / 8)
 	}
 	run_test("Test_End")
 }
@@ -32,7 +32,7 @@ func run_test(name string) {
 	}
 	i := 0
 	for {
-		time.Sleep(one_second/16)
+		time.Sleep(one_second / 16)
 		i++
 		lat := float64(i % 90)
 		lng := float64(i % 180)
