@@ -15,12 +15,12 @@ var ider idMaker
 // All of a user's fields can change over its lifetime except writeChan
 // Thus, two users are considered equivalent if they have the same writeChan - subject to change
 type user struct {
-	// First three elements exported for Json marshalling
-	id        int64
+	id        int64            // Globally unique identifier for this user
+	tId       int64            // A changing identifier used to tag each message with a transaction id
 	Lat, Lng  float64          // Current position of this user, TODO maybe this should be represented as a string?
 	mNS, mEW  float64          // Current distances in metres from (lat,lng) (0,0), broken down into North/South and East/West distances
 	Name      string           // Arbitrary data (json?) representing this user to the client application
-	writeChan chan interface{} // All messages sent here will be written to the websocket
+	writeChan chan outPerfer // All messages sent here will be written to the websocket
 	// In the future this may contain a reference to the tree it is stored in
 }
 
@@ -38,7 +38,7 @@ func (usr *user) eq(oUsr *user) bool {
 // Central entry function for a websocket connection
 // NB: When we return from this function the websocket will be closed
 func WebsocketUser(ws *websocket.Conn) {
-	writeChan := make(chan interface{})
+	writeChan := make(chan outPerfer)
 	usr := user{id: ider.new(), writeChan: writeChan}
 	l4g.Info("User: %d \tConnection Established", usr.id)
 	go writeWS(ws, &usr)
@@ -63,6 +63,7 @@ func readWS(ws *websocket.Conn, usr *user) {
 	}
 	// Accept an endless stream of request messages
 	for {
+		usr.tId++ // Increase the transaction id for each message
 		req, err := unmarshal(usr, buf, ws)
 		if err != nil {
 			l4g.Info("User: %d \tConnection Terminated with %s", usr.id, err.String())
@@ -88,6 +89,8 @@ func unmarshal(usr *user, buf []byte, ws *websocket.Conn) (msg *CJsonMsg, err os
 	}
 	l4g.Info("User: %d \tClient Message: %s", usr.id, string(buf[:n]))
 	msg = new(CJsonMsg)
+	msg.perf = newInPerf(usr.id, usr.tId)
+	msg.perf.beginUserProc()
 	err = json.Unmarshal(buf[:n], &msg)
 	return
 }
@@ -113,43 +116,34 @@ func processRequest(msg *CJsonMsg, usr *user) (err os.Error) {
 	case cNearbyOp:
 		lat := msg.Lat
 		lng := msg.Lng
-		forwardNearby(lat, lng, usr)
+		forwardNearby(lat, lng, usr, msg.perf)
 		return
 	case cMoveOp:
-		forwardMove(msg.Lat, msg.Lng, usr)
+		forwardMove(msg.Lat, msg.Lng, usr, msg.perf)
 		return
 	}
 	return iOpErr
 }
 
 // Creates a new cNearby request and sends it to the tree manager
-func forwardNearby(lat, lng float64, usr *user) {
-	nby := new(cNearby)
-	nby.mNS, nby.mEW = metresFromOrigin(lat, lng)
-	nby.usr = *usr
-	nearbyChan <- *nby
+func forwardNearby(lat, lng float64, usr *user, perf *inPerf) {
+	nby := newCNearby(lat, lng, usr, perf)
+	nby.perf.beginTmSend()
+	nearbyChan <- nby
 }
 
 // Creates a new cRelocate request and sends it to the tree manager 
-func forwardMove(lat, lng float64, usr *user) {
-	rlc := new(cMove)
-	mNS, mEW := metresFromOrigin(lat, lng)
-	// The new metre coords
-	rlc.nMNS = mNS
-	rlc.nMEW = mEW
-	// The old metre coords
-	rlc.oMNS = usr.mNS
-	rlc.oMEW = usr.mEW
-	// The old degree coords
-	rlc.oLat = usr.Lat
-	rlc.oLng = usr.Lng
-	// Update and add usr
-	usr.Lat = lat
-	usr.Lng = lng
+func forwardMove(nLat, nLng float64, usr *user, perf *inPerf) {
+	oLat, oLng := usr.Lat, usr.Lng
+	// Update usr
+	mNS, mEW := metresFromOrigin(nLat, nLng)
+	usr.Lat = nLat
+	usr.Lng = nLng
 	usr.mNS = mNS
 	usr.mEW = mEW
-	rlc.usr = *usr
-	moveChan <- *rlc
+	mv := newCMove(oLat, oLng, nLat, nLng, usr, perf)
+	mv.perf.beginTmSend()
+	moveChan <- mv
 }
 
 //  Listen to writeChan
@@ -158,11 +152,14 @@ func writeWS(ws *websocket.Conn, usr *user) {
 	writeChan := usr.writeChan
 	for {
 		v := <-writeChan
+		perf := v.getOutPerf()
+		perf.beginWSend()
 		buf, err := json.MarshalForHTML(v)
 		l4g.Info("User: %d \tServer Message: %s", usr.id, string(buf))
 		if err != nil {
 			l4g.Info("User: %d \tError: %s", usr.id, err.String())
 		}
 		ws.Write(buf)
+		perf.finishAndLog()
 	}
 }

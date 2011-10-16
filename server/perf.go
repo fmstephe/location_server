@@ -2,6 +2,7 @@ package locserver
 
 import (
 	"time"
+	l4g "log4go.googlecode.com/hg"
 )
 
 // ----------PERFORMANCE TRACKING------------
@@ -14,6 +15,8 @@ import (
 //  5: Websocket Send
 
 type inPerf struct {
+	// The operation for this transaction
+	op clientOp
 	// The user-id of the user who received the initial message for this transaction
 	uId int64
 	// The id of this transaction - (uId,tId) is globally unique between server restarts
@@ -27,35 +30,36 @@ type inPerf struct {
 	tmProc int64
 }
 
-func newInPerf(uId, tId int64) inPerf {
-	return inPerf{uId: uId, tId: tId}
+func newInPerf(op clientOp, uId, tId int64) *inPerf {
+	return &inPerf{uId: uId, tId: tId}
 }
 
-func (p inPerf) startUserProcessing() {
+func (p *inPerf) beginUserProc() {
 	p.userProc = time.Nanoseconds()
 }
 
-func (p inPerf) endUserProcessing() {
+func (p *inPerf) beginTmSend() {
 	p.userProc = time.Nanoseconds() - p.userProc
-}
-
-func (p inPerf) startTreeManagerSend() {
 	p.tmSend = time.Nanoseconds()
 }
 
-func (p inPerf) endTreeManagerSend() {
+func (p *inPerf) beginTmProc() {
 	p.tmSend = time.Nanoseconds() - p.tmSend
-}
-
-func (p inPerf) startTreeManagerProcessing() {
 	p.tmProc = time.Nanoseconds()
 }
 
-func (p inPerf) endTreeManagerProcessing() {
+func (p *inPerf) finishAndLog() {
 	p.tmProc = time.Nanoseconds() - p.tmProc
+	l4g.Info("Transaction: %d:%d \tUser Processing %d\tTree Manager Msg Send %d\tTree Manager Processing %d", p.uId, p.tId, p.userProc, p.tmSend, p.tmProc)
+}
+
+type outPerfer interface {
+	getOutPerf() *outPerf
 }
 
 type outPerf struct {
+	// The operation for this outbound message
+	op serverOp
 	// The user-id of the user who received the initial message for this transaction
 	uId int64
 	// The id of this transaction - (uId,tId) is globally unique between server restarts
@@ -66,22 +70,19 @@ type outPerf struct {
 	wSend int64
 }
 
-func newOutPerf(perf inPerf) outPerf {
+func newOutPerf(op serverOp, perf inPerf) outPerf {
 	return outPerf{uId: perf.uId, tId: perf.tId}
 }
 
-func (p outPerf) startBroadcastSend() {
+func (p *outPerf) beginBSend() {
 	p.bSend = time.Nanoseconds()
 }
 
-func (p outPerf) endBroadcastSend() {
-	p.bSend = time.Nanoseconds() - p.bSend
-}
-
-func (p outPerf) startWebsocketSend() {
+func (p *outPerf) beginWSend() {
 	p.wSend = time.Nanoseconds()
 }
 
-func (p outPerf) endWebsocketSend() {
+func (p *outPerf) finishAndLog() {
 	p.wSend = time.Nanoseconds() - p.wSend
+	l4g.Info("Transaction: %d:%d \tUser Processing %d\tBroadcast Send %d\tWebsocket Send %d", p.uId, p.tId, p.bSend, p.wSend)
 }

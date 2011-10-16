@@ -13,10 +13,10 @@ const (
 //
 // Single Threaded Tree Manager Code 
 //
-var addChan = make(chan user, 32)           // Global Channel for new user requests
-var removeChan = make(chan user, 32)        // Global Channel for user relocation requests
-var moveChan = make(chan cMove, 32) // Global Channel for remove user requests
-var nearbyChan = make(chan cNearby, 32)     // Global Channel for nearby rquests
+var addChan = make(chan user, 32)       // Global Channel for new user requests
+var removeChan = make(chan user, 32)    // Global Channel for user relocation requests
+var moveChan = make(chan cMove, 32)     // Global Channel for remove user requests
+var nearbyChan = make(chan cNearby, 32) // Global Channel for nearby rquests
 
 func TreeManager() {
 	tree := quadtree.NewQuadTree(maxSouth, maxNorth, maxWest, maxEast)
@@ -53,14 +53,17 @@ func handleRemove(usr *user, tree quadtree.QuadTree) {
 }
 
 func handleNearby(nby *cNearby, tree quadtree.QuadTree) {
+	nby.perf.beginTmProc()
 	l4g.Info("User: %d \t Nearby Request \t mNS %f mEW %f", nby.usr.id, nby.mNS, nby.mEW)
 	usr := nby.usr
 	view := nearbyView(usr.mNS, usr.mEW)
 	vs := []*quadtree.View{view}
 	tree.Survey(vs, nearbyFun(&usr))
+	nby.perf.finishAndLog()
 }
 
 func handleMove(mv *cMove, tree quadtree.QuadTree) {
+	mv.perf.beginTmProc()
 	l4g.Info("User: %d \t Relocate Request: \t oMNS: %f oMEW %f nMNS: %f nMEW %f", mv.usr.id, mv.oMNS, mv.oMEW, mv.nMNS, mv.nMEW)
 	usr := &mv.usr
 	deleteUsr(mv.oMNS, mv.oMEW, usr, tree)
@@ -76,6 +79,7 @@ func handleMove(mv *cMove, tree quadtree.QuadTree) {
 	// Alert watching users of the relocation
 	// movedView := []*quadtree.View{nView.Intersect(oView)}
 	// tree.Survey(movedView, movedFun(mv))
+	mv.perf.finishAndLog()
 }
 
 // Deletes usr from tree at the given coords
@@ -93,7 +97,9 @@ func nearbyFun(usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
 		if !usr.eq(oUsr) {
-			usr.writeChan <- newSNearby(oUsr)
+			sNby := newSNearby(oUsr)
+			sNby.perf.beginBSend()
+			usr.writeChan <- sNby
 		}
 	}
 }
@@ -103,7 +109,9 @@ func addFun(usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
 		if !usr.eq(oUsr) {
-			oUsr.writeChan <- newSAdd(usr)
+			sAdd := newSAdd(usr)
+			sAdd.perf.beginBSend()
+			oUsr.writeChan <- sAdd
 		}
 	}
 }
@@ -113,7 +121,9 @@ func addFun(usr *user) func(mNS, mEW float64, e interface{}) {
 func removeFun(usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
-		oUsr.writeChan <- newSRemove(usr)
+		sRmv := newSRemove(usr)
+		sRmv.perf.beginBSend()
+		oUsr.writeChan <- sRmv
 	}
 }
 
@@ -121,8 +131,14 @@ func removeFun(usr *user) func(mNS, mEW float64, e interface{}) {
 func oobFun(mv *cMove) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
-		oUsr.writeChan <- newSOutOfBounds(&mv.usr)
-		mv.usr.writeChan <- newSOutOfBounds(oUsr)
+		// Send oob to other user
+		uOob := newSOutOfBounds(&mv.usr)
+		uOob.perf.beginBSend()
+		oUsr.writeChan <- uOob
+		// Send oob to moving user
+		ouOob := newSOutOfBounds(&mv.usr)
+		ouOob.perf.beginBSend()
+		mv.usr.writeChan <- ouOob
 	}
 }
 
@@ -131,8 +147,12 @@ func visibleFun(mv *cMove) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
 		if !mv.usr.eq(oUsr) {
-			oUsr.writeChan <- newSVisible(&mv.usr)
-			mv.usr.writeChan <- newSVisible(oUsr)
+			uVsb := newSVisible(&mv.usr)
+			uVsb.perf.beginBSend()
+			oUsr.writeChan <- uVsb
+			ouVsb := newSVisible(oUsr)
+			ouVsb.perf.beginBSend()
+			mv.usr.writeChan <- ouVsb
 		}
 	}
 }
@@ -142,7 +162,9 @@ func movedFun(mv *cMove) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
 		if !mv.usr.eq(oUsr) {
-			oUsr.writeChan <- newSMoved(mv.oLat, mv.oLng, &mv.usr)
+			mvd := newSMoved(mv.oLat, mv.oLng, &mv.usr)
+			mvd.perf.beginBSend()
+			oUsr.writeChan <- mvd
 		}
 	}
 }
