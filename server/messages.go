@@ -65,34 +65,40 @@ func newCNearby(lat, lng float64, usr *user, perf *inPerf) cNearby {
 // Server reply operations
 type serverOp string
 
-// Indicates that that a user has moved out of bounds - client should remove this user
-type sOutOfBounds struct {
-	Op   serverOp
-	Usr  user
+// A server message which contains only a serverOp and a user
+type sUserMsg struct {
+	Op serverOp
+	Usr user
 	perf outPerf
 }
 
-func newSOutOfBounds(usr *user) *sOutOfBounds {
-	return &sOutOfBounds{Op: serverOp("sOutOfBounds"), Usr: *usr}
+func (msg *sUserMsg) getOutPerf() *outPerf {
+	return &msg.perf
 }
 
-func (oob *sOutOfBounds) getOutPerf() *outPerf {
-	return &oob.perf
+// Indicates that that a user has moved out of bounds - client should remove this user
+func newSOutOfBounds(usr *user) *sUserMsg {
+	return &sUserMsg{Op: serverOp("sOutOfBounds"), Usr: *usr}
 }
 
 // Indicates that a user has been added - client should add this user
-type sAdd struct {
-	Op   serverOp // Always has the value "new"
-	Usr  user
-	perf outPerf
+func newSAdd(usr *user) *sUserMsg {
+	return &sUserMsg{Op: serverOp("sAdd"), Usr: *usr}
 }
 
-func newSAdd(usr *user) *sAdd {
-	return &sAdd{Op: serverOp("sAdd"), Usr: *usr}
+//Indicates that a user has just appeared within your visible range - client should add this user
+func newSVisible(usr *user) *sUserMsg {
+	return &sUserMsg{Op: serverOp("sVisible"), Usr: *usr}
 }
 
-func (add *sAdd) getOutPerf() *outPerf {
-	return &add.perf
+// Indicates that a user has been removed - client should remove this user
+func newSRemove(usr *user) *sUserMsg {
+	return &sUserMsg{Op: serverOp("sRemove"), Usr: *usr}
+}
+
+// Indicates that a user is nearby
+func newSNearby(usr *user) *sUserMsg {
+	return &sUserMsg{Op: serverOp("sNearby"), Usr: *usr}
 }
 
 // Indicates that a user has moved - client should update this user
@@ -109,50 +115,5 @@ func newSMoved(oLat, oLng float64, usr *user) *sMoved {
 
 func (mvd *sMoved) getOutPerf() *outPerf {
 	return &mvd.perf
-}
-
-//Indicates that a user has just appeared within your visible range - client should add this user
-type sVisible struct {
-	Op   serverOp // Always has the value "visible"
-	Usr  user
-	perf outPerf
-}
-
-func newSVisible(usr *user) *sVisible {
-	return &sVisible{Op: serverOp("sVisible"), Usr: *usr}
-}
-
-func (vsb *sVisible) getOutPerf() *outPerf {
-	return &vsb.perf
-}
-
-// Indicates that a user has been removed - client should remove this user
-type sRemove struct {
-	Op   serverOp // Always has the value "remove"
-	Usr  user
-	perf outPerf
-}
-
-func newSRemove(usr *user) *sRemove {
-	return &sRemove{Op: serverOp("sRemove"), Usr: *usr}
-}
-
-func (rmv *sRemove) getOutPerf() *outPerf {
-	return &rmv.perf
-}
-
-// Indicates that a user is nearby
-type sNearby struct {
-	Op   serverOp // Always has the value "nearby"
-	Usr  user
-	perf outPerf
-}
-
-func newSNearby(usr *user) *sNearby {
-	return &sNearby{Op: serverOp("sNearby"), Usr: *usr}
-}
-
-func (nby *sNearby) getOutPerf() *outPerf {
-	return &nby.perf
 }
 
