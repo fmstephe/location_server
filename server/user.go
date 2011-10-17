@@ -89,7 +89,7 @@ func unmarshal(usr *user, buf []byte, ws *websocket.Conn) (msg *CJsonMsg, err os
 	}
 	l4g.Info("User: %d \tClient Message: %s", usr.id, string(buf[:n]))
 	msg = new(CJsonMsg)
-	msg.perf = newInPerf(usr.id, usr.tId)
+	msg.perf = newInPerf(msg.Op, usr.id, usr.tId)
 	msg.perf.beginUserProc()
 	err = json.Unmarshal(buf[:n], &msg)
 	return

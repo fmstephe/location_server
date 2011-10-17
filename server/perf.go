@@ -31,7 +31,7 @@ type inPerf struct {
 }
 
 func newInPerf(op clientOp, uId, tId int64) *inPerf {
-	return &inPerf{uId: uId, tId: tId}
+	return &inPerf{op: op, uId: uId, tId: tId}
 }
 
 func (p *inPerf) beginUserProc() {
@@ -50,7 +50,8 @@ func (p *inPerf) beginTmProc() {
 
 func (p *inPerf) finishAndLog() {
 	p.tmProc = time.Nanoseconds() - p.tmProc
-	l4g.Info("Transaction: %d:%d \tUser Processing %d\tTree Manager Msg Send %d\tTree Manager Processing %d", p.uId, p.tId, p.userProc, p.tmSend, p.tmProc)
+	fStr := "Transaction: %d:%d \tClient Op %s\tUser Processing %d\tTree Manager Msg Send %d\tTree Manager Processing %d"
+	l4g.Info(fStr, p.uId, p.tId, p.op, p.userProc, p.tmSend, p.tmProc)
 }
 
 type outPerfer interface {
@@ -84,5 +85,6 @@ func (p *outPerf) beginWSend() {
 
 func (p *outPerf) finishAndLog() {
 	p.wSend = time.Nanoseconds() - p.wSend
-	l4g.Info("Transaction: %d:%d \tUser Processing %d\tBroadcast Send %d\tWebsocket Send %d", p.uId, p.tId, p.bSend, p.wSend)
+	fStr := "Transaction: %d:%d \tServer Op %s\tUser Processing %d\tBroadcast Send %d\tWebsocket Send %d"
+	l4g.Info(fStr, p.uId, p.tId, p.op, p.bSend, p.wSend)
 }
