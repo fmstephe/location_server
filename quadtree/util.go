@@ -61,17 +61,3 @@ func overlaps(vs []*View, oV *View) bool {
 	}
 	return false
 }
-
-func max(f1, f2 float64) float64 {
-	if f1 > f2 {
-		return f1
-	}
-	return f2
-}
-
-func min(f1, f2 float64) float64 {
-	if f1 < f2 {
-		return f1
-	}
-	return f2
-}

@@ -3,6 +3,7 @@ package quadtree
 import (
 	"strconv"
 	"fmt"
+	"math"
 )
 
 var invalidView *View
@@ -205,10 +206,10 @@ func (v *View) Intersect(ov *View) *View {
 	if !v.overlaps(ov) {
 		return invalidView
 	}
-	ilx := max(v.lx, ov.lx)
-	irx := min(v.rx, ov.rx)
-	ity := max(v.ty, ov.ty)
-	iby := min(v.by, ov.by)
+	ilx := math.Fmax(v.lx, ov.lx)
+	irx := math.Fmin(v.rx, ov.rx)
+	ity := math.Fmax(v.ty, ov.ty)
+	iby := math.Fmin(v.by, ov.by)
 	return NewViewP(ilx, irx, ity, iby)
 }
 
