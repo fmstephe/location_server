@@ -38,7 +38,7 @@ func (usr *user) eq(oUsr *user) bool {
 // Central entry function for a websocket connection
 // NB: When we return from this function the websocket will be closed
 func WebsocketUser(ws *websocket.Conn) {
-	writeChan := make(chan outPerfer)
+	writeChan := make(chan outPerfer, 32)
 	usr := user{id: ider.new(), writeChan: writeChan}
 	l4g.Info("User: %d \tConnection Established", usr.id)
 	go writeWS(ws, &usr)
