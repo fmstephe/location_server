@@ -13,13 +13,10 @@ const (
 //
 // Single Threaded Tree Manager Code 
 //
-var reqChan = make(chan interface{}, 32) // Global Channel for all requests
-/*
 var addChan = make(chan user, 32)       // Global Channel for new user requests
 var removeChan = make(chan user, 32)    // Global Channel for user relocation requests
 var moveChan = make(chan cMove, 32)     // Global Channel for remove user requests
 var nearbyChan = make(chan cNearby, 32) // Global Channel for nearby rquests
-*/
 
 func TreeManager() {
 	tree := quadtree.NewQuadTree(maxSouth, maxNorth, maxWest, maxEast)
