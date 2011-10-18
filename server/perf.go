@@ -50,7 +50,7 @@ func (p *inPerf) beginTmProc() {
 
 func (p *inPerf) finishAndLog() {
 	p.tmProc = time.Nanoseconds() - p.tmProc
-	fStr := "Transaction: %d:%d \tClient Op %s\tUser Processing %d\tTree Manager Msg Send %d\tTree Manager Processing %d"
+	fStr := "inPerf: %d:%d \tClient Op %s\tUser Processing %d\tTree Manager Msg Send %d\tTree Manager Processing %d"
 	l4g.Info(fStr, p.uId, p.tId, p.op, p.userProc, p.tmSend, p.tmProc)
 }
 
@@ -72,7 +72,7 @@ type outPerf struct {
 }
 
 func newOutPerf(op serverOp, perf inPerf) outPerf {
-	return outPerf{uId: perf.uId, tId: perf.tId}
+	return outPerf{op: op, uId: perf.uId, tId: perf.tId}
 }
 
 func (p *outPerf) beginBSend() {
@@ -85,6 +85,6 @@ func (p *outPerf) beginWSend() {
 
 func (p *outPerf) finishAndLog() {
 	p.wSend = time.Nanoseconds() - p.wSend
-	fStr := "Transaction: %d:%d \tServer Op %s\tUser Processing %d\tBroadcast Send %d\tWebsocket Send %d"
+	fStr := "outPerf: %d:%d \tServer Op %s\tBroadcast Send %d\tWebsocket Send %d"
 	l4g.Info(fStr, p.uId, p.tId, p.op, p.bSend, p.wSend)
 }
