@@ -18,6 +18,11 @@ type CJsonMsg struct {
 	perf     *inPerf
 }
 
+// Usually CJsonMsg structs are built by unmarshal - but this is hard for external test packages
+func TestMsg(op clientOp, lat, lng float64, name string) *CJsonMsg {
+	return &CJsonMsg{Op: op, Lat: lat, Lng: lng, Name: name}
+}
+
 // A client request to update the location of the user
 type cMove struct {
 	nMNS, nMEW float64
@@ -76,11 +81,6 @@ func (msg *sUserMsg) getOutPerf() *outPerf {
 	return &msg.perf
 }
 
-// Indicates that that a user has moved out of bounds - client should remove this user
-func newSOutOfBounds(usr *user) *sUserMsg {
-	return &sUserMsg{Op: serverOp("sOutOfBounds"), Usr: *usr}
-}
-
 // Indicates that a user has been added - client should add this user
 func newSAdd(usr *user) *sUserMsg {
 	return &sUserMsg{Op: serverOp("sAdd"), Usr: *usr}
@@ -89,6 +89,11 @@ func newSAdd(usr *user) *sUserMsg {
 //Indicates that a user has just appeared within your visible range - client should add this user
 func newSVisible(usr *user) *sUserMsg {
 	return &sUserMsg{Op: serverOp("sVisible"), Usr: *usr}
+}
+
+// Indicates that that a user has moved out of bounds - client should remove this user
+func newSNotVisible(usr *user) *sUserMsg {
+	return &sUserMsg{Op: serverOp("sNotVisible"), Usr: *usr}
 }
 
 // Indicates that a user has been removed - client should remove this user

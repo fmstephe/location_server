@@ -94,7 +94,7 @@
 		}
 		var loc = new google.maps.LatLng(usr.Lat, usr.Lng);
 		users[usr.Name] = new google.maps.Marker({position: loc, map: map, title: usr.Name});
-	  } else if (op == "sRemove" || op == "sOutOfBounds") {
+	  } else if (op == "sRemove" || op == "sNotVisible") {
 		users[usr.Name].setMap(null);
 	  }
 	}

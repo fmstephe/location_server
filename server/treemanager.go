@@ -13,10 +13,13 @@ const (
 //
 // Single Threaded Tree Manager Code 
 //
+var reqChan = make(chan interface{}, 32) // Global Channel for all requests
+/*
 var addChan = make(chan user, 32)       // Global Channel for new user requests
 var removeChan = make(chan user, 32)    // Global Channel for user relocation requests
 var moveChan = make(chan cMove, 32)     // Global Channel for remove user requests
 var nearbyChan = make(chan cNearby, 32) // Global Channel for nearby rquests
+*/
 
 func TreeManager() {
 	tree := quadtree.NewQuadTree(maxSouth, maxNorth, maxWest, maxEast)
@@ -71,11 +74,11 @@ func handleMove(mv *cMove, tree quadtree.QuadTree) {
 	nView := nearbyView(mv.nMNS, mv.nMEW)
 	oView := nearbyView(mv.oMNS, mv.oMEW)
 	// Alert out of bounds users
-	oobViews := oView.Subtract(nView)
-	tree.Survey(oobViews, oobFun(mv))
+	nvViews := oView.Subtract(nView)
+	tree.Survey(nvViews, notVisibleFun(mv))
 	// Alert newly visible users
-	nViews := nView.Subtract(oView)
-	tree.Survey(nViews, visibleFun(mv))
+	vViews := nView.Subtract(oView)
+	tree.Survey(vViews, visibleFun(mv))
 	// Alert watching users of the relocation
 	// movedView := []*quadtree.View{nView.Intersect(oView)}
 	// tree.Survey(movedView, movedFun(mv))
@@ -128,15 +131,15 @@ func removeFun(usr *user) func(mNS, mEW float64, e interface{}) {
 }
 
 // Returns a function used for alerting users that another user is going out of range and should be removed
-func oobFun(mv *cMove) func(mNS, mEW float64, e interface{}) {
+func notVisibleFun(mv *cMove) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
-		// Send oob to other user
-		uOob := newSOutOfBounds(&mv.usr)
+		// Send nv to other user
+		uOob := newSNotVisible(&mv.usr)
 		uOob.perf.beginBSend()
 		oUsr.writeChan <- uOob
-		// Send oob to moving user
-		ouOob := newSOutOfBounds(&mv.usr)
+		// Send nv to moving user
+		ouOob := newSNotVisible(&mv.usr)
 		ouOob.perf.beginBSend()
 		mv.usr.writeChan <- ouOob
 	}
