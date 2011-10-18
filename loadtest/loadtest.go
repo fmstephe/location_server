@@ -1,47 +1,88 @@
 package main
 
 import (
-	"strconv"
 	"time"
 	"locserver"
 	"websocket"
 	"json"
+	"rand"
 )
 
 const one_second = 1000000000
 
 func main() {
+	params := wanderParams
+	sleepTime := int64(one_second/16)
 	for i := 0; i < 1000; i++ {
-		go run_test("Test_" + strconv.Itoa(i))
-		time.Sleep(one_second / 8)
+		lat, lng, init, nxtPos := params()
+		go run_test(lat, lng, init, nxtPos, sleepTime)
 	}
-	run_test("Test_End")
+	lat, lng, init, nxtPos := params()
+	run_test(lat, lng, init, nxtPos, sleepTime)
 }
 
-func run_test(name string) {
-	ws, err := websocket.Dial("ws://localhost:8001/ws", "", "http://localhost:8001/")
+func jmpParams() (lat, lng float64, init *locserver.CJsonMsg, nxtPos func(float64, float64) (float64, float64)) {
+	lat = 1.0
+	lng = 1.0
+	init = locserver.TestMsg("cInit", lat, lng, "name")
+	nxtPos = jmpPos
+	return
+}
+
+func jmpPos(lat, lng float64) (nLat, nLng float64) {
+	nLat = float64(lat+1)
+	nLng = float64(lng+1)
+	// A kind of mod
+	if nLat > 90 {
+		nLat = -90
+	}
+	if nLng > 180 {
+		nLng = -180
+	}
+	return
+}
+
+func wanderParams() (lat, lng float64, init *locserver.CJsonMsg, nxtPos func(float64, float64) (float64, float64)) {
+	lat =  rand.Float64()+0.5
+	lng =  rand.Float64()+0.5
+	init = locserver.TestMsg("cInit", lat, lng, "wanderer")
+	nxtPos = wanderPos
+	return
+}
+
+func wanderPos(lat, lng float64) (nLat, nLng float64) {
+	nLat = lat + (rand.Float64()*0.02)-0.01
+	nLng = lng + (rand.Float64()*0.02)-0.01
+	// This is awful
+	if nLat > 1.5 {
+		nLat = 1.5
+	}
+	if nLat < 0.5 {
+		nLat = 0.5
+	}
+	if nLng > 1.5 {
+		nLng = 1.5
+	}
+	if nLng < 0.5 {
+		nLng = 0.5
+	}
+	return
+}
+
+func run_test(lat, lng float64, init *locserver.CJsonMsg, nxtPos func(float64, float64) (float64, float64), sleepTime int64) {
+	ws := doDial()
 	go eatMsgs(ws)
-	if err != nil {
-		panic("Dial: " + err.String())
-	}
-	init := locserver.CJsonMsg{Op: "cInit", Lat: 1.0, Lng: 1.0, Name: name}
-	initA, err := json.MarshalForHTML(init)
-	//println(string(initA))
-	if _, err := ws.Write([]byte(initA)); err != nil {
-		panic("Write: " + err.String())
-	}
+	marshalAndSend(init,ws)
 	i := 0
 	for {
-		time.Sleep(one_second / 16)
+		time.Sleep(sleepTime)
 		i++
-		lat := float64(i % 90)
-		lng := float64(i % 180)
-		cMsg := locserver.CJsonMsg{Op: "cMove", Lat: lat, Lng: lng}
+		lat, lng = nxtPos(lat,lng)
+		cMsg := locserver.TestMsg("cMove", lat, lng, "worthless")
 		cMsgA, err := json.MarshalForHTML(cMsg)
 		if err != nil {
 			panic("Write: " + err.String())
 		}
-		//println(string(cMsgA))
 		if _, err := ws.Write([]byte(cMsgA)); err != nil {
 			panic("Write: " + err.String())
 		}
@@ -56,5 +97,23 @@ func eatMsgs(ws *websocket.Conn) {
 			panic("Read: " + err.String())
 		}
 		println(string(sMsg[:n]))
+	}
+}
+
+func doDial() *websocket.Conn {
+	ws, err := websocket.Dial("ws://localhost:8001/ws", "", "http://localhost:8001/")
+	if err != nil {
+		panic("Dial: " + err.String())
+	}
+	return ws
+}
+
+func marshalAndSend(msg interface{}, ws *websocket.Conn) {
+	msgA, err := json.MarshalForHTML(msg)
+	if err != nil {
+		panic("Unmarshall: " + err.String())
+	}
+	if _, err := ws.Write([]byte(msgA)); err != nil {
+		panic("Write: " + err.String())
 	}
 }
