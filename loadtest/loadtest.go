@@ -16,7 +16,7 @@ var workers = flag.Int("w", 1, "The number of workers to be spawned")
 func main() {
 	flag.Parse()
 	params := wanderParams
-	sleepTime := int64(one_second / 16)
+	sleepTime := int64(one_second)
 	for i := 0; i < *workers; i++ {
 		lat, lng, init, nxtPos := params()
 		go run_test(lat, lng, init, nxtPos, sleepTime)
@@ -85,10 +85,10 @@ func run_test(lat, lng float64, init *locserver.CJsonMsg, nxtPos func(float64, f
 		cMsg := locserver.TestMsg("cMove", lat, lng, "worthless")
 		cMsgA, err := json.MarshalForHTML(cMsg)
 		if err != nil {
-			panic("Write: " + err.String())
+			return
 		}
 		if _, err := ws.Write([]byte(cMsgA)); err != nil {
-			panic("Write: " + err.String())
+			return
 		}
 	}
 }
