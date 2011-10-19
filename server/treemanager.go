@@ -20,16 +20,16 @@ func TreeManager() {
 	for {
 		msg := <-msgChan
 		switch t := msg.(type) {
-			case cAdd: 
+		case cAdd:
 			add := msg.(cAdd)
 			handleAdd(&add, tree)
-			case cRemove: 
+		case cRemove:
 			rmv := msg.(cRemove)
 			handleRemove(&rmv, tree)
-			case cMove : 
+		case cMove:
 			mv := msg.(cMove)
 			handleMove(&mv, tree)
-			case cNearby : 
+		case cNearby:
 			nby := msg.(cNearby)
 			handleNearby(&nby, tree)
 		}

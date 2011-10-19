@@ -26,18 +26,18 @@ func TestMsg(op clientOp, lat, lng float64, name string) *CJsonMsg {
 }
 
 type cAdd struct {
-	usr user
+	usr  user
 	perf inPerf
 }
 
 func newCAdd(usr *user, perf *inPerf) cAdd {
 	lPerf := *perf
 	lPerf.op = initOp
-	return cAdd{usr: *usr, perf : lPerf}
+	return cAdd{usr: *usr, perf: lPerf}
 }
 
 type cRemove struct {
-	usr user
+	usr  user
 	perf inPerf
 }
 
@@ -98,8 +98,8 @@ type serverOp string
 
 // A server message which contains only a serverOp and a user
 type sUserMsg struct {
-	Op serverOp
-	Usr user
+	Op   serverOp
+	Usr  user
 	perf outPerf
 }
 
@@ -164,4 +164,3 @@ func newSMoved(oLat, oLng float64, usr *user) *sMoved {
 func (mvd *sMoved) getOutPerf() *outPerf {
 	return &mvd.perf
 }
-

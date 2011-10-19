@@ -91,6 +91,6 @@ func (p *outPerf) finishAndLog() {
 }
 
 func toMilli(nano int64) float64 {
-	short := int32(nano/1000)
-	return float64(short)/1000
+	short := int32(nano / 1000)
+	return float64(short) / 1000
 }

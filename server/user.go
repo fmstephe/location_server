@@ -15,11 +15,11 @@ var ider idMaker
 // All of a user's fields can change over its lifetime except writeChan
 // Thus, two users are considered equivalent if they have the same writeChan - subject to change
 type user struct {
-	id        int64            // Globally unique identifier for this user
-	tId       int64            // A changing identifier used to tag each message with a transaction id
-	Lat, Lng  float64          // Current position of this user, TODO maybe this should be represented as a string?
-	mNS, mEW  float64          // Current distances in metres from (lat,lng) (0,0), broken down into North/South and East/West distances
-	Name      string           // Arbitrary data (json?) representing this user to the client application
+	id        int64          // Globally unique identifier for this user
+	tId       int64          // A changing identifier used to tag each message with a transaction id
+	Lat, Lng  float64        // Current position of this user, TODO maybe this should be represented as a string?
+	mNS, mEW  float64        // Current distances in metres from (lat,lng) (0,0), broken down into North/South and East/West distances
+	Name      string         // Arbitrary data (json?) representing this user to the client application
 	writeChan chan outPerfer // All messages sent here will be written to the websocket
 	// In the future this may contain a reference to the tree it is stored in
 }
@@ -79,10 +79,10 @@ func readWS(ws *websocket.Conn, usr *user) {
 // Removes a user from the tree when socket connection is closed
 func removeOnClose(usr *user) {
 	usr.tId++
-	perf := newInPerf(usr.id,usr.tId)
+	perf := newInPerf(usr.id, usr.tId)
 	perf.beginUserProc()
 	perf.beginTmSend()
-	msgChan <- newCRemove(usr,perf)
+	msgChan <- newCRemove(usr, perf)
 }
 
 // Unmarshalls into a *CJsonMsg from the websocket connection returning an error if anything goes wrong
