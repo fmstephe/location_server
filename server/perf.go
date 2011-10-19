@@ -50,8 +50,8 @@ func (p *inPerf) beginTmProc() {
 
 func (p *inPerf) finishAndLog() {
 	p.tmProc = time.Nanoseconds() - p.tmProc
-	fStr := "inPerf: %d:%d \top %s\tusrProc %d\ttmSend Send %d\ttmProc %d"
-	l4g.Info(fStr, p.uId, p.tId, p.op, p.userProc, p.tmSend, p.tmProc)
+	fStr := "inPerf: %d:%d \top %s\tusrProc %10.3f\ttmSend Send %10.3f\ttmProc %10.3f"
+	l4g.Info(fStr, p.uId, p.tId, p.op, toMilli(p.userProc), toMilli(p.tmSend), toMilli(p.tmProc))
 }
 
 type outPerfer interface {
@@ -86,6 +86,11 @@ func (p *outPerf) beginWSend() {
 
 func (p *outPerf) finishAndLog() {
 	p.wSend = time.Nanoseconds() - p.wSend
-	fStr := "outPerf: %d:%d \top %s\tbSend %d\twSend %d"
-	l4g.Info(fStr, p.uId, p.tId, p.op, p.bSend, p.wSend)
+	fStr := "outPerf: %d:%d \top %s\t\tbSend %10.3f\twSend %10.3f"
+	l4g.Info(fStr, p.uId, p.tId, p.op, toMilli(p.bSend), toMilli(p.wSend))
+}
+
+func toMilli(nano int64) float64 {
+	short := int32(nano/1000)
+	return float64(short)/1000
 }
