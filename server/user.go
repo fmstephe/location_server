@@ -78,7 +78,11 @@ func readWS(ws *websocket.Conn, usr *user) {
 
 // Removes a user from the tree when socket connection is closed
 func removeOnClose(usr *user) {
-	removeChan <- *usr
+	usr.tId++
+	perf := newInPerf(usr.id,usr.tId)
+	perf.beginUserProc()
+	perf.beginTmSend()
+	msgChan <- newCRemove(usr,perf)
 }
 
 // Unmarshalls into a *CJsonMsg from the websocket connection returning an error if anything goes wrong
@@ -89,9 +93,10 @@ func unmarshal(usr *user, buf []byte, ws *websocket.Conn) (msg *CJsonMsg, err os
 	}
 	l4g.Info("User: %d \tClient Message: %s", usr.id, string(buf[:n]))
 	msg = new(CJsonMsg)
-	msg.perf = newInPerf(msg.Op, usr.id, usr.tId)
+	msg.perf = newInPerf(usr.id, usr.tId)
 	msg.perf.beginUserProc()
 	err = json.Unmarshal(buf[:n], &msg)
+	msg.perf.op = msg.Op
 	return
 }
 
@@ -103,8 +108,9 @@ func processInit(init *CJsonMsg, usr *user) (err os.Error) {
 		usr.Lat = init.Lat
 		usr.Lng = init.Lng
 		usr.mNS, usr.mEW = metresFromOrigin(usr.Lat, usr.Lng)
-		addChan <- *usr
-		nearbyChan <- cNearby{mNS: usr.mNS, mEW: usr.mEW, usr: *usr}
+		init.perf.beginTmSend()
+		msgChan <- newCAdd(usr, init.perf)
+		msgChan <- newCNearby(usr.Lat, usr.Lng, usr, init.perf)
 		return
 	}
 	return iOpErr
@@ -129,7 +135,7 @@ func processRequest(msg *CJsonMsg, usr *user) (err os.Error) {
 func forwardNearby(lat, lng float64, usr *user, perf *inPerf) {
 	nby := newCNearby(lat, lng, usr, perf)
 	nby.perf.beginTmSend()
-	nearbyChan <- nby
+	msgChan <- nby
 }
 
 // Creates a new cRelocate request and sends it to the tree manager 
@@ -143,7 +149,7 @@ func forwardMove(nLat, nLng float64, usr *user, perf *inPerf) {
 	usr.mEW = mEW
 	mv := newCMove(oLat, oLng, nLat, nLng, usr, perf)
 	mv.perf.beginTmSend()
-	moveChan <- mv
+	msgChan <- mv
 }
 
 //  Listen to writeChan

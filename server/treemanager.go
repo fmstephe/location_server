@@ -13,43 +13,51 @@ const (
 //
 // Single Threaded Tree Manager Code 
 //
-var addChan = make(chan user, 32)       // Global Channel for new user requests
-var removeChan = make(chan user, 32)    // Global Channel for user relocation requests
-var moveChan = make(chan cMove, 32)     // Global Channel for remove user requests
-var nearbyChan = make(chan cNearby, 32) // Global Channel for nearby rquests
+var msgChan = make(chan interface{}, 255) // Global Channel for all requests
 
 func TreeManager() {
 	tree := quadtree.NewQuadTree(maxSouth, maxNorth, maxWest, maxEast)
 	for {
-		select {
-		case usr := <-addChan:
-			handleAdd(&usr, tree)
-		case usr := <-removeChan:
-			handleRemove(&usr, tree)
-		case nbyReq := <-nearbyChan:
-			handleNearby(&nbyReq, tree)
-		case mv := <-moveChan:
+		msg := <-msgChan
+		switch t := msg.(type) {
+			case cAdd: 
+			add := msg.(cAdd)
+			handleAdd(&add, tree)
+			case cRemove: 
+			rmv := msg.(cRemove)
+			handleRemove(&rmv, tree)
+			case cMove : 
+			mv := msg.(cMove)
 			handleMove(&mv, tree)
+			case cNearby : 
+			nby := msg.(cNearby)
+			handleNearby(&nby, tree)
 		}
 	}
 }
 
-func handleAdd(usr *user, tree quadtree.QuadTree) {
+func handleAdd(add *cAdd, tree quadtree.QuadTree) {
+	add.perf.beginTmProc()
+	usr := &add.usr
 	l4g.Info("User: %d \t Add Request \tmNS: %f mEW: %f", usr.id, usr.mNS, usr.mEW)
 	mNS := usr.mNS
 	mEW := usr.mEW
 	vs := []*quadtree.View{nearbyView(mNS, mEW)}
 	tree.Survey(vs, addFun(usr))
 	tree.Insert(mNS, mEW, usr)
+	add.perf.finishAndLog()
 }
 
-func handleRemove(usr *user, tree quadtree.QuadTree) {
+func handleRemove(rmv *cRemove, tree quadtree.QuadTree) {
+	rmv.perf.beginTmProc()
+	usr := &rmv.usr
 	l4g.Info("User: %d \t Remove Request", usr.id)
 	mNS := usr.mNS
 	mEW := usr.mEW
 	deleteUsr(mNS, mEW, usr, tree)
 	vs := []*quadtree.View{nearbyView(mNS, mEW)}
 	tree.Survey(vs, removeFun(usr))
+	rmv.perf.finishAndLog()
 }
 
 func handleNearby(nby *cNearby, tree quadtree.QuadTree) {
