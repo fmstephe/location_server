@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"time"
 	"locserver"
 	"websocket"
@@ -10,10 +11,13 @@ import (
 
 const one_second = 1000000000
 
+var workers = flag.Int("w",1,"The number of workers to be spawned")
+
 func main() {
+	flag.Parse()
 	params := wanderParams
 	sleepTime := int64(one_second/16)
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < *workers; i++ {
 		lat, lng, init, nxtPos := params()
 		go run_test(lat, lng, init, nxtPos, sleepTime)
 	}
