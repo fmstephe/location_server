@@ -69,12 +69,12 @@ func (p *perfProfile) stopAndString() string {
 	buf := bytes.NewBufferString(p.pName + "\t")
 	for i := range p.timings {
 		unit := &p.timings[i]
-		fmt.Fprintf(buf, "%s %10.3f\t", unit.taskName, toMilli(unit.time)) // Work out what to do with the error
+		fmt.Fprintf(buf, "perf-%s %10.6f\t", unit.taskName, toMilli(unit.time)) // Work out what to do with the error
 	}
 	return buf.String()
 }
 
 func toMilli(nano int64) float64 {
-	short := int32(nano / 1000)
-	return float64(short) / 1000
+	short := int32(nano)
+	return float64(short) / 1000000
 }
