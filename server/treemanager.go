@@ -34,7 +34,7 @@ func TreeManager() {
 	}
 }
 
-func handleAdd(add *clientMsg, tree quadtree.QuadTree) {
+func handleAdd(add *clientMsg, tree quadtree.T) {
 	usr := &add.usr
 	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
 	l4g.Info("User: %d \t Add Request \tmNS: %f mEW: %f", usr.id, mNS, mEW)
@@ -43,7 +43,7 @@ func handleAdd(add *clientMsg, tree quadtree.QuadTree) {
 	tree.Insert(mNS, mEW, usr)
 }
 
-func handleRemove(rmv *clientMsg, tree quadtree.QuadTree) {
+func handleRemove(rmv *clientMsg, tree quadtree.T) {
 	usr := &rmv.usr
 	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
 	l4g.Info("User: %d \t Remove Request \tmNS: %f mEW: %f", usr.id, mNS, mEW)
@@ -52,7 +52,7 @@ func handleRemove(rmv *clientMsg, tree quadtree.QuadTree) {
 	tree.Survey(vs, removeFun(usr))
 }
 
-func handleNearby(nby *clientMsg, tree quadtree.QuadTree) {
+func handleNearby(nby *clientMsg, tree quadtree.T) {
 	usr := nby.usr
 	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
 	l4g.Info("User: %d \t Nearby Request \t mNS %f mEW %f", usr.id, mNS, mEW)
@@ -61,7 +61,7 @@ func handleNearby(nby *clientMsg, tree quadtree.QuadTree) {
 	tree.Survey(vs, nearbyFun(&usr))
 }
 
-func handleMove(mv *clientMsg, tree quadtree.QuadTree) {
+func handleMove(mv *clientMsg, tree quadtree.T) {
 	usr := &mv.usr
 	nMNS, nMEW := metresFromOrigin(usr.Lat, usr.Lng)
 	oMNS, oMEW := metresFromOrigin(usr.OLat, usr.OLng)
@@ -82,7 +82,7 @@ func handleMove(mv *clientMsg, tree quadtree.QuadTree) {
 }
 
 // Deletes usr from tree at the given coords
-func deleteUsr(mNS, mEW float64, usr *user, tree quadtree.QuadTree) {
+func deleteUsr(mNS, mEW float64, usr *user, tree quadtree.T) {
 	v := quadtree.PointViewP(mNS, mEW)
 	pred := func(_, _ float64, e interface{}) bool {
 		oUsr := e.(*user)

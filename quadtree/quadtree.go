@@ -5,22 +5,6 @@ import (
 	"fmt"
 )
 
-// Public interface for quadtrees.
-// Note that only root implements this interface, not leaf.
-type QuadTree interface {
-	View() *View
-	//
-	Insert(x, y float64, obj interface{})
-	//
-	Survey(view []*View, fun func(x, y float64, e interface{}))
-	//
-	Delete(view *View, pred func(x, y float64, e interface{}) bool)
-	//
-	Width() float64
-	Height() float64
-	String() string
-}
-
 // Private interface for quadtrees.
 // Implemented by both node and leaf.
 type treeInt interface {
@@ -39,19 +23,12 @@ type treeInt interface {
 	String() string
 }
 
-// Returns a new empty QuadTree whose View extends from origin (0,0)
-// with the height and width as provided.
-func NormalQuadTree(width, height float64) QuadTree {
-	var newView = OrigViewP(width, height)
-	return newRoot(newView)
-}
-
 // Returns a new empty QuadTree whose View extends from
 // leftX to rightX across the x axis and
 // topY down to bottomY along the y axis
 // leftX < rightX
 // topY < bottomY
-func NewQuadTree(leftX, rightX, topY, bottomY float64) QuadTree {
+func NewQuadTree(leftX, rightX, topY, bottomY float64) T {
 	var newView = NewViewP(leftX, rightX, topY, bottomY)
 	return newRoot(newView)
 }
