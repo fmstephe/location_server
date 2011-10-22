@@ -2,8 +2,21 @@ package locserver
 
 import (
 	"time"
-	l4g "log4go.googlecode.com/hg"
+	"bytes"
+	"fmt"
 )
+
+// Incoming performance tasks
+const perf_inTaskNum = 3
+const perf_userProc = "userProc"
+const perf_tmSend = "tmSend"
+const perf_tmProc = "tmProc"
+
+// Outgoing performance tasks
+const perf_outTaskNum = 3
+const perf_bSend = "bSend"
+const perf_bProc = "bProc"
+const perf_wSend = "wSend"
 
 // ----------PERFORMANCE TRACKING------------
 
@@ -14,80 +27,51 @@ import (
 //  4: User Broadcast Channel Send
 //  5: Websocket Send
 
-type inPerf struct {
-	// The operation for this transaction
-	op clientOp
-	// The user-id of the user who received the initial message for this transaction
-	uId int64
-	// The id of this transaction - (uId,tId) is globally unique between server restarts
-	tId int64
-	// Nanosecond performance timings
-	// The amount of time it takes the user goroutine to unmarshal and forward a client message
-	userProc int64
-	// The amount of time it takes from when this message is put onto a tree manager channel and when it is taken off
-	tmSend int64
-	// The amount of time it takes the tree manager to process a given message
-	tmProc int64
+type perfProfiler interface {
+	perfProfile() *perfProfile
 }
 
-func newInPerf(uId, tId int64) *inPerf {
-	return &inPerf{uId: uId, tId: tId}
+type perfProfile struct {
+	// A, preferably unique, name for this performance profile
+	pName string
+	// Nanosecond task performance timings
+	timings []perfUnit
 }
 
-func (p *inPerf) beginUserProc() {
-	p.userProc = time.Nanoseconds()
+// A performance profile unit - represents the timing of a specific task
+type perfUnit struct {
+	taskName string
+	time     int64
 }
 
-func (p *inPerf) beginTmSend() {
-	p.userProc = time.Nanoseconds() - p.userProc
-	p.tmSend = time.Nanoseconds()
+func newPerfProfile(uId, tId int64, op string, taskNum int) *perfProfile {
+	t := make([]perfUnit, 0, taskNum)
+	return &perfProfile{pName: fmt.Sprintf("%d:%d:%s", uId, tId, op), timings: t}
 }
 
-func (p *inPerf) beginTmProc() {
-	p.tmSend = time.Nanoseconds() - p.tmSend
-	p.tmProc = time.Nanoseconds()
+func (p *perfProfile) start(taskName string) {
+	u := perfUnit{taskName: taskName, time: time.Nanoseconds()}
+	p.timings = append(p.timings, u)
 }
 
-func (p *inPerf) finishAndLog() {
-	p.tmProc = time.Nanoseconds() - p.tmProc
-	fStr := "inPerf: %d:%d \top %s\tusrProc %10.3f\ttmSend Send %10.3f\ttmProc %10.3f"
-	l4g.Info(fStr, p.uId, p.tId, p.op, toMilli(p.userProc), toMilli(p.tmSend), toMilli(p.tmProc))
+func (p *perfProfile) stop() {
+	last := &p.timings[len(p.timings)-1]
+	last.time = time.Nanoseconds() - last.time
 }
 
-type outPerfer interface {
-	getOutPerf() *outPerf
+func (p *perfProfile) stopAndStart(taskName string) {
+	p.stop()
+	p.start(taskName)
 }
 
-type outPerf struct {
-	// The operation for this outbound message
-	op serverOp
-	// The user-id of the user who received the initial message for this transaction
-	uId int64
-	// The id of this transaction - (uId,tId) is globally unique between server restarts
-	tId int64
-	// The amount of time it takes to send a message to a user via it's writeChan channel
-	bSend int64
-	// The amount of time it takes for the function ws.Send(...) to complete (TODO may or may not be a useful measure - check this out)
-	wSend int64
-}
-
-func newOutPerf(op serverOp, perf inPerf) outPerf {
-	return outPerf{op: op, uId: perf.uId, tId: perf.tId}
-}
-
-func (p *outPerf) beginBSend() {
-	p.bSend = time.Nanoseconds()
-}
-
-func (p *outPerf) beginWSend() {
-	p.bSend = time.Nanoseconds() - p.bSend
-	p.wSend = time.Nanoseconds()
-}
-
-func (p *outPerf) finishAndLog() {
-	p.wSend = time.Nanoseconds() - p.wSend
-	fStr := "outPerf: %d:%d \top %s\t\tbSend %10.3f\twSend %10.3f"
-	l4g.Info(fStr, p.uId, p.tId, p.op, toMilli(p.bSend), toMilli(p.wSend))
+func (p *perfProfile) stopAndString() string {
+	p.stop()
+	buf := bytes.NewBufferString(p.pName + "\t")
+	for i := range p.timings {
+		unit := &p.timings[i]
+		fmt.Fprintf(buf, "%s %10.3f\t", unit.taskName, toMilli(unit.time)) // Work out what to do with the error
+	}
+	return buf.String()
 }
 
 func toMilli(nano int64) float64 {

@@ -13,81 +13,72 @@ const (
 //
 // Single Threaded Tree Manager Code 
 //
-var msgChan = make(chan interface{}, 255) // Global Channel for all requests
+var msgChan = make(chan clientMsg, 255) // Global Channel for all requests
 
 func TreeManager() {
 	tree := quadtree.NewQuadTree(maxSouth, maxNorth, maxWest, maxEast)
 	for {
 		msg := <-msgChan
-		switch t := msg.(type) {
-		case cAdd:
-			add := msg.(cAdd)
-			handleAdd(&add, tree)
-		case cRemove:
-			rmv := msg.(cRemove)
-			handleRemove(&rmv, tree)
-		case cMove:
-			mv := msg.(cMove)
-			handleMove(&mv, tree)
-		case cNearby:
-			nby := msg.(cNearby)
-			handleNearby(&nby, tree)
+		msg.perf.stopAndStart(perf_tmProc)
+		switch msg.op {
+		case cAddOp:
+			handleAdd(&msg, tree)
+		case cRemoveOp:
+			handleRemove(&msg, tree)
+		case cMoveOp:
+			handleMove(&msg, tree)
+		case cNearbyOp:
+			handleNearby(&msg, tree)
 		}
+		l4g.Info(msg.perf.stopAndString())
 	}
 }
 
-func handleAdd(add *cAdd, tree quadtree.QuadTree) {
-	add.perf.beginTmProc()
+func handleAdd(add *clientMsg, tree quadtree.QuadTree) {
 	usr := &add.usr
-	l4g.Info("User: %d \t Add Request \tmNS: %f mEW: %f", usr.id, usr.mNS, usr.mEW)
-	mNS := usr.mNS
-	mEW := usr.mEW
+	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
+	l4g.Info("User: %d \t Add Request \tmNS: %f mEW: %f", usr.id, mNS, mEW)
 	vs := []*quadtree.View{nearbyView(mNS, mEW)}
 	tree.Survey(vs, addFun(usr))
 	tree.Insert(mNS, mEW, usr)
-	add.perf.finishAndLog()
 }
 
-func handleRemove(rmv *cRemove, tree quadtree.QuadTree) {
-	rmv.perf.beginTmProc()
+func handleRemove(rmv *clientMsg, tree quadtree.QuadTree) {
 	usr := &rmv.usr
-	l4g.Info("User: %d \t Remove Request", usr.id)
-	mNS := usr.mNS
-	mEW := usr.mEW
+	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
+	l4g.Info("User: %d \t Remove Request \tmNS: %f mEW: %f", usr.id, mNS, mEW)
 	deleteUsr(mNS, mEW, usr, tree)
 	vs := []*quadtree.View{nearbyView(mNS, mEW)}
 	tree.Survey(vs, removeFun(usr))
-	rmv.perf.finishAndLog()
 }
 
-func handleNearby(nby *cNearby, tree quadtree.QuadTree) {
-	nby.perf.beginTmProc()
-	l4g.Info("User: %d \t Nearby Request \t mNS %f mEW %f", nby.usr.id, nby.mNS, nby.mEW)
+func handleNearby(nby *clientMsg, tree quadtree.QuadTree) {
 	usr := nby.usr
-	view := nearbyView(usr.mNS, usr.mEW)
+	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
+	l4g.Info("User: %d \t Nearby Request \t mNS %f mEW %f", usr.id, mNS, mEW)
+	view := nearbyView(mNS, mEW)
 	vs := []*quadtree.View{view}
 	tree.Survey(vs, nearbyFun(&usr))
-	nby.perf.finishAndLog()
 }
 
-func handleMove(mv *cMove, tree quadtree.QuadTree) {
-	mv.perf.beginTmProc()
-	l4g.Info("User: %d \t Relocate Request: \t oMNS: %f oMEW %f nMNS: %f nMEW %f", mv.usr.id, mv.oMNS, mv.oMEW, mv.nMNS, mv.nMEW)
+func handleMove(mv *clientMsg, tree quadtree.QuadTree) {
 	usr := &mv.usr
-	deleteUsr(mv.oMNS, mv.oMEW, usr, tree)
-	tree.Insert(mv.nMNS, mv.nMEW, usr)
-	nView := nearbyView(mv.nMNS, mv.nMEW)
-	oView := nearbyView(mv.oMNS, mv.oMEW)
+	nMNS, nMEW := metresFromOrigin(usr.Lat, usr.Lng)
+	oMNS, oMEW := metresFromOrigin(usr.OLat, usr.OLng)
+	l4g.Info("User: %d \t Relocate Request: \t oMNS: %f oMEW %f nMNS: %f nMEW %f", usr.id, oMNS, oMEW, nMNS, nMEW)
+	deleteUsr(oMNS, oMEW, usr, tree)
+	tree.Insert(nMNS, nMEW, usr)
+	nView := nearbyView(nMNS, nMEW)
+	oView := nearbyView(oMNS, oMEW)
 	// Alert out of bounds users
 	nvViews := oView.Subtract(nView)
-	tree.Survey(nvViews, notVisibleFun(mv))
+	tree.Survey(nvViews, notVisibleFun(&mv.usr))
 	// Alert newly visible users
 	vViews := nView.Subtract(oView)
-	tree.Survey(vViews, visibleFun(mv))
+	tree.Survey(vViews, visibleFun(&mv.usr))
 	// Alert watching users of the relocation
-	// movedView := []*quadtree.View{nView.Intersect(oView)}
-	// tree.Survey(movedView, movedFun(mv))
-	mv.perf.finishAndLog()
+	movedView := []*quadtree.View{nView.Intersect(oView)}
+	tree.Survey(movedView, movedFun(&mv.usr))
 }
 
 // Deletes usr from tree at the given coords
@@ -105,9 +96,7 @@ func nearbyFun(usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
 		if !usr.eq(oUsr) {
-			sNby := newSNearby(oUsr)
-			sNby.perf.beginBSend()
-			usr.writeChan <- sNby
+			broadcastSend(sNearbyOp, usr, oUsr)
 		}
 	}
 }
@@ -117,9 +106,7 @@ func addFun(usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
 		if !usr.eq(oUsr) {
-			sAdd := newSAdd(usr)
-			sAdd.perf.beginBSend()
-			oUsr.writeChan <- sAdd
+			broadcastSend(sAddOp, usr, oUsr)
 		}
 	}
 }
@@ -129,50 +116,36 @@ func addFun(usr *user) func(mNS, mEW float64, e interface{}) {
 func removeFun(usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
-		sRmv := newSRemove(usr)
-		sRmv.perf.beginBSend()
-		oUsr.writeChan <- sRmv
+		broadcastSend(sRemoveOp, usr, oUsr)
 	}
 }
 
 // Returns a function used for alerting users that another user is going out of range and should be removed
-func notVisibleFun(mv *cMove) func(mNS, mEW float64, e interface{}) {
+func notVisibleFun(usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
-		// Send nv to other user
-		uOob := newSNotVisible(&mv.usr)
-		uOob.perf.beginBSend()
-		oUsr.writeChan <- uOob
-		// Send nv to moving user
-		ouOob := newSNotVisible(&mv.usr)
-		ouOob.perf.beginBSend()
-		mv.usr.writeChan <- ouOob
+		broadcastSend(sNotVisibleOp, usr, oUsr)
+		broadcastSend(sNotVisibleOp, oUsr, usr)
 	}
 }
 
 // Returns a function used for alerting users that another user has just become visible and should be added
-func visibleFun(mv *cMove) func(mNS, mEW float64, e interface{}) {
+func visibleFun(usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
-		if !mv.usr.eq(oUsr) {
-			uVsb := newSVisible(&mv.usr)
-			uVsb.perf.beginBSend()
-			oUsr.writeChan <- uVsb
-			ouVsb := newSVisible(oUsr)
-			ouVsb.perf.beginBSend()
-			mv.usr.writeChan <- ouVsb
+		if !usr.eq(oUsr) {
+			broadcastSend(sVisibleOp, usr, oUsr)
+			broadcastSend(sVisibleOp, oUsr, usr)
 		}
 	}
 }
 
 // Returns a function used for alerting users that another user has changed position and should be updated
-func movedFun(mv *cMove) func(mNS, mEW float64, e interface{}) {
+func movedFun(usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
-		if !mv.usr.eq(oUsr) {
-			mvd := newSMoved(mv.oLat, mv.oLng, &mv.usr)
-			mvd.perf.beginBSend()
-			oUsr.writeChan <- mvd
+		if !usr.eq(oUsr) {
+			broadcastSend(sMovedOp, usr, oUsr)
 		}
 	}
 }
@@ -184,4 +157,11 @@ func nearbyView(mNS, mEW float64) *quadtree.View {
 	wst := mEW - nearbyMetresEW
 	est := mEW + nearbyMetresEW
 	return quadtree.NewViewP(sth, nth, wst, est)
+}
+
+func broadcastSend(op serverOp, usr *user, oUsr *user) {
+	perf := newPerfProfile(usr.id, usr.tId, string(op), perf_outTaskNum)
+	perf.start(perf_bSend)
+	msg := newServerMsg(op, usr, perf)
+	oUsr.writeChan <- msg
 }
