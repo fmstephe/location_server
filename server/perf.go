@@ -66,10 +66,10 @@ func (p *perfProfile) stopAndStart(taskName string) {
 
 func (p *perfProfile) stopAndString() string {
 	p.stop()
-	buf := bytes.NewBufferString(p.pName + "\t")
+	buf := bytes.NewBufferString("perf-" + p.pName + "\t")
 	for i := range p.timings {
 		unit := &p.timings[i]
-		fmt.Fprintf(buf, "perf-%s %10.6f\t", unit.taskName, toMilli(unit.time)) // Work out what to do with the error
+		fmt.Fprintf(buf, "%s %10.6f\t", unit.taskName, toMilli(unit.time)) // Work out what to do with the error
 	}
 	return buf.String()
 }
