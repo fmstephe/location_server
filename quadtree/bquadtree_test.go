@@ -13,10 +13,10 @@ var pointsLarge = 10000
 var repsSingle = 1
 var repsLarge = 10
 
-func makeTrees(tNum int, w, h float64) []QuadTree {
-	trees := make([]QuadTree, tNum)
+func makeTrees(tNum int, w, h float64) []T {
+	trees := make([]T, tNum)
 	for i := range trees {
-		trees[i] = NormalQuadTree(w, h)
+		trees[i] = NewQuadTree(0, w, 0, h)
 	}
 	return trees
 }
@@ -29,7 +29,7 @@ func makePoints(tNum, pNum int, w, h float64) [][]point {
 	return points
 }
 
-func makeFilledTrees(tNum, pNum, reps int, w, h float64) []QuadTree {
+func makeFilledTrees(tNum, pNum, reps int, w, h float64) []T {
 	trees := makeTrees(tNum, w, h)
 	points := makePoints(tNum, pNum, w, h)
 	for ti := range trees {

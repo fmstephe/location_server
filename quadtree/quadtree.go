@@ -302,14 +302,6 @@ func (r *root) Insert(x, y float64, nval interface{}) {
 	r.size++
 }
 
-func (r *root) Width() float64 {
-	return r.n.view.width()
-}
-
-func (r *root) Height() float64 {
-	return r.n.view.height()
-}
-
 // Deletes each element, e, under this node which satisfies two conditions
 // 	1: e lies within view
 //	2: pred(e) returns true
