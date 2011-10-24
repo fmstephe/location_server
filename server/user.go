@@ -4,7 +4,7 @@ import (
 	"os"
 	"websocket"
 	"json"
-	l4g "log4go.googlecode.com/hg"
+	//l4g "log4go.googlecode.com/hg"
 )
 
 var iOpErr = os.NewError("Illegal Operation")
@@ -40,7 +40,7 @@ func (usr *user) eq(oUsr *user) bool {
 func WebsocketUser(ws *websocket.Conn) {
 	writeChan := make(chan perfProfiler, 32)
 	usr := user{id: ider.new(), writeChan: writeChan}
-	l4g.Info("User: %d \tConnection Established", usr.id)
+	//l4g.Info("User: %d \tConnection Established", usr.id)
 	go writeWS(ws, &usr)
 	readWS(ws, &usr)
 }
@@ -53,12 +53,12 @@ func readWS(ws *websocket.Conn, usr *user) {
 	buf := make([]byte, 256)
 	init, perf, err := unmarshal(usr, buf, ws)
 	if err != nil {
-		l4g.Info("User: %d \tConnection Terminated with %s", usr.id, err.String())
+		//l4g.Info("User: %d \tConnection Terminated with %s", usr.id, err.String())
 		return
 	}
 	err = processInit(init, usr, perf)
 	if err != nil {
-		l4g.Info("User: %d \tConnection Terminated with %s", usr.id, err.String())
+		//l4g.Info("User: %d \tConnection Terminated with %s", usr.id, err.String())
 		return
 	}
 	// Accept an endless stream of request messages
@@ -66,12 +66,12 @@ func readWS(ws *websocket.Conn, usr *user) {
 		usr.tId++ // Increase the transaction id for each message
 		req, perf, err := unmarshal(usr, buf, ws)
 		if err != nil {
-			l4g.Info("User: %d \tConnection Terminated with %s", usr.id, err.String())
+			//l4g.Info("User: %d \tConnection Terminated with %s", usr.id, err.String())
 			return
 		}
 		err = processRequest(req, usr, perf)
 		if err != nil {
-			l4g.Info("User: %d \tConnection Terminated with %s", usr.id, err.String())
+			//l4g.Info("User: %d \tConnection Terminated with %s", usr.id, err.String())
 		}
 	}
 }
@@ -90,7 +90,7 @@ func unmarshal(usr *user, buf []byte, ws *websocket.Conn) (msg *CJsonMsg, perf *
 	if err != nil && err != os.EOF {
 		return
 	}
-	l4g.Info("User: %d \tClient Message: %s", usr.id, string(buf[:n]))
+	//l4g.Info("User: %d \tClient Message: %s", usr.id, string(buf[:n]))
 	msg = new(CJsonMsg)
 	err = json.Unmarshal(buf[:n], &msg)
 	perf = newPerfProfile(usr.id, usr.tId, string(msg.Op), perf_inTaskNum)
@@ -144,11 +144,11 @@ func writeWS(ws *websocket.Conn, usr *user) {
 		perf.stopAndStart(perf_wSend)
 		buf, err := json.MarshalForHTML(msg)
 		if err != nil {
-			l4g.Info("User: %d \tError: %s", usr.id, err.String())
+			//l4g.Info("User: %d \tError: %s", usr.id, err.String())
 		} else {
-			l4g.Info("User: %d \tServer Message: %s", usr.id, string(buf))
+			//l4g.Info("User: %d \tServer Message: %s", usr.id, string(buf))
 			ws.Write(buf)
 		}
-		l4g.Info("%s", perf.stopAndString())
+		//l4g.Info("%s", perf.stopAndString())
 	}
 }
