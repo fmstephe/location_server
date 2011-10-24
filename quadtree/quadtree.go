@@ -62,6 +62,8 @@ func (np *vpoint) String() string {
 	return " (" + fmt.Sprint(np.elems) + ", " + x + ", " + y + ")"
 }
 
+const LEAF_SIZE = 16
+
 // A leaf struct implements the interface treeInt. Like a node (see below),
 // a leaf contains a View defining the rectangular area in which each vpoint
 // could legally be located. A leaf struct may contain up to four non-zeroed
@@ -73,7 +75,7 @@ func (np *vpoint) String() string {
 // the leaf level.
 type leaf struct {
 	view View
-	ps   [4]vpoint
+	ps   [LEAF_SIZE]vpoint
 }
 
 // Returns a new leaf struct containing view and with all vpoints zeroed.
@@ -170,7 +172,7 @@ func delete(p *vpoint, pred func(x, y float64, e interface{}) bool) (delCount in
 
 // Restores the leaf invariant that "if any vpoint is initialised, then all vpoints 
 // of lesser index are also initialised" by rearranging the elements of ps.
-func restoreOrder(ps *[4]vpoint) {
+func restoreOrder(ps *[LEAF_SIZE]vpoint) {
 	for i := range ps {
 		if ps[i].zeroed() {
 			for j := i + 1; j < len(ps); j++ {
@@ -221,7 +223,8 @@ type node struct {
 // four leaves within the View provided.
 func newNode(view *View) *node {
 	v1, v2, v3, v4 := view.quarters()
-	return &node{*view, [4]treeInt{newLeaf(v1), newLeaf(v2), newLeaf(v3), newLeaf(v4)}}
+	n := &node{*view, [4]treeInt{newLeaf(v1), newLeaf(v2), newLeaf(v3), newLeaf(v4)}}
+	return n
 }
 
 // Returns the View for this node

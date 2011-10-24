@@ -91,8 +91,8 @@ type arraynode struct {
 	state    int
 	children [4]*arraynode
 	// Leaf arraynode values
-	x, y     float64
-	elems    []interface{}
+	x, y  float64
+	elems []interface{}
 }
 
 // Private method for creating new arraynodes. Returns a arraynode with
@@ -195,38 +195,41 @@ func (n *arraynode) survey(vs []*View, fun func(x, y float64, e interface{})) {
 	}
 }
 
-func (n *arraynode) delete(view *View, pred func(x, y float64, e interface{}) bool, at *arraytree) (madeEmpty bool) {
+func (n *arraynode) delete(view *View, pred func(x, y float64, e interface{}) bool, at *arraytree) (isEmpty bool) {
 	if !n.view.overlaps(view) {
-		return false
+		return n.state == emptyState
 	}
 	switch n.state {
 	case emptyState:
-		return false
+		return true
 	case internalState:
 		allEmpty := true
 		for i := range n.children {
-			child := n.children[i]
-			allEmpty = allEmpty && child.delete(view, pred, at)
+			emptyChild := n.children[i].delete(view, pred, at)
+			allEmpty = allEmpty &&  emptyChild
 		}
 		if allEmpty {
 			for i := range n.children {
 				n.children[i].makeFree(at)
 				n.children[i] = nil
 			}
+			n.makeEmpty()
 		}
 		return allEmpty
 	case leafState:
-		for i := len(n.elems) - 1; i >= 0; i-- {
-			if pred(n.x, n.y, n.elems[i]) {
-				// Fast delete from slice
-				last := len(n.elems) - 1
-				n.elems[i] = n.elems[last]
-				n.elems = n.elems[:last]
+		if view.contains(n.x, n.y) {
+			for i := len(n.elems) - 1; i >= 0; i-- {
+				if pred(n.x, n.y, n.elems[i]) {
+					// Fast delete from slice
+					last := len(n.elems) - 1
+					n.elems[i] = n.elems[last]
+					n.elems = n.elems[:last]
+				}
 			}
+			return len(n.elems) == 0
 		}
-		return len(n.elems) == 0
 	}
-	return
+	return false
 }
 
 func (n *arraynode) treeString(at *arraytree) string {
@@ -243,7 +246,7 @@ func (n *arraynode) treeString(at *arraytree) string {
 		out += ">"
 		return out
 	case leafState:
-		return fmt.Sprintf("%v", n.elems)
+		return fmt.Sprintf("%v:%v", n.view, n.elems)
 	}
 	return "Illegal State"
 }

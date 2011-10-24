@@ -32,7 +32,7 @@ type point struct {
 var testRand = rand.New(rand.NewSource(time.Nanoseconds()))
 
 // Tests whether a newly built quadtree has the correct dimensions
-func TestEmpty(t *testing.T) {
+func dTestEmpty(t *testing.T) {
 	for _, r := range dims {
 		testEmpty(r.width, r.height, t)
 	}
@@ -54,7 +54,7 @@ func testEmpty(width, height float64, t *testing.T) {
 }
 
 // Test that we can insert a single element into the tree and then retrieve it
-func TestOneElement(t *testing.T) {
+func dTestOneElement(t *testing.T) {
 	for _, r := range dims {
 		tree := NewArrayTree(0, r.width, 0, r.height, treeMaxSize)
 		testOneElement(tree, t)
@@ -76,7 +76,7 @@ func testOneElement(tree T, t *testing.T) {
 // the implementation detail that a quadrant with 5 elements will 
 // over-load a single leaf and must rearrange itself to fit the 5th 
 // element in.
-func TestFullLeaf(t *testing.T) {
+func dTestFullLeaf(t *testing.T) {
 	for _, r := range dims {
 		w := r.width
 		h := r.height
@@ -105,7 +105,7 @@ func testFullLeaf(tree T, v *View, msg string, t *testing.T) {
 
 // Tests that we can add a large number of random elements to a tree
 // and create random views for collecting from the populated tree.
-func TestScatter(t *testing.T) {
+func dTestScatter(t *testing.T) {
 	for _, r := range dims {
 		testScatter(NewArrayTree(0, r.width, 0, r.height, treeMaxSize), t)
 	}
@@ -164,7 +164,7 @@ func testScatterDup(tree T, t *testing.T) {
 // We get
 // 1: The single element is the only element in the deleted list
 // 2: The tree no longer contains any elements
-func TestSimpleAddDelete(t *testing.T) {
+func dTestSimpleAddDelete(t *testing.T) {
 	for _, d := range dims {
 		testAddDelete(d, t)
 		testAddDeleteDup(d, t)
@@ -233,10 +233,10 @@ func testAddDeleteMulti(d dim, t *testing.T) {
 
 func TestScatterDelete(t *testing.T) {
 	for _, r := range dims {
-		for i := 0; i < 10; i++ {
-			testScatterDelete(NewArrayTree(0, r.width, 0, r.height, treeMaxSize), t)
-			testScatterDeleteMulti(NewArrayTree(0, r.width, 0, r.height, treeMaxSize), t)
-		}
+	for i := 0; i < 10; i++ {
+		testScatterDelete(NewArrayTree(0, r.width, 0, r.height, treeMaxSize), t)
+		testScatterDeleteMulti(NewArrayTree(0, r.width, 0, r.height, treeMaxSize), t)
+	}
 	}
 }
 
