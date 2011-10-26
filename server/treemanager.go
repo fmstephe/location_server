@@ -2,7 +2,7 @@ package locserver
 
 import (
 	"quadtree"
-	l4g "log4go.googlecode.com/hg"
+	//l4g "log4go.googlecode.com/hg"
 )
 
 const (
@@ -30,14 +30,14 @@ func TreeManager() {
 		case cNearbyOp:
 			handleNearby(&msg, tree)
 		}
-		l4g.Info(msg.perf.stopAndString())
+		//l4g.Info(msg.perf.stopAndString())
 	}
 }
 
 func handleAdd(add *clientMsg, tree quadtree.T) {
 	usr := &add.usr
 	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
-	l4g.Info("User: %d \t Add Request \tmNS: %f mEW: %f", usr.id, mNS, mEW)
+	//l4g.Info("User: %d \t Add Request \tmNS: %f mEW: %f", usr.id, mNS, mEW)
 	vs := []*quadtree.View{nearbyView(mNS, mEW)}
 	tree.Survey(vs, addFun(usr))
 	tree.Insert(mNS, mEW, usr)
@@ -46,7 +46,7 @@ func handleAdd(add *clientMsg, tree quadtree.T) {
 func handleRemove(rmv *clientMsg, tree quadtree.T) {
 	usr := &rmv.usr
 	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
-	l4g.Info("User: %d \t Remove Request \tmNS: %f mEW: %f", usr.id, mNS, mEW)
+	//l4g.Info("User: %d \t Remove Request \tmNS: %f mEW: %f", usr.id, mNS, mEW)
 	deleteUsr(mNS, mEW, usr, tree)
 	vs := []*quadtree.View{nearbyView(mNS, mEW)}
 	tree.Survey(vs, removeFun(usr))
@@ -55,7 +55,7 @@ func handleRemove(rmv *clientMsg, tree quadtree.T) {
 func handleNearby(nby *clientMsg, tree quadtree.T) {
 	usr := nby.usr
 	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
-	l4g.Info("User: %d \t Nearby Request \t mNS %f mEW %f", usr.id, mNS, mEW)
+	//l4g.Info("User: %d \t Nearby Request \t mNS %f mEW %f", usr.id, mNS, mEW)
 	view := nearbyView(mNS, mEW)
 	vs := []*quadtree.View{view}
 	tree.Survey(vs, nearbyFun(&usr))
@@ -65,7 +65,7 @@ func handleMove(mv *clientMsg, tree quadtree.T) {
 	usr := &mv.usr
 	nMNS, nMEW := metresFromOrigin(usr.Lat, usr.Lng)
 	oMNS, oMEW := metresFromOrigin(usr.OLat, usr.OLng)
-	l4g.Info("User: %d \t Relocate Request: \t oMNS: %f oMEW %f nMNS: %f nMEW %f", usr.id, oMNS, oMEW, nMNS, nMEW)
+	//l4g.Info("User: %d \t Relocate Request: \t oMNS: %f oMEW %f nMNS: %f nMEW %f", usr.id, oMNS, oMEW, nMNS, nMEW)
 	deleteUsr(oMNS, oMEW, usr, tree)
 	tree.Insert(nMNS, nMEW, usr)
 	nView := nearbyView(nMNS, nMEW)

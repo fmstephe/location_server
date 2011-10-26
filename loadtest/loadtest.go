@@ -16,7 +16,7 @@ var workers = flag.Int("w", 1, "The number of workers to be spawned")
 func main() {
 	flag.Parse()
 	params := wanderParams
-	sleepTime := int64(one_second)
+	sleepTime := int64(one_second/16)
 	for i := 0; i < *workers; i++ {
 		lat, lng, init, nxtPos := params()
 		go run_test(lat, lng, init, nxtPos, sleepTime)
@@ -28,7 +28,7 @@ func main() {
 func jmpParams() (lat, lng float64, init *locserver.CJsonMsg, nxtPos func(float64, float64) (float64, float64)) {
 	lat = 1.0
 	lng = 1.0
-	init = locserver.TestMsg("cInit", lat, lng, "name")
+	init = locserver.TestMsg("cAdd", lat, lng, "name")
 	nxtPos = jmpPos
 	return
 }
@@ -49,7 +49,7 @@ func jmpPos(lat, lng float64) (nLat, nLng float64) {
 func wanderParams() (lat, lng float64, init *locserver.CJsonMsg, nxtPos func(float64, float64) (float64, float64)) {
 	lat = rand.Float64() + 0.5
 	lng = rand.Float64() + 0.5
-	init = locserver.TestMsg("cInit", lat, lng, "wanderer")
+	init = locserver.TestMsg("cAdd", lat, lng, "wanderer")
 	nxtPos = wanderPos
 	return
 }
