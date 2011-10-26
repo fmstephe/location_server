@@ -206,7 +206,7 @@ func (n *arraynode) delete(view *View, pred func(x, y float64, e interface{}) bo
 		allEmpty := true
 		for i := range n.children {
 			emptyChild := n.children[i].delete(view, pred, at)
-			allEmpty = allEmpty &&  emptyChild
+			allEmpty = allEmpty && emptyChild
 		}
 		if allEmpty {
 			for i := range n.children {

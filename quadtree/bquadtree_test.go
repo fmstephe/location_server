@@ -16,7 +16,7 @@ var repsLarge = 10
 func makeTrees(tNum int, w, h float64) []T {
 	trees := make([]T, tNum)
 	for i := range trees {
-		trees[i] = NewQuadTree(0, w, 0, h)
+		trees[i] = NewQuadTree(0, w, 0, h, 10000)
 	}
 	return trees
 }
