@@ -68,7 +68,7 @@ func (np *vpoint) String() string {
 	return " (" + fmt.Sprint(np.elems) + ", " + x + ", " + y + ")"
 }
 
-const LEAF_SIZE = 4
+const LEAF_SIZE = 16
 
 // A leaf struct implements the interface inode. Like a node (see below),
 // a leaf contains a View defining the rectangular area in which each vpoint
