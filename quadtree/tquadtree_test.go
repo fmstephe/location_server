@@ -13,15 +13,9 @@ type dim struct {
 }
 
 const dups = 10
+const treeLim = 10000
 
-// Slice of random dimensions for creating quad trees
-var dims = []dim{
-	dim{10, 10},
-	dim{1, 2},
-	dim{100, 300},
-	dim{20.4, 35.6},
-	dim{1e10, 500.000001},
-}
+var testTrees []T
 
 type point struct {
 	x, y float64
@@ -29,32 +23,32 @@ type point struct {
 
 var testRand = rand.New(rand.NewSource(time.Nanoseconds()))
 
-// Tests whether a newly built quadtree has the correct dimensions
-func dTestEmpty(t *testing.T) {
-	for _, r := range dims {
-		testEmpty(r.width, r.height, t)
+func init() {
+	testTrees = []T{
+		NewQuadTree(0, 10, 0, 10, treeLim),
+		NewQuadTree(0, 1, 0, 2, treeLim),
+		NewQuadTree(0, 100, 0, 300, treeLim),
+		NewQuadTree(0, 20.4, 0, 35.6, treeLim),
+		NewQuadTree(0, 1e10, 0, 500.00000001, treeLim),
+		// Negative regions
+		NewQuadTree(-10, 10, -10, 10, treeLim),
+		NewQuadTree(-1, 1, -2, 2, treeLim),
+		NewQuadTree(-100, 100, -300, 300, treeLim),
+		NewQuadTree(-20.4, 20.4, -35.6, 35.6, treeLim),
+		NewQuadTree(-1e10, 1e10, -500.00000001, 500.00000001, treeLim),
 	}
 }
 
-func testEmpty(width, height float64, t *testing.T) {
-	var tree = NewQuadTree(0, width, 0, height, 10000)
-	view := tree.View()
-	switch false {
-	case view.lx == 0:
-		t.Errorf("View has %f for lx, expecting 0", view.lx)
-	case view.rx == width:
-		t.Error("View has %f for rx, expecting %f", view.rx, width)
-	case view.ty == 0:
-		t.Error("View has %f for ty, expecting 0", view.ty)
-	case view.by == height:
-		t.Error("View has %f for by, expecting 1", view.by, height)
+func clearTrees() {
+	for i := range testTrees {
+		testTrees[i].Delete(testTrees[i].View(), SimpleDelete())
 	}
 }
 
 // Test that we can insert a single element into the tree and then retrieve it
-func dTestOneElement(t *testing.T) {
-	for _, r := range dims {
-		tree := NewQuadTree(0, r.width, 0, r.height, 10000)
+func TestOneElement(t *testing.T) {
+	clearTrees()
+	for _, tree := range testTrees {
 		testOneElement(tree, t)
 	}
 }
@@ -75,16 +69,14 @@ func testOneElement(tree T, t *testing.T) {
 // over-load a single leaf and must rearrange itself to fit the 5th 
 // element in.
 func TestFullLeaf(t *testing.T) {
-	//for _, r := range dims {
-	w := dims[0].width
-	h := dims[0].height
-	v := OrigView(w, h)
-	v1, v2, v3, v4 := v.quarters()
-	testFullLeaf(NewQuadTree(0, w, 0, h, 10000), v1, "v1", t)
-	testFullLeaf(NewQuadTree(0, w, 0, h, 10000), v2, "v2", t)
-	testFullLeaf(NewQuadTree(0, w, 0, h, 10000), v3, "v3", t)
-	testFullLeaf(NewQuadTree(0, w, 0, h, 10000), v4, "v4", t)
-	//}
+	clearTrees()
+	for _, tree := range testTrees {
+		v1, v2, v3, v4 := tree.View().quarters()
+		testFullLeaf(tree, v1, "v1", t)
+		testFullLeaf(tree, v2, "v2", t)
+		testFullLeaf(tree, v3, "v3", t)
+		testFullLeaf(tree, v4, "v4", t)
+	}
 }
 
 func testFullLeaf(tree T, v *View, msg string, t *testing.T) {
@@ -93,9 +85,8 @@ func testFullLeaf(tree T, v *View, msg string, t *testing.T) {
 		name := "test" + strconv.Itoa(i)
 		tree.Insert(x, y, name)
 	}
-	vt := tree.View()
 	fun, results := SimpleSurvey()
-	tree.Survey([]*View{vt}, fun)
+	tree.Survey([]*View{v}, fun)
 	if results.Len() != 5 {
 		t.Error(msg, "Inserted 5 elements into a fresh quadtree and retrieved only ", results.Len())
 	}
@@ -103,14 +94,15 @@ func testFullLeaf(tree T, v *View, msg string, t *testing.T) {
 
 // Tests that we can add a large number of random elements to a tree
 // and create random views for collecting from the populated tree.
-func dTestScatter(t *testing.T) {
-	//for _, r := range dims {
-	testScatter(NewQuadTree(0, dims[0].width, 0, dims[0].height, 10000), t)
-	//}
+func TestScatter(t *testing.T) {
+	clearTrees()
+	for _, tree := range testTrees {
+		testScatter(tree, t)
+	}
 }
 
 func testScatter(tree T, t *testing.T) {
-	ps := fillView(tree.View(), 65)
+	ps := fillView(tree.View(), 30)
 	for _, p := range ps {
 		tree.Insert(p.x, p.y, "test")
 	}
@@ -162,12 +154,42 @@ func testScatterDup(tree T, t *testing.T) {
 // We get
 // 1: The single element is the only element in the deleted list
 // 2: The tree no longer contains any elements
-func dTestSimpleAddDelete(t *testing.T) {
-	for _, d := range dims {
-		testAddDelete(d, t)
-		testAddDeleteDup(d, t)
-		testAddDeleteMulti(d, t)
+func TestSimpleAddDelete(t *testing.T) {
+	clearTrees()
+	for _, tree := range testTrees {
+		testAddDelete(tree, t)
 	}
+	clearTrees()
+	for _, tree := range testTrees {
+		testAddDeleteDup(tree, t)
+	}
+	clearTrees()
+	for _, tree := range testTrees {
+		testAddDeleteMulti(tree, t)
+	}
+}
+
+// Add element delete everything from the tree.
+func testAddDelete(tree T, t *testing.T) {
+	elem := "test"
+	//testDeleteSimple(NewQuadTree(0, d.width, 0, d.height, 10000), []interface{}{elem}, []interface{}{elem}, false, "Simple Global Delete", t)
+	testDeleteSimple(tree, []interface{}{elem}, []interface{}{elem}, true, "Simple Exact Delete", t)
+}
+
+// Add two elements, delete one element from entire tree
+func testAddDeleteDup(tree T, t *testing.T) {
+	elem := "test"
+	elemII := "testII"
+	//testDeleteSimple(NewQuadTree(0, d.width, 0, d.height, 10000), []interface{}{elem, elemII}, []interface{}{elem}, false, "Simple Gobal Delete Take One Of Two", t)
+	testDeleteSimple(tree, []interface{}{elem, elemII}, []interface{}{elem}, false, "Simple Exact Delete Take One Of Two", t)
+}
+
+// Add two elements, delete both from entire tree
+func testAddDeleteMulti(tree T, t *testing.T) {
+	elem := "test"
+	elemII := "testII"
+	//testDeleteSimple(NewQuadTree(0, d.width, 0, d.height, 10000), []interface{}{elem, elemII}, []interface{}{elem, elemII}, false, "Simple Global Delete Take Two Of Two", t)
+	testDeleteSimple(tree, []interface{}{elem, elemII}, []interface{}{elem, elemII}, true, "Simple Exact Delete Take Two Of Two", t)
 }
 
 // Tests a very limited deletion scenario. Here we will insert every element in 'insert' into the tree at a
@@ -206,36 +228,15 @@ OUTER_LOOP:
 	testSurvey(tree, tree.View(), fun, collected, expCol, t, errPrfx)
 }
 
-// Add element delete everything from the tree.
-func testAddDelete(d dim, t *testing.T) {
-	elem := "test"
-	testDeleteSimple(NewQuadTree(0, d.width, 0, d.height, 10000), []interface{}{elem}, []interface{}{elem}, false, "Simple Global Delete", t)
-	testDeleteSimple(NewQuadTree(0, d.width, 0, d.height, 10000), []interface{}{elem}, []interface{}{elem}, true, "Simple Exact Delete", t)
-}
-
-// Add two elements, delete one element from entire tree
-func testAddDeleteDup(d dim, t *testing.T) {
-	elem := "test"
-	elemII := "testII"
-	testDeleteSimple(NewQuadTree(0, d.width, 0, d.height, 10000), []interface{}{elem, elemII}, []interface{}{elem}, false, "Simple Gobal Delete Take One Of Two", t)
-	testDeleteSimple(NewQuadTree(0, d.width, 0, d.height, 10000), []interface{}{elem, elemII}, []interface{}{elem}, false, "Simple Exact Delete Take One Of Two", t)
-}
-
-// Add two elements, delete both from entire tree
-func testAddDeleteMulti(d dim, t *testing.T) {
-	elem := "test"
-	elemII := "testII"
-	testDeleteSimple(NewQuadTree(0, d.width, 0, d.height, 10000), []interface{}{elem, elemII}, []interface{}{elem, elemII}, false, "Simple Global Delete Take Two Of Two", t)
-	testDeleteSimple(NewQuadTree(0, d.width, 0, d.height, 10000), []interface{}{elem, elemII}, []interface{}{elem, elemII}, true, "Simple Exact Delete Take Two Of Two", t)
-}
-
-func dTestScatterDelete(t *testing.T) {
-	for _, r := range dims {
-		for i := 0; i < 10; i++ {
-			testScatterDelete(NewQuadTree(0, r.width, 0, r.height, 10000), t)
-			testScatterDeleteMulti(NewQuadTree(0, r.width, 0, r.height, 10000), t)
+func TestScatterDelete(t *testing.T) {
+		clearTrees()
+		for _, tree := range testTrees {
+			testScatterDelete(tree, t)
 		}
-	}
+		clearTrees()
+		for _, tree := range testTrees {
+			testScatterDeleteMulti(tree, t)
+		}
 }
 
 func testScatterDelete(tree T, t *testing.T) {
@@ -288,6 +289,21 @@ func testScatterDeleteMulti(tree T, t *testing.T) {
 	testDelete(tree, delView, pred, deleted, expDel, t, "Scatter Insert and Delete Under Area With Three Elements Per Location")
 	fun, results := SimpleSurvey()
 	testSurvey(tree, tree.View(), fun, results, expCol, t, "Scatter Insert and Delete Under Area With Three Elements Per Location")
+}
+
+func TestOverloadLifecycle(t *testing.T) {
+  tree := NewQuadTree(0, 10, 0, 10, 100)
+  pointNum := 75
+  name := "overload"
+  for i := 0; i < 10; i++ {
+	points := fillView(tree.View(), pointNum)
+	for i, p := range points {
+	  for d := 0; d < dups; d++ {
+		tree.Insert(p.x, p.y, name+strconv.Itoa(i)+"_"+strconv.Itoa(d))
+	  }
+	}
+	tree.Delete(tree.View(),SimpleDelete())
+  }
 }
 
 func testDelete(tree T, view *View, pred func(x, y float64, e interface{}) bool, deleted, expDel *vector.Vector, t *testing.T, errPfx string) {

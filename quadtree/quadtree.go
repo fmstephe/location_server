@@ -11,14 +11,14 @@ var noNodes = os.NewError("No nodes available")
 
 // Private interface for quadtrees.
 // Implemented by both node and leaf.
-type treeInt interface {
+type inode interface {
 	View() *View
 	//
-	insert(x, y float64, elems []interface{}, p *treeInt, r *root) (err os.Error)
+	insert(x, y float64, elems []interface{}, p *inode, r *root) (err os.Error)
 	//
 	survey(view []*View, fun func(x, y float64, e interface{}))
 	//
-	delete(view *View, pred func(x, y float64, e interface{}) bool, p *treeInt, r *root)
+	delete(view *View, pred func(x, y float64, e interface{}) bool, p *inode, r *root)
 	//
 	isEmptyLeaf() bool
 	//
@@ -70,7 +70,7 @@ func (np *vpoint) String() string {
 
 const LEAF_SIZE = 4
 
-// A leaf struct implements the interface treeInt. Like a node (see below),
+// A leaf struct implements the interface inode. Like a node (see below),
 // a leaf contains a View defining the rectangular area in which each vpoint
 // could legally be located. A leaf struct may contain up to four non-zeroed
 // vpoints.
@@ -100,13 +100,12 @@ func (l *leaf) View() *View {
 //					- Replace this leaf with an intermediate node and re-allocate 
 //					all of the elements in this leaf as well as those in elems into
 //					the new node
-func (l *leaf) insert(x, y float64, elems []interface{}, inPtr *treeInt, r *root) (err os.Error) {
+func (l *leaf) insert(x, y float64, elems []interface{}, inPtr *inode, r *root) (err os.Error) {
 	for i := range l.ps {
 		if l.ps[i].zeroed() {
 			l.ps[i].x = x
 			l.ps[i].y = y
 			l.ps[i].elems = elems // append(l.ps[i].elems, elems...)
-			println("\tInserting", l.view.String(), x, y, l, elems)
 			return
 		}
 		if l.ps[i].sameLoc(x, y) {
@@ -118,21 +117,18 @@ func (l *leaf) insert(x, y float64, elems []interface{}, inPtr *treeInt, r *root
 	return newIntNode(x, y, elems, inPtr, l, r)
 }
 
-func newIntNode(x, y float64, elems []interface{}, inPtr *treeInt, l *leaf, r *root) (err os.Error) {
-	println("New Internal")
-	var intNode treeInt
-	intNode, err = r.newNode(l.View())
+func newIntNode(x, y float64, elems []interface{}, inPtr *inode, l *leaf, r *root) (err os.Error) {
+	var newNode inode
+	newNode, err = r.newNode(l.View())
 	if err != nil {
 		return
 	}
 	for _, p := range l.ps {
-		intNode.insert(p.x, p.y, p.elems, &intNode, r)
+		newNode.insert(p.x, p.y, p.elems, nil, r) // Does not require an inPtr param as we are passing into a *node
 	}
-	println("Adding Extra", x, y, elems)
-	println(intNode.(*node), (*inPtr).(*node))
-	intNode.insert(x, y, elems, &intNode, r)
-	r.recycle(*inPtr)
-	*inPtr = intNode // Redirect the old leaf's reference to this intermediate node
+	newNode.insert(x, y, elems, nil, r) // Does not require an inPtr param as we are passing into a *node
+	*inPtr = newNode                    // Redirect the old leaf's reference to this intermediate node
+	r.recycleLeaf(l)
 	return
 }
 
@@ -153,7 +149,7 @@ func (l *leaf) survey(vs []*View, fun func(x, y float64, e interface{})) {
 // 	1: e lies within view
 //	2: pred(e) returns true
 // It is expected that pred will have side-effects allowing for the processing of deleted elements.
-func (l *leaf) delete(view *View, pred func(x, y float64, e interface{}) bool, _ *treeInt, _ *root) {
+func (l *leaf) delete(view *View, pred func(x, y float64, e interface{}) bool, _ *inode, _ *root) {
 	for i := range l.ps {
 		point := &l.ps[i]
 		if !point.zeroed() && view.contains(point.x, point.y) {
@@ -221,7 +217,7 @@ func (l *leaf) String() string {
 	return str
 }
 
-// A node struct implements the treeInt interface.
+// A node struct implements the inode interface.
 // A node is the intermediate, non-leaf, storage structure for a 
 // quadtree.
 // It contains a View, indicating the rectangular area this node covers.
@@ -231,7 +227,7 @@ func (l *leaf) String() string {
 type node struct {
 	nextFree *node
 	view     View
-	children [4]treeInt
+	children [4]inode
 }
 
 // Returns the View for this node
@@ -239,13 +235,10 @@ func (n *node) View() *View {
 	return &n.view
 }
 
-func (n *node) insert(x, y float64, elems []interface{}, _ *treeInt, r *root) (err os.Error) {
-	var thisNode treeInt
-	thisNode = n
+func (n *node) insert(x, y float64, elems []interface{}, _ *inode, r *root) (err os.Error) {
 	for i := range n.children {
 		if n.children[i].View().contains(x, y) {
-			child := n.children[i]
-			if err := child.insert(x, y, elems, &thisNode, r); err != nil {
+			if err := n.children[i].insert(x, y, elems, &n.children[i], r); err != nil {
 				return err
 			}
 			return
@@ -263,20 +256,19 @@ func (n *node) survey(vs []*View, fun func(x, y float64, e interface{})) {
 	}
 }
 
-func (n *node) delete(view *View, pred func(x, y float64, e interface{}) bool, p *treeInt, r *root) {
+func (n *node) delete(view *View, pred func(x, y float64, e interface{}) bool, inPtr *inode, r *root) {
 	allEmpty := true
 	for i := range n.children {
 		if n.children[i].View().overlaps(view) {
-			var nInt treeInt
-			nInt = treeInt(n)
-			n.children[i].delete(view, pred, &nInt, r)
+			n.children[i].delete(view, pred, &n.children[i], r)
 		}
 		allEmpty = allEmpty && n.children[i].isEmptyLeaf()
 	}
-	if allEmpty && p != nil {
-		var l treeInt
+	if allEmpty && inPtr != nil {
+		var l inode
 		l, _ = r.newLeaf(n.View()) // TODO Think hard about whether this could error out
-		*p = l
+		*inPtr = l
+		r.recycleNode(n)
 	}
 	return
 }
@@ -307,7 +299,7 @@ type root struct {
 	freeLeaf *leaf
 	leaves   []leaf
 	nodes    []node
-	rootNode *node
+	rootNode inode
 }
 
 // Returns a new root ready for use as an empty quadtree
@@ -330,13 +322,11 @@ func newRoot(view *View, minLeafMax int64) *root {
 	return r
 }
 
-func (r *root) recycle(ti treeInt) {
+func (r *root) recycle(ti inode) {
 	switch t := ti.(type) {
 	case *leaf:
-		//println("Recycle Node")
 		r.recycleLeaf(ti.(*leaf))
 	case *node:
-		//println("Recycle Leaf")
 		r.recycleNode(ti.(*node))
 	}
 }
@@ -344,11 +334,11 @@ func (r *root) recycle(ti treeInt) {
 // Private method for creating new nodes. Returns a node with
 // four leaves within the View provided.
 func (r *root) newNode(view *View) (n *node, err os.Error) {
-	n = r.freeNode
-	if n == nil {
+	if r.freeNode == nil {
 		err = noNodes
 		return
 	}
+	n = r.freeNode
 	r.freeNode = n.nextFree
 	n.view = *view
 	if err = r.newLeaves(view, &n.children); err != nil {
@@ -356,7 +346,6 @@ func (r *root) newNode(view *View) (n *node, err os.Error) {
 		n = nil
 		return
 	}
-	println(n.view.String(),n.children[0].View().String())
 	return
 }
 
@@ -366,34 +355,34 @@ func (r *root) recycleNode(n *node) {
 	for i := range n.children { // You cannot recycle a node with nil children
 		r.recycle(n.children[i])
 	}
-	n.children = *new([4]treeInt)
+	n.children = *new([4]inode)
 	n.view = *new(View)
 }
 
 func (r *root) newLeaf(view *View) (l *leaf, err os.Error) {
-	l = r.freeLeaf
-	if l == nil {
+	if r.freeLeaf == nil {
 		err = noLeaves
 		return
 	}
+	l = r.freeLeaf
 	r.freeLeaf = l.nextFree
 	l.view = *view
 	return
 }
 
-func (r *root) newLeaves(pView *View, leaves *[4]treeInt) (err os.Error) {
+func (r *root) newLeaves(pView *View, leaves *[4]inode) (err os.Error) {
 	initFree := r.freeLeaf
 	for i := range leaves {
-		leaves[i] = r.freeLeaf
-		r.freeLeaf = r.freeLeaf.nextFree
 		if r.freeLeaf == nil {
 			err = noLeaves
 			break
 		}
+		leaves[i] = r.freeLeaf
+		r.freeLeaf = r.freeLeaf.nextFree
 	}
 	if err != nil {
 		r.freeLeaf = initFree
-		*leaves = *new([4]treeInt)
+		*leaves = *new([4]inode)
 	} else {
 		v0, v1, v2, v3 := pView.quarters()
 		leaves[0].setView(v0)
@@ -412,7 +401,6 @@ func (r *root) recycleLeaf(l *leaf) {
 }
 // Inserts the value nval into this node
 func (r *root) Insert(x, y float64, nval interface{}) {
-	println("Inserting", x, y, nval)
 	elems := make([]interface{}, 1, 1)
 	elems[0] = nval
 	err := r.rootNode.insert(x, y, elems, nil, r)
@@ -436,7 +424,7 @@ func (r *root) Survey(vs []*View, fun func(x, y float64, e interface{})) {
 
 // Returns the View for this node
 func (r *root) View() *View {
-	return &r.rootNode.view
+	return r.rootNode.View()
 }
 
 func (r *root) freeNodes() (cnt int) {
