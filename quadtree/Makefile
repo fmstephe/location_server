@@ -7,7 +7,6 @@ include /home/francis/golang/go/src/Make.inc
 TARG=quadtree
 GOFILES=\
 	defs.go\
-	arraytree.go\
 	quadtree.go\
 	util.go\
 	view.go\

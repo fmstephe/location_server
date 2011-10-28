@@ -400,13 +400,11 @@ func (r *root) recycleLeaf(l *leaf) {
 	l.ps = *new([LEAF_SIZE]vpoint)
 }
 // Inserts the value nval into this node
-func (r *root) Insert(x, y float64, nval interface{}) {
+func (r *root) Insert(x, y float64, nval interface{}) (err os.Error) {
 	elems := make([]interface{}, 1, 1)
 	elems[0] = nval
-	err := r.rootNode.insert(x, y, elems, nil, r)
-	if err != nil {
-		panic("Unable to insert element")
-	}
+	err = r.rootNode.insert(x, y, elems, nil, r)
+	return
 }
 
 // Deletes each element, e, under this node which satisfies two conditions

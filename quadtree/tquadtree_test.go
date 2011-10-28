@@ -6,6 +6,7 @@ import (
 	"time"
 	"strconv"
 	"container/vector"
+	"fmt"
 )
 
 type dim struct {
@@ -229,14 +230,14 @@ OUTER_LOOP:
 }
 
 func TestScatterDelete(t *testing.T) {
-		clearTrees()
-		for _, tree := range testTrees {
-			testScatterDelete(tree, t)
-		}
-		clearTrees()
-		for _, tree := range testTrees {
-			testScatterDeleteMulti(tree, t)
-		}
+	clearTrees()
+	for _, tree := range testTrees {
+		testScatterDelete(tree, t)
+	}
+	clearTrees()
+	for _, tree := range testTrees {
+		testScatterDeleteMulti(tree, t)
+	}
 }
 
 func testScatterDelete(tree T, t *testing.T) {
@@ -292,18 +293,34 @@ func testScatterDeleteMulti(tree T, t *testing.T) {
 }
 
 func TestOverloadLifecycle(t *testing.T) {
-  tree := NewQuadTree(0, 10, 0, 10, 100)
-  pointNum := 75
-  name := "overload"
-  for i := 0; i < 10; i++ {
-	points := fillView(tree.View(), pointNum)
-	for i, p := range points {
-	  for d := 0; d < dups; d++ {
-		tree.Insert(p.x, p.y, name+strconv.Itoa(i)+"_"+strconv.Itoa(d))
-	  }
+	tree := NewQuadTree(0, 10, 0, 10, 100)
+	pointNum := 75
+	name := "overload"
+	for i := 0; i < 10; i++ {
+		points := fillView(tree.View(), pointNum)
+		for i, p := range points {
+			for d := 0; d < dups; d++ {
+				tree.Insert(p.x, p.y, name+strconv.Itoa(i)+"_"+strconv.Itoa(d))
+			}
+		}
+		tree.Delete(tree.View(), SimpleDelete())
 	}
-	tree.Delete(tree.View(),SimpleDelete())
-  }
+}
+
+// Handy function to print out at the expected number of random elements we can add to a tree
+// for a given tree lim size - curiously wavers between 6 - 9 in a curious wave pattern
+func disabledTestInsertLimits(t *testing.T) {
+	for treeLim := 10000; treeLim < 1000000; treeLim += 10000 {
+		pointNum := treeLim * 10
+		tree := NewQuadTree(0, 10, 0, 10, int64(treeLim))
+		points := fillView(tree.View(), pointNum)
+		for pi, p := range points {
+			if err := tree.Insert(p.x, p.y, "limit"); err != nil {
+				fmt.Println(float64(pi) / float64(treeLim))
+				break
+			}
+		}
+	}
 }
 
 func testDelete(tree T, view *View, pred func(x, y float64, e interface{}) bool, deleted, expDel *vector.Vector, t *testing.T, errPfx string) {
