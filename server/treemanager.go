@@ -15,8 +15,8 @@ const (
 //
 var msgChan = make(chan clientMsg, 255) // Global Channel for all requests
 
-func TreeManager() {
-	tree := quadtree.NewQuadTree(maxSouth, maxNorth, maxWest, maxEast)
+func TreeManager(minTreeMax int64) {
+	tree := quadtree.NewQuadTree(maxSouth, maxNorth, maxWest, maxEast, minTreeMax)
 	for {
 		msg := <-msgChan
 		msg.perf.stopAndStart(perf_tmProc)
