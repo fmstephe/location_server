@@ -61,11 +61,11 @@ func BenchmarkInsert(b *testing.B) {
 	}
 }
 
-func BenchmarkSurveyReps(b *testing.B) {
+func BenchmarkSurveyR(b *testing.B) {
 	benchmarkSurvey(b, pointsSmall, repsLarge)
 }
 
-func BenchmarkSurveySingle(b *testing.B) {
+func BenchmarkSurveyS(b *testing.B) {
 	benchmarkSurvey(b, pointsLarge, repsSingle)
 }
 
@@ -86,11 +86,11 @@ func benchmarkSurvey(b *testing.B, pointNum, repNum int) {
 	}
 }
 
-func BenchmarkDeleteReps(b *testing.B) {
+func BenchmarkDeleteR(b *testing.B) {
 	benchmarkDelete(b, pointsSmall, repsLarge)
 }
 
-func BenchmarkDeleteSingle(b *testing.B) {
+func BenchmarkDeleteS(b *testing.B) {
 	benchmarkDelete(b, pointsLarge, repsSingle)
 }
 

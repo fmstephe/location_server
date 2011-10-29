@@ -9,16 +9,16 @@ import (
 var noLeaves = os.NewError("No leaves available")
 var noNodes = os.NewError("No nodes available")
 
-// Private interface for quadtrees.
+// Private interface for quadtree nodes.
 // Implemented by both node and leaf.
-type inode interface {
+type pnode interface {
 	View() *View
 	//
-	insert(x, y float64, elems []interface{}, p *inode, r *root) (err os.Error)
+	insert(x, y float64, elems []interface{}, p *pnode, r *root)
 	//
 	survey(view []*View, fun func(x, y float64, e interface{}))
 	//
-	delete(view *View, pred func(x, y float64, e interface{}) bool, p *inode, r *root)
+	delete(view *View, pred func(x, y float64, e interface{}) bool, p *pnode, r *root)
 	//
 	isEmptyLeaf() bool
 	//
@@ -70,7 +70,7 @@ func (np *vpoint) String() string {
 
 const LEAF_SIZE = 16
 
-// A leaf struct implements the interface inode. Like a node (see below),
+// A leaf struct implements the interface pnode. Like a node (see below),
 // a leaf contains a View defining the rectangular area in which each vpoint
 // could legally be located. A leaf struct may contain up to four non-zeroed
 // vpoints.
@@ -80,9 +80,10 @@ const LEAF_SIZE = 16
 // The vpoints are not ordered in any way with respect to their positions at
 // the leaf level.
 type leaf struct {
-	nextFree *leaf
-	view     View
-	ps       [LEAF_SIZE]vpoint
+	nextFree   *leaf
+	view       View
+	ps         [LEAF_SIZE]vpoint
+	disposable bool
 }
 
 // Returns a pointer to the View of this leaf
@@ -100,7 +101,7 @@ func (l *leaf) View() *View {
 //					- Replace this leaf with an intermediate node and re-allocate 
 //					all of the elements in this leaf as well as those in elems into
 //					the new node
-func (l *leaf) insert(x, y float64, elems []interface{}, inPtr *inode, r *root) (err os.Error) {
+func (l *leaf) insert(x, y float64, elems []interface{}, inPtr *pnode, r *root) {
 	for i := range l.ps {
 		if l.ps[i].zeroed() {
 			l.ps[i].x = x
@@ -114,22 +115,18 @@ func (l *leaf) insert(x, y float64, elems []interface{}, inPtr *inode, r *root) 
 		}
 	}
 	// This leaf is full we need to create an intermediary node to divide it up
-	return newIntNode(x, y, elems, inPtr, l, r)
+	newIntNode(x, y, elems, inPtr, l, r)
 }
 
-func newIntNode(x, y float64, elems []interface{}, inPtr *inode, l *leaf, r *root) (err os.Error) {
-	var newNode inode
-	newNode, err = r.newNode(l.View())
-	if err != nil {
-		return
-	}
+func newIntNode(x, y float64, elems []interface{}, inPtr *pnode, l *leaf, r *root) {
+	var newNode pnode
+	newNode = r.newNode(l.View())
 	for _, p := range l.ps {
 		newNode.insert(p.x, p.y, p.elems, nil, r) // Does not require an inPtr param as we are passing into a *node
 	}
 	newNode.insert(x, y, elems, nil, r) // Does not require an inPtr param as we are passing into a *node
 	*inPtr = newNode                    // Redirect the old leaf's reference to this intermediate node
 	r.recycleLeaf(l)
-	return
 }
 
 // Applies fun to each of the elements contained in this leaf
@@ -149,7 +146,7 @@ func (l *leaf) survey(vs []*View, fun func(x, y float64, e interface{})) {
 // 	1: e lies within view
 //	2: pred(e) returns true
 // It is expected that pred will have side-effects allowing for the processing of deleted elements.
-func (l *leaf) delete(view *View, pred func(x, y float64, e interface{}) bool, _ *inode, _ *root) {
+func (l *leaf) delete(view *View, pred func(x, y float64, e interface{}) bool, _ *pnode, _ *root) {
 	for i := range l.ps {
 		point := &l.ps[i]
 		if !point.zeroed() && view.contains(point.x, point.y) {
@@ -217,7 +214,7 @@ func (l *leaf) String() string {
 	return str
 }
 
-// A node struct implements the inode interface.
+// A node struct implements the pnode interface.
 // A node is the intermediate, non-leaf, storage structure for a 
 // quadtree.
 // It contains a View, indicating the rectangular area this node covers.
@@ -225,9 +222,10 @@ func (l *leaf) String() string {
 // this node's view. Every subtree is guaranteed to be non-nil and
 // may be either a node or a leaf struct.
 type node struct {
-	nextFree *node
-	view     View
-	children [4]inode
+	nextFree   *node
+	view       View
+	children   [4]pnode
+	disposable bool
 }
 
 // Returns the View for this node
@@ -235,16 +233,12 @@ func (n *node) View() *View {
 	return &n.view
 }
 
-func (n *node) insert(x, y float64, elems []interface{}, _ *inode, r *root) (err os.Error) {
+func (n *node) insert(x, y float64, elems []interface{}, _ *pnode, r *root) {
 	for i := range n.children {
 		if n.children[i].View().contains(x, y) {
-			if err := n.children[i].insert(x, y, elems, &n.children[i], r); err != nil {
-				return err
-			}
-			return
+			n.children[i].insert(x, y, elems, &n.children[i], r)
 		}
 	}
-	return
 }
 
 func (n *node) survey(vs []*View, fun func(x, y float64, e interface{})) {
@@ -256,7 +250,7 @@ func (n *node) survey(vs []*View, fun func(x, y float64, e interface{})) {
 	}
 }
 
-func (n *node) delete(view *View, pred func(x, y float64, e interface{}) bool, inPtr *inode, r *root) {
+func (n *node) delete(view *View, pred func(x, y float64, e interface{}) bool, inPtr *pnode, r *root) {
 	allEmpty := true
 	for i := range n.children {
 		if n.children[i].View().overlaps(view) {
@@ -265,8 +259,8 @@ func (n *node) delete(view *View, pred func(x, y float64, e interface{}) bool, i
 		allEmpty = allEmpty && n.children[i].isEmptyLeaf()
 	}
 	if allEmpty && inPtr != nil {
-		var l inode
-		l, _ = r.newLeaf(n.View()) // TODO Think hard about whether this could error out
+		var l pnode
+		l = r.newLeaf(n.View()) // TODO Think hard about whether this could error out
 		*inPtr = l
 		r.recycleNode(n)
 	}
@@ -299,7 +293,7 @@ type root struct {
 	freeLeaf *leaf
 	leaves   []leaf
 	nodes    []node
-	rootNode inode
+	rootNode pnode
 }
 
 // Returns a new root ready for use as an empty quadtree
@@ -317,12 +311,12 @@ func newRoot(view *View, minLeafMax int64) *root {
 	}
 	r.freeNode = &r.nodes[0]
 	r.freeLeaf = &r.leaves[0]
-	rootNode, _ := r.newNode(view) // TODO handle this error condition or prevent it from possibly happening
+	rootNode := r.newNode(view) // TODO handle this error condition or prevent it from possibly happening
 	r.rootNode = rootNode
 	return r
 }
 
-func (r *root) recycle(ti inode) {
+func (r *root) recycle(ti pnode) {
 	switch t := ti.(type) {
 	case *leaf:
 		r.recycleLeaf(ti.(*leaf))
@@ -333,35 +327,34 @@ func (r *root) recycle(ti inode) {
 
 // Private method for creating new nodes. Returns a node with
 // four leaves within the View provided.
-func (r *root) newNode(view *View) (n *node, err os.Error) {
+func (r *root) newNode(view *View) (n *node) {
 	if r.freeNode == nil {
-		err = noNodes
-		return
+		n = &node{view: *view, disposable: true}
+	} else {
+		n = r.freeNode
+		r.freeNode = n.nextFree
+		n.view = *view
 	}
-	n = r.freeNode
-	r.freeNode = n.nextFree
-	n.view = *view
-	if err = r.newLeaves(view, &n.children); err != nil {
-		r.freeNode = n
-		n = nil
-		return
-	}
+	r.newLeaves(view, &n.children)
 	return
 }
 
 func (r *root) recycleNode(n *node) {
+	if n.disposable {
+	  return
+	}
 	n.nextFree = r.freeNode
 	r.freeNode = n
 	for i := range n.children { // You cannot recycle a node with nil children
 		r.recycle(n.children[i])
 	}
-	n.children = *new([4]inode)
+	n.children = *new([4]pnode)
 	n.view = *new(View)
 }
 
-func (r *root) newLeaf(view *View) (l *leaf, err os.Error) {
+func (r *root) newLeaf(view *View) (l *leaf) {
 	if r.freeLeaf == nil {
-		err = noLeaves
+		l = &leaf{view: *view, disposable: true}
 		return
 	}
 	l = r.freeLeaf
@@ -370,41 +363,30 @@ func (r *root) newLeaf(view *View) (l *leaf, err os.Error) {
 	return
 }
 
-func (r *root) newLeaves(pView *View, leaves *[4]inode) (err os.Error) {
-	initFree := r.freeLeaf
+func (r *root) newLeaves(pView *View, leaves *[4]pnode) {
+	v0, v1, v2, v3 := pView.quarters()
+	vs := []*View{v0, v1, v2, v3}
 	for i := range leaves {
-		if r.freeLeaf == nil {
-			err = noLeaves
-			break
-		}
-		leaves[i] = r.freeLeaf
-		r.freeLeaf = r.freeLeaf.nextFree
-	}
-	if err != nil {
-		r.freeLeaf = initFree
-		*leaves = *new([4]inode)
-	} else {
-		v0, v1, v2, v3 := pView.quarters()
-		leaves[0].setView(v0)
-		leaves[1].setView(v1)
-		leaves[2].setView(v2)
-		leaves[3].setView(v3)
+		leaves[i] = r.newLeaf(vs[i])
 	}
 	return
 }
 
 func (r *root) recycleLeaf(l *leaf) {
+	if l.disposable {
+		return
+	}
 	l.nextFree = r.freeLeaf
 	r.freeLeaf = l
 	l.view = *new(View)
 	l.ps = *new([LEAF_SIZE]vpoint)
 }
+
 // Inserts the value nval into this node
-func (r *root) Insert(x, y float64, nval interface{}) (err os.Error) {
+func (r *root) Insert(x, y float64, nval interface{}) {
 	elems := make([]interface{}, 1, 1)
 	elems[0] = nval
-	err = r.rootNode.insert(x, y, elems, nil, r)
-	return
+	r.rootNode.insert(x, y, elems, nil, r)
 }
 
 // Deletes each element, e, under this node which satisfies two conditions

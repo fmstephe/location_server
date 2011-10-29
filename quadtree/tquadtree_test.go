@@ -6,7 +6,6 @@ import (
 	"time"
 	"strconv"
 	"container/vector"
-	"fmt"
 )
 
 type dim struct {
@@ -100,15 +99,19 @@ func TestScatter(t *testing.T) {
 	for _, tree := range testTrees {
 		testScatter(tree, t)
 	}
+	clearTrees()
+	for _, tree := range testTrees {
+		testScatterDup(tree, t)
+	}
 }
 
 func testScatter(tree T, t *testing.T) {
-	ps := fillView(tree.View(), 30)
+	ps := fillView(tree.View(), 1000)
 	for _, p := range ps {
 		tree.Insert(p.x, p.y, "test")
 	}
-	for i := 0; i < 1; i++ {
-		sv := tree.View()
+	for i := 0; i < 1000; i++ {
+		sv := subView(tree.View())
 		var count int
 		for _, v := range ps {
 			if sv.contains(v.x, v.y) {
@@ -144,7 +147,7 @@ func testScatterDup(tree T, t *testing.T) {
 		fun, results := SimpleSurvey()
 		tree.Survey([]*View{sv}, fun)
 		if count*dups != results.Len() {
-			t.Error("Failed to retrieve %i elements in duplicate scatter test, found only %i", count*3, results.Len())
+			t.Error("Failed to retrieve %i elements in duplicate scatter test, found only %i", count*dups, results.Len())
 		}
 	}
 }
@@ -292,23 +295,20 @@ func testScatterDeleteMulti(tree T, t *testing.T) {
 	testSurvey(tree, tree.View(), fun, results, expCol, t, "Scatter Insert and Delete Under Area With Three Elements Per Location")
 }
 
+// Test that we can successfully insert substantially more elements into
+// the tree than the minLeafMax value passed into NewQuadTree(...)
+// It is important to note that trees can usually absorb between 6-9 times minLeafMax
 func TestOverloadLifecycle(t *testing.T) {
-	tree := NewQuadTree(0, 10, 0, 10, 100)
-	pointNum := 75
-	name := "overload"
-	for i := 0; i < 10; i++ {
-		points := fillView(tree.View(), pointNum)
-		for i, p := range points {
-			for d := 0; d < dups; d++ {
-				tree.Insert(p.x, p.y, name+strconv.Itoa(i)+"_"+strconv.Itoa(d))
-			}
-		}
-		tree.Delete(tree.View(), SimpleDelete())
+	tree := NewQuadTree(0, 10, 0, 10, 10)
+	points := fillView(tree.View(), 100000)
+	for _, p := range points {
+		tree.Insert(p.x, p.y, "overload")
 	}
 }
 
 // Handy function to print out at the expected number of random elements we can add to a tree
 // for a given tree lim size - curiously wavers between 6 - 9 in a curious wave pattern
+/*
 func disabledTestInsertLimits(t *testing.T) {
 	for treeLim := 10000; treeLim < 1000000; treeLim += 10000 {
 		pointNum := treeLim * 10
@@ -322,6 +322,7 @@ func disabledTestInsertLimits(t *testing.T) {
 		}
 	}
 }
+*/
 
 func testDelete(tree T, view *View, pred func(x, y float64, e interface{}) bool, deleted, expDel *vector.Vector, t *testing.T, errPfx string) {
 	tree.Delete(view, pred)
