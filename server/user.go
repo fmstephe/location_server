@@ -1,13 +1,14 @@
 package locserver
 
 import (
-	"os"
+	"io"
 	"websocket"
-	"json"
+	"encoding/json"
+	"errors"
 	//l4g "log4go.googlecode.com/hg"
 )
 
-var iOpErr = os.NewError("Illegal Operation")
+var iOpErr = errors.New("Illegal Operation")
 var ider idMaker
 
 // ----------USER------------
@@ -85,9 +86,9 @@ func removeOnClose(usr *user) {
 }
 
 // Unmarshalls into a *CJsonMsg from the websocket connection returning an error if anything goes wrong
-func unmarshal(usr *user, buf []byte, ws *websocket.Conn) (msg *CJsonMsg, perf *perfProfile, err os.Error) {
+func unmarshal(usr *user, buf []byte, ws *websocket.Conn) (msg *CJsonMsg, perf *perfProfile, err error) {
 	n, err := ws.Read(buf)
-	if err != nil && err != os.EOF {
+	if err != nil && err != io.EOF {
 		return
 	}
 	//l4g.Info("User: %d \tClient Message: %s", usr.id, string(buf[:n]))
@@ -99,7 +100,7 @@ func unmarshal(usr *user, buf []byte, ws *websocket.Conn) (msg *CJsonMsg, perf *
 }
 
 // Handle init message - setName
-func processInit(init *CJsonMsg, usr *user, perf *perfProfile) (err os.Error) {
+func processInit(init *CJsonMsg, usr *user, perf *perfProfile) (err error) {
 	switch init.Op {
 	case cAddOp:
 		usr.Name = init.Name
@@ -112,7 +113,7 @@ func processInit(init *CJsonMsg, usr *user, perf *perfProfile) (err os.Error) {
 }
 
 // Handle request messages - cRelocate, cNearby
-func processRequest(msg *CJsonMsg, usr *user, perf *perfProfile) (err os.Error) {
+func processRequest(msg *CJsonMsg, usr *user, perf *perfProfile) (err error) {
 	switch msg.Op {
 	case cNearbyOp:
 		forwardMsg(cNearbyOp, usr, perf)

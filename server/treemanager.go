@@ -1,7 +1,7 @@
 package locserver
 
 import (
-	"quadtree"
+	"location_server/quadtree"
 	"log"
 )
 
