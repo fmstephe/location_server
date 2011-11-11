@@ -1,13 +1,13 @@
 package main
 
 import (
-	"locserver"
+	"location_server/server"
 	"websocket"
 	"io/ioutil"
-	"http"
+	"net/http"
 	"log"
 	"os"
-	_ "http/pprof"
+	_ "net/http/pprof"
 )
 
 const index = "index.html"
