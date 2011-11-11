@@ -1,41 +1,49 @@
 package main
 
 import (
-	"location_server/server"
-	"websocket"
 	"io/ioutil"
-	"net/http"
+	"location_server/server"
 	"log"
-	"os"
+	"net/http"
 	_ "net/http/pprof"
+	"os"
+	"websocket"
 )
 
 const index = "index.html"
+
+var iFile []byte
+
 const logPath = "/var/log/locserver/server.log"
 
 var minTreeMax = int64(1000000)
+
+func init() {
+	println("index request")
+	var err error
+	iFile, err = ioutil.ReadFile(index)
+	if err != nil {
+		panic("Unable to initialise index.html")
+	}
+}
 
 //
 // Static index HTML page serving function
 //
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	iFile, err := ioutil.ReadFile(index)
-	if err != nil {
-		return
-	}
+	println("index request")
 	w.Write(iFile)
 }
 
 // TODO This is poorly - improve
 func initLog() *log.Logger {
-	logFile, err := os.OpenFile(logPath, os.O_WRONLY , 0666)
+	logFile, err := os.OpenFile(logPath, os.O_WRONLY, 0666)
 	if err != nil {
 		os.Create(logPath)
-		logFile, _ = os.OpenFile(logPath, os.O_WRONLY , 0666)
+		logFile, _ = os.OpenFile(logPath, os.O_WRONLY, 0666)
 	}
 	return log.New(logFile, "", log.Lmicroseconds)
-  }
-
+}
 
 func main() {
 	lg := initLog()

@@ -1,12 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
+	"location_server/server"
+	"math/rand"
 	"time"
-	"locserver"
 	"websocket"
-	"json"
-	"rand"
 )
 
 const one_second = 1000000000
@@ -16,7 +16,7 @@ var workers = flag.Int("w", 1, "The number of workers to be spawned")
 func main() {
 	flag.Parse()
 	params := wanderParams
-	sleepTime := int64(one_second/16)
+	sleepTime := int64(one_second / 16)
 	for i := 0; i < *workers; i++ {
 		lat, lng, init, nxtPos := params()
 		go run_test(lat, lng, init, nxtPos, sleepTime)
@@ -98,7 +98,7 @@ func eatMsgs(ws *websocket.Conn) {
 	for {
 		n, err := ws.Read(sMsg)
 		if err != nil {
-			panic("Read: " + err.String())
+			panic("Read: " + err.Error())
 		}
 		println(string(sMsg[:n]))
 	}
@@ -107,7 +107,7 @@ func eatMsgs(ws *websocket.Conn) {
 func doDial() *websocket.Conn {
 	ws, err := websocket.Dial("ws://localhost:8001/ws", "", "http://localhost:8001/")
 	if err != nil {
-		panic("Dial: " + err.String())
+		panic("Dial: " + err.Error())
 	}
 	return ws
 }
@@ -115,9 +115,9 @@ func doDial() *websocket.Conn {
 func marshalAndSend(msg interface{}, ws *websocket.Conn) {
 	msgA, err := json.MarshalForHTML(msg)
 	if err != nil {
-		panic("Unmarshall: " + err.String())
+		panic("Unmarshall: " + err.Error())
 	}
 	if _, err := ws.Write([]byte(msgA)); err != nil {
-		panic("Write: " + err.String())
+		panic("Write: " + err.Error())
 	}
 }

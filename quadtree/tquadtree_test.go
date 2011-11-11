@@ -1,11 +1,11 @@
 package quadtree
 
 import (
-	"testing"
-	"math/rand"
-	"time"
-	"strconv"
 	"container/list"
+	"math/rand"
+	"strconv"
+	"testing"
+	"time"
 )
 
 type dim struct {

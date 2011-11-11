@@ -107,6 +107,7 @@ func addFun(usr *user) func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
 		if !usr.eq(oUsr) {
 			broadcastSend(sAddOp, usr, oUsr)
+			broadcastSend(sAddOp, oUsr, usr)
 		}
 	}
 }

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"quadtree"
-	"rand"
 	"flag"
+	"location_server/quadtree"
+	"math/rand"
 	"os"
 	"runtime/pprof"
 )
@@ -22,10 +22,10 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 	for i := 0; i < iterations; i++ {
-		tree := quadtree.NewQuadTree(0, treeSize, 0, treeSize)
+		tree := quadtree.NewQuadTree(0, treeSize, 0, treeSize, elemCount/6)
 		for i := 0; i < elemCount; i++ {
-			x := rand.Float64()*treeSize
-			y := rand.Float64()*treeSize
+			x := rand.Float64() * treeSize
+			y := rand.Float64() * treeSize
 			tree.Insert(x, y, i)
 		}
 		vs := []*quadtree.View{tree.View()}
@@ -34,7 +34,7 @@ func main() {
 			col = append(col, e)
 		}
 		tree.Survey(vs, fun)
-		tree.Delete(tree.View(),quadtree.SimpleDelete())
+		tree.Delete(tree.View(), quadtree.SimpleDelete())
 		println(col)
 	}
 }

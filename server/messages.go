@@ -52,9 +52,9 @@ const sVisibleOp = serverOp("sVisible")
 const sNotVisibleOp = serverOp("sNotVisible")
 // Indicates that a user has been removed (and was visible to the receiver)
 const sRemoveOp = serverOp("sRemove")
-// Indictes that a user is nearby to the receiver (only sent as response to a nearby request)
+// Indictes that a user is nearby (only sent as response to a nearby request)
 const sNearbyOp = serverOp("sNearby")
-// Indicates that a user has move to the receiver (and is visible to the receiver)
+// Indicates that a user has moved (and is visible to the receiver)
 const sMovedOp = serverOp("sMoved")
 
 // A server message which contains only a serverOp and a user

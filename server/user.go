@@ -1,10 +1,10 @@
 package locserver
 
 import (
-	"io"
-	"websocket"
 	"encoding/json"
 	"errors"
+	"io"
+	"websocket"
 	//l4g "log4go.googlecode.com/hg"
 )
 

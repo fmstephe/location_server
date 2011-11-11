@@ -1,9 +1,9 @@
 package locserver
 
 import (
-	"time"
 	"bytes"
 	"fmt"
+	"time"
 )
 
 // Incoming performance tasks
