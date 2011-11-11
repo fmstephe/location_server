@@ -1,9 +1,9 @@
 package quadtree
 
 import (
-	"strconv"
 	"fmt"
 	"math"
+	"strconv"
 )
 
 var invalidView *View
@@ -206,10 +206,10 @@ func (v *View) Intersect(ov *View) *View {
 	if !v.overlaps(ov) {
 		return invalidView
 	}
-	ilx := math.Fmax(v.lx, ov.lx)
-	irx := math.Fmin(v.rx, ov.rx)
-	ity := math.Fmax(v.ty, ov.ty)
-	iby := math.Fmin(v.by, ov.by)
+	ilx := math.Max(v.lx, ov.lx)
+	irx := math.Min(v.rx, ov.rx)
+	ity := math.Max(v.ty, ov.ty)
+	iby := math.Min(v.by, ov.by)
 	return NewViewP(ilx, irx, ity, iby)
 }
 

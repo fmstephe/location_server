@@ -1,12 +1,12 @@
 package quadtree
 
 import (
+	"errors"
 	"fmt"
-	"os"
 )
 
-var noLeaves = os.NewError("No leaves available")
-var noNodes = os.NewError("No nodes available")
+var noLeaves = errors.New("No leaves available")
+var noNodes = errors.New("No nodes available")
 
 // Private interface for quadtree nodes. Implemented by both node and leaf.
 type subtree interface {
@@ -329,7 +329,7 @@ func newRoot(view *View, leafAllocation int64) *root {
 
 // Recursively recycle st and all of its children
 func (r *root) recycle(st subtree) {
-	switch t := st.(type) {
+	switch st.(type) {
 	case *leaf:
 		r.recycleLeaf(st.(*leaf))
 	case *node:
@@ -362,7 +362,7 @@ func (r *root) newNode(view *View) (n *node) {
 // n's view is reset.
 func (r *root) recycleNode(n *node) {
 	if n.disposable {
-	  return
+		return
 	}
 	n.nextFree = r.freeNode
 	r.freeNode = n

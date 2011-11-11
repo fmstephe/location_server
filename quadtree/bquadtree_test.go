@@ -2,7 +2,6 @@ package quadtree
 
 import (
 	"testing"
-	"container/vector"
 	"strconv"
 )
 
@@ -76,10 +75,9 @@ func benchmarkSurvey(b *testing.B, pointNum, repNum int) {
 		b.StartTimer()
 		for j := range trees {
 			tree := trees[j]
-			collected := new(vector.Vector)
-			collected.Resize(pointNum, pointNum)
+			collected := make([]interface{},pointNum,pointNum)
 			fun := func(x, y float64, e interface{}) {
-				collected.Push(e)
+				collected  = append(collected, e)
 			}
 			tree.Survey([]*View{tree.View()}, fun)
 		}
@@ -101,11 +99,10 @@ func benchmarkDelete(b *testing.B, pointNum, repNum int) {
 		b.StartTimer()
 		for j := range trees {
 			tree := trees[j]
-			deleted := new(vector.Vector)
-			deleted.Resize(pointNum, pointNum)
+			deleted := make([]interface{},pointNum,pointNum)
 			q1, q2, q3, q4 := tree.View().quarters()
 			pred := func(x, y float64, e interface{}) bool {
-				deleted.Push(e)
+				deleted = append(deleted, e)
 				return true
 			}
 			tree.Delete(q1, pred)

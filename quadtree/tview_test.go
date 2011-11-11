@@ -1,10 +1,10 @@
 package quadtree
 
 import (
-	"testing"
-	"rand"
-	"time"
 	"math"
+	"math/rand"
+	"testing"
+	"time"
 )
 
 // Width and Height struct
@@ -289,8 +289,8 @@ func disjoint() (v1, v2 *View) {
 }
 
 func oPair(f1, f2 float64) (r1, r2 float64) {
-	r1 = math.Fmin(f1, f2)
-	r2 = math.Fmax(f1, f2)
+	r1 = math.Min(f1, f2)
+	r2 = math.Max(f1, f2)
 	return
 }
 
@@ -299,9 +299,9 @@ func nearest(x, y, lx, rx, ty, by float64) (nx, ny float64) {
 	d2 := dist(x, y, rx, ty)
 	d3 := dist(x, y, lx, by)
 	d4 := dist(x, y, rx, by)
-	n1 := math.Fmin(d1, d2)
-	n2 := math.Fmin(n1, d3)
-	n3 := math.Fmin(n2, d4)
+	n1 := math.Min(d1, d2)
+	n2 := math.Min(n1, d3)
+	n3 := math.Min(n2, d4)
 	if n3 == d1 {
 		return lx, ty
 	}

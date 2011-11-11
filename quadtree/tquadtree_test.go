@@ -2,10 +2,10 @@ package quadtree
 
 import (
 	"testing"
-	"rand"
+	"math/rand"
 	"time"
 	"strconv"
-	"container/vector"
+	"container/list"
 )
 
 type dim struct {
@@ -58,7 +58,7 @@ func testOneElement(tree T, t *testing.T) {
 	tree.Insert(x, y, "test")
 	fun, results := SimpleSurvey()
 	tree.Survey([]*View{tree.View()}, fun)
-	if results.Len() != 1 || "test" != results.At(0) {
+	if results.Len() != 1 || "test" != results.Front().Value {
 		t.Errorf("Failed to find required element at (%f,%f), in tree \n%v", x, y, tree)
 	}
 }
@@ -208,7 +208,7 @@ func testDeleteSimple(tree T, insert, delete []interface{}, exact bool, errPrfx 
 	for _, e := range insert {
 		tree.Insert(x, y, e)
 	}
-	expCol := new(vector.Vector)
+	expCol := new(list.List)
 OUTER_LOOP:
 	for _, i := range insert {
 		for _, d := range delete {
@@ -216,11 +216,11 @@ OUTER_LOOP:
 				continue OUTER_LOOP
 			}
 		}
-		expCol.Push(i)
+		expCol.PushBack(i)
 	}
-	expDel := new(vector.Vector)
+	expDel := new(list.List)
 	for _, d := range delete {
-		expDel.Push(d)
+		expDel.PushBack(d)
 	}
 	pred, deleted := makeDelClosure(delete)
 	delView := tree.View()
@@ -251,13 +251,13 @@ func testScatterDelete(tree T, t *testing.T) {
 		tree.Insert(p.x, p.y, name+strconv.Itoa(i))
 	}
 	delView := subView(tree.View())
-	expDel := new(vector.Vector)
-	expCol := new(vector.Vector)
+	expDel := new(list.List)
+	expCol := new(list.List)
 	for i, p := range ps {
 		if delView.contains(p.x, p.y) {
-			expDel.Push(name + strconv.Itoa(i))
+			expDel.PushBack(name + strconv.Itoa(i))
 		} else {
-			expCol.Push(name + strconv.Itoa(i))
+			expCol.PushBack(name + strconv.Itoa(i))
 		}
 	}
 	pred, deleted := CollectingDelete()
@@ -276,16 +276,16 @@ func testScatterDeleteMulti(tree T, t *testing.T) {
 		}
 	}
 	delView := subView(tree.View())
-	expDel := new(vector.Vector)
-	expCol := new(vector.Vector)
+	expDel := new(list.List)
+	expCol := new(list.List)
 	for i, p := range points {
 		if delView.contains(p.x, p.y) {
 			for d := 0; d < dups; d++ {
-				expDel.Push(name + strconv.Itoa(i) + "_" + strconv.Itoa(d))
+				expDel.PushBack(name + strconv.Itoa(i) + "_" + strconv.Itoa(d))
 			}
 		} else {
 			for d := 0; d < dups; d++ {
-				expCol.Push(name + strconv.Itoa(i) + "_" + strconv.Itoa(d))
+				expCol.PushBack(name + strconv.Itoa(i) + "_" + strconv.Itoa(d))
 			}
 		}
 	}
@@ -324,25 +324,25 @@ func disabledTestInsertLimits(t *testing.T) {
 }
 */
 
-func testDelete(tree T, view *View, pred func(x, y float64, e interface{}) bool, deleted, expDel *vector.Vector, t *testing.T, errPfx string) {
+func testDelete(tree T, view *View, pred func(x, y float64, e interface{}) bool, deleted, expDel *list.List, t *testing.T, errPfx string) {
 	tree.Delete(view, pred)
 	if deleted.Len() != expDel.Len() {
 		t.Errorf("%s: Expecting %v deleted element(s), found %v", errPfx, expDel.Len(), deleted.Len())
 	}
 OUTER_LOOP:
-	for i := 0; i < expDel.Len(); i++ {
-		for j := 0; j < deleted.Len(); j++ {
-			expVal := expDel.At(i)
-			delVal := deleted.At(j)
+	for i := expDel.Front(); i != nil; i = i.Next() {
+		for j := deleted.Front(); j != nil; j = j.Next() {
+			expVal := i.Value
+			delVal := j.Value
 			if expVal == delVal {
 				continue OUTER_LOOP
 			}
 		}
-		t.Errorf("%s: Expecting to find %v in deleted vector, was not found", errPfx, expDel.At(i))
+		t.Errorf("%s: Expecting to find %v in deleted vector, was not found", errPfx, i.Value)
 	}
 }
 
-func testSurvey(tree T, view *View, fun func(x, y float64, e interface{}), collected, expCol *vector.Vector, t *testing.T, errPfx string) {
+func testSurvey(tree T, view *View, fun func(x, y float64, e interface{}), collected, expCol *list.List, t *testing.T, errPfx string) {
 	tree.Survey([]*View{view}, fun)
 	if collected.Len() != expCol.Len() {
 		t.Errorf("%s: Expecting %v collected element(s), found %v", errPfx, expCol.Len(), collected.Len())
@@ -364,13 +364,13 @@ func testSurvey(tree T, view *View, fun func(x, y float64, e interface{}), colle
 }
 
 // Creates a closure which deletes all elements which are present in elem
-// Returns the closure plus a vector.Vector into which deleted elements are accumulated
-func makeDelClosure(elems []interface{}) (pred func(x, y float64, e interface{}) bool, deleted *vector.Vector) {
-	deleted = new(vector.Vector)
+// Returns the closure plus a list.List into which deleted elements are accumulated
+func makeDelClosure(elems []interface{}) (pred func(x, y float64, e interface{}) bool, deleted *list.List) {
+	deleted = new(list.List)
 	pred = func(x, y float64, e interface{}) bool {
 		for i := range elems {
 			if e == elems[i] {
-				deleted.Push(e)
+				deleted.PushBack(e)
 				return true
 			}
 		}

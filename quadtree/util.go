@@ -1,16 +1,16 @@
 package quadtree
 
-import (
-	"container/vector"
+import(
+	"container/list"
 )
 
 //
 //	A Simple quadtree collector which will push every element into col
 //
-func SimpleSurvey() (fun func(x, y float64, e interface{}), col *vector.Vector) {
-	col = new(vector.Vector)
+func SimpleSurvey() (fun func(x, y float64, e interface{}), col *list.List) {
+	col = list.New()
 	fun = func(x, y float64, e interface{}) {
-		col.Push(e)
+		col.PushBack(e)
 	}
 	return
 }
@@ -29,10 +29,10 @@ func SimpleDelete() (pred func(x, y float64, e interface{}) bool) {
 //	A quadtree delete function which indicates that every element given to it should be deleted.
 //	Additionally each element deleted will be pushed into col
 //
-func CollectingDelete() (pred func(x, y float64, e interface{}) bool, col *vector.Vector) {
-	col = new(vector.Vector)
+func CollectingDelete() (pred func(x, y float64, e interface{}) bool, col *list.List) {
+	col = list.New()
 	pred = func(x, y float64, e interface{}) bool {
-		col.Push(e)
+		col.PushBack(e)
 		return true
 	}
 	return
