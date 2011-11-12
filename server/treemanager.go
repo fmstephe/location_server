@@ -15,8 +15,8 @@ const (
 //
 var msgChan = make(chan clientMsg, 255) // Global Channel for all requests
 
-func TreeManager(minTreeMax int64, lg *log.Logger) {
-	tree := quadtree.NewQuadTree(maxSouth, maxNorth, maxWest, maxEast, minTreeMax)
+func TreeManager(minTreeMax int64, trackMovement bool , lg *log.Logger) {
+	tree := quadtree.NewQuadTree(maxSouthMetres, maxNorthMetres, maxWestMetres, maxEastMetres, minTreeMax)
 	for {
 		msg := <-msgChan
 		msg.perf.stopAndStart(perf_tmProc)
@@ -26,7 +26,7 @@ func TreeManager(minTreeMax int64, lg *log.Logger) {
 		case cRemoveOp:
 			handleRemove(&msg, tree, lg)
 		case cMoveOp:
-			handleMove(&msg, tree, lg)
+			handleMove(&msg, tree, trackMovement, lg)
 		case cNearbyOp:
 			handleNearby(&msg, tree, lg)
 		}
@@ -61,7 +61,7 @@ func handleNearby(nby *clientMsg, tree quadtree.T, lg *log.Logger) {
 	tree.Survey(vs, nearbyFun(&usr))
 }
 
-func handleMove(mv *clientMsg, tree quadtree.T, lg *log.Logger) {
+func handleMove(mv *clientMsg, tree quadtree.T, trackMovement bool, lg *log.Logger) {
 	usr := &mv.usr
 	nMNS, nMEW := metresFromOrigin(usr.Lat, usr.Lng)
 	oMNS, oMEW := metresFromOrigin(usr.OLat, usr.OLng)
@@ -77,8 +77,10 @@ func handleMove(mv *clientMsg, tree quadtree.T, lg *log.Logger) {
 	vViews := nView.Subtract(oView)
 	tree.Survey(vViews, visibleFun(&mv.usr))
 	// Alert watching users of the relocation
-	movedView := []*quadtree.View{nView.Intersect(oView)}
-	tree.Survey(movedView, movedFun(&mv.usr))
+	if trackMovement {
+		movedView := []*quadtree.View{nView.Intersect(oView)}
+		tree.Survey(movedView, movedFun(&mv.usr))
+	}
 }
 
 // Deletes usr from tree at the given coords
