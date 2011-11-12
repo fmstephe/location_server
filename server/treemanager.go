@@ -15,7 +15,7 @@ const (
 //
 var msgChan = make(chan clientMsg, 255) // Global Channel for all requests
 
-func TreeManager(minTreeMax int64, trackMovement bool , lg *log.Logger) {
+func TreeManager(minTreeMax int64, trackMovement bool, lg *log.Logger) {
 	tree := quadtree.NewQuadTree(maxSouthMetres, maxNorthMetres, maxWestMetres, maxEastMetres, minTreeMax)
 	for {
 		msg := <-msgChan

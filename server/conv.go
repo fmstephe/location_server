@@ -43,7 +43,7 @@ const (
 //			A positive indicates a position east of (0,0)
 //			A negative indicates a position west of (0,0)
 func metresFromOrigin(lat, lng float64) (mNS, mEW float64) {
-	lngRat := math.Abs(lat/maxNorthDeg)
+	lngRat := math.Abs(lat / maxNorthDeg)
 	widthRat := math.Sqrt(1 - lngRat)
 	mEW = lng * metresPerLng * widthRat
 	mNS = lat * metresPerLat

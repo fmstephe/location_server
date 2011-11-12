@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"io/ioutil"
 	"location_server/server"
 	"log"
@@ -8,7 +9,6 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"websocket"
-	"flag"
 )
 
 const index = "index.html"
