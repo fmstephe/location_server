@@ -5,3 +5,6 @@ _*
 *.out
 *.log
 *.profile
+loadtest/loadtest
+locsrv/locsrv
+profile/profile
