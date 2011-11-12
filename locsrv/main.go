@@ -8,15 +8,15 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"websocket"
+	"flag"
 )
 
 const index = "index.html"
-
-var iFile []byte
-
 const logPath = "/var/log/locserver/server.log"
 
 var minTreeMax = int64(1000000)
+var iFile []byte
+var trackMovement *bool = flag.Bool("m", false, "Broadcast fine grained movement of users")
 
 func init() {
 	println("index request")
@@ -46,10 +46,11 @@ func initLog() *log.Logger {
 }
 
 func main() {
+	flag.Parse()
 	lg := initLog()
 	lg.Println("Location Server Started")
 	http.HandleFunc("/", indexHandler)
 	http.Handle("/ws", websocket.Handler(locserver.WebsocketUser))
-	go locserver.TreeManager(minTreeMax, lg)
+	go locserver.TreeManager(minTreeMax, *trackMovement, lg)
 	http.ListenAndServe(":8001", nil)
 }

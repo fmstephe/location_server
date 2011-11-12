@@ -21,11 +21,17 @@ const (
 
 	// The mean radius of the earth in metres
 	metresEarthRadius = 6367449.0
+	metresEarthCirc   = 40075160.0
 
-	maxNorth = 90 * metresPerLat
-	maxSouth = -90 * metresPerLat
-	maxEast  = 180 * metresPerLng
-	maxWest  = -180 * metresPerLng
+	maxNorthDeg = 90
+	maxSouthDeg = -90
+	maxEastDeg  = 180
+	maxWestDeg  = -180
+
+	maxNorthMetres = maxNorthDeg * metresPerLat
+	maxSouthMetres = maxSouthDeg * metresPerLat
+	maxEastMetres  = maxEastDeg * metresPerLng
+	maxWestMetres  = maxWestDeg * metresPerLng
 )
 
 // Takes a (lat,lng) point and returns a (mLat,mLng) point
@@ -37,8 +43,9 @@ const (
 //			A positive indicates a position east of (0,0)
 //			A negative indicates a position west of (0,0)
 func metresFromOrigin(lat, lng float64) (mNS, mEW float64) {
+	lngRat := math.Abs(lat/maxNorthDeg)
+	widthRat := math.Sqrt(1 - lngRat)
+	mEW = lng * metresPerLng * widthRat
 	mNS = lat * metresPerLat
-	radLng := DegToRad * lng
-	mEW = lng * (metresEarthRadius * math.Pi * math.Cos(radLng)) / 90 // TODO This doesn't look like it is accurate - check that out
 	return
 }
