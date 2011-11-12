@@ -5,12 +5,15 @@ import (
 	"errors"
 	"io"
 	"websocket"
-	//l4g "log4go.googlecode.com/hg"
+	"id"
 )
 
 var iOpErr = errors.New("Illegal Operation")
-var ider idMaker
+var ider *id.IdMaker
 
+func init() {
+	ider = id.New()
+}
 // ----------USER------------
 // A user is linked 1-1 to a websocket connection
 // All of a user's fields can change over its lifetime except writeChan
@@ -40,7 +43,7 @@ func (usr *user) eq(oUsr *user) bool {
 // NB: When we return from this function the websocket will be closed
 func WebsocketUser(ws *websocket.Conn) {
 	writeChan := make(chan perfProfiler, 32)
-	usr := user{id: ider.new(), writeChan: writeChan}
+	usr := user{id: ider.NewId(), writeChan: writeChan}
 	//l4g.Info("User: %d \tConnection Established", usr.id)
 	go writeWS(ws, &usr)
 	readWS(ws, &usr)
