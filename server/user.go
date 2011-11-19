@@ -5,14 +5,14 @@ import (
 	"errors"
 	"io"
 	"websocket"
-	"id"
+	"simpleid"
 )
 
 var iOpErr = errors.New("Illegal Operation")
-var ider *id.IdMaker
+var ider *simpleid.IdMaker
 
 func init() {
-	ider = id.New()
+	ider = simpleid.New()
 }
 // ----------USER------------
 // A user is linked 1-1 to a websocket connection
