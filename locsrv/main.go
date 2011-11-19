@@ -9,6 +9,7 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"websocket"
+	"runtime"
 )
 
 const index = "index.html"
@@ -17,8 +18,11 @@ const logPath = "/var/log/locserver/server.log"
 var minTreeMax = int64(1000000)
 var iFile []byte
 var trackMovement *bool = flag.Bool("m", false, "Broadcast fine grained movement of users")
+var threads *int = flag.Int("t", 1, "The number of threads available to the runtime")
 
 func init() {
+	flag.Parse()
+	runtime.GOMAXPROCS(*threads)
 	println("index request")
 	var err error
 	iFile, err = ioutil.ReadFile(index)
@@ -40,13 +44,15 @@ func initLog() *log.Logger {
 	logFile, err := os.OpenFile(logPath, os.O_WRONLY, 0666)
 	if err != nil {
 		os.Create(logPath)
-		logFile, _ = os.OpenFile(logPath, os.O_WRONLY, 0666)
+		logFile, err = os.OpenFile(logPath, os.O_WRONLY, 0666)
+		if err != nil {
+			panic(err.Error())
+		}
 	}
 	return log.New(logFile, "", log.Lmicroseconds)
 }
 
 func main() {
-	flag.Parse()
 	lg := initLog()
 	lg.Println("Location Server Started")
 	http.HandleFunc("/", indexHandler)
