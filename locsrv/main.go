@@ -15,8 +15,8 @@ import (
 const index = "index.html"
 const logPath = "/var/log/locserver/server.log"
 
-var minTreeMax = int64(1000000)
 var iFile []byte
+var minTreeMax *int64 = flag.Int64("treeSize", 1000, "The initialisation size of the quadtree")
 var trackMovement *bool = flag.Bool("m", false, "Broadcast fine grained movement of users")
 var threads *int = flag.Int("t", 1, "The number of threads available to the runtime")
 
@@ -57,6 +57,6 @@ func main() {
 	lg.Println("Location Server Started")
 	http.HandleFunc("/", indexHandler)
 	http.Handle("/ws", websocket.Handler(locserver.WebsocketUser))
-	go locserver.TreeManager(minTreeMax, *trackMovement, lg)
+	go locserver.TreeManager(*minTreeMax, *trackMovement, lg)
 	http.ListenAndServe(":8001", nil)
 }
