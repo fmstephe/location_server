@@ -50,13 +50,13 @@ func newPerfProfile(uId, tId int64, op string, taskNum int) *perfProfile {
 }
 
 func (p *perfProfile) start(taskName string) {
-	u := perfUnit{taskName: taskName, time: time.Nanoseconds()}
+	u := perfUnit{taskName: taskName, time: time.Now()}
 	p.timings = append(p.timings, u)
 }
 
 func (p *perfProfile) stop() {
 	last := &p.timings[len(p.timings)-1]
-	last.time = time.Nanoseconds() - last.time
+	last.time = time.Now().Sub(last.time)
 }
 
 func (p *perfProfile) stopAndStart(taskName string) {

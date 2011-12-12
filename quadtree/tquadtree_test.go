@@ -21,7 +21,7 @@ type point struct {
 	x, y float64
 }
 
-var testRand = rand.New(rand.NewSource(time.Nanoseconds()))
+var testRand = rand.New(rand.NewSource(time.Now()))
 
 func init() {
 	testTrees = []T{

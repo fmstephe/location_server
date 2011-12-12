@@ -214,9 +214,9 @@ func (v *View) Intersect(ov *View) *View {
 }
 
 func (v *View) String() string {
-	lx := strconv.Ftoa64(v.lx, 'f', 6)
-	rx := strconv.Ftoa64(v.rx, 'f', 6)
-	ty := strconv.Ftoa64(v.ty, 'f', 6)
-	by := strconv.Ftoa64(v.by, 'f', 6)
+	lx := strconv.FormatFloat(v.lx, 'f', 6, 64)
+	rx := strconv.FormatFloat(v.rx, 'f', 6, 64)
+	ty := strconv.FormatFloat(v.ty, 'f', 6, 64)
+	by := strconv.FormatFloat(v.by, 'f', 6, 64)
 	return "[" + lx + " " + rx + " " + ty + " " + by + "]"
 }

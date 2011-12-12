@@ -129,7 +129,7 @@ func testIllegalView(lx, rx, ty, by float64, t *testing.T) {
 }
 
 func TestOverLap(t *testing.T) {
-	rand.Seed(time.Nanoseconds())
+	rand.Seed(time.Now())
 	for i := 0; i < 10000; i++ {
 		v1, v2 := overlap()
 		if !v1.overlaps(v2) {
@@ -144,7 +144,7 @@ func TestOverLap(t *testing.T) {
 }
 
 func TestDisjoint(t *testing.T) {
-	rand.Seed(time.Nanoseconds())
+	rand.Seed(time.Now())
 	for i := 0; i < 1000; i++ {
 		v1, v2 := disjoint()
 		if v1.overlaps(v2) {
