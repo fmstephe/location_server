@@ -5,7 +5,7 @@ import (
 	"errors"
 	"io"
 	"websocket"
-	"simpleid"
+	"github.com/fmstephe/simpleid"
 )
 
 var iOpErr = errors.New("Illegal Operation")
