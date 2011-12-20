@@ -301,27 +301,22 @@ type root struct {
 // 	collected when they are recycled.
 // A root node is initialised and the tree is ready for service.
 func newRoot(view *View, leafAllocation int64) *root {
-	// Ensure a sensible number for leaf allocation
 	if leafAllocation < 10 {
 		leafAllocation = 10
 	}
 	leafNum := 3 - ((leafAllocation - 1) % 3) + leafAllocation
 	nodeNum := (leafNum - 1) / 3
 	r := new(root)
-	// Statically allocate leaves
 	r.leaves = make([]leaf, leafNum, leafNum)
 	for i := 0; i < len(r.leaves)-2; i++ {
 		r.leaves[i].nextFree = &r.leaves[i+1]
 	}
-	// Statically allocate nodes
 	r.nodes = make([]node, nodeNum, nodeNum)
 	for i := 0; i < len(r.nodes)-2; i++ {
 		r.nodes[i].nextFree = &r.nodes[i+1]
 	}
-	// Initialise free structure pointers
 	r.freeNode = &r.nodes[0]
 	r.freeLeaf = &r.leaves[0]
-	// initialise root node
 	rootNode := r.newNode(view)
 	r.rootNode = rootNode
 	return r
@@ -366,7 +361,7 @@ func (r *root) recycleNode(n *node) {
 	}
 	n.nextFree = r.freeNode
 	r.freeNode = n
-	for i := range n.children { // You cannot recycle a node with nil children
+	for i := range n.children {
 		r.recycle(n.children[i])
 	}
 	n.children = *new([4]subtree)
