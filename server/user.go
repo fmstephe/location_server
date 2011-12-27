@@ -67,7 +67,7 @@ func readWS(ws *websocket.Conn, usr *user) {
 	}
 	// Accept an endless stream of request messages
 	for {
-		usr.tId++ // Increase the transaction id for each message
+		usr.tId++
 		req, perf, err := unmarshal(usr, buf, ws)
 		if err != nil {
 			//l4g.Info("User: %d \tConnection Terminated with %s", usr.id, err.String())
