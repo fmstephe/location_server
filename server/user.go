@@ -3,27 +3,23 @@ package locserver
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"websocket"
 	"github.com/fmstephe/simpleid"
 )
 
 var iOpErr = errors.New("Illegal Operation")
-var ider *simpleid.IdMaker
+var idSet = simpleid.NewIdSet()
 
-func init() {
-	ider = simpleid.New()
-}
-// ----------USER------------
 // A user is linked 1-1 to a websocket connection
 // All of a user's fields can change over its lifetime except writeChan
 // Thus, two users are considered equivalent if they have the same writeChan - subject to change
 type user struct {
-	id         int64             // Globally unique identifier for this user
+	Id         string             // Unique identifier for this user
 	tId        int64             // A changing identifier used to tag each message with a transaction id
 	OLat, OLng float64           // Previous position of this user
 	Lat, Lng   float64           // Current position of this user
-	Name       string            // Arbitrary data (json?) representing this user to the client application
 	writeChan  chan perfProfiler // All messages sent here will be written to the websocket
 	// In the future this may contain a reference to the tree it is stored in
 }
@@ -32,18 +28,14 @@ func (usr *user) eq(oUsr *user) bool {
 	if usr == nil || oUsr == nil {
 		return false
 	}
-	return usr.writeChan == oUsr.writeChan
+	return usr.Id == oUsr.Id
 }
-
-//
-// Websocket handling per user
-//
 
 // Central entry function for a websocket connection
 // NB: When we return from this function the websocket will be closed
 func WebsocketUser(ws *websocket.Conn) {
 	writeChan := make(chan perfProfiler, 32)
-	usr := user{id: ider.NewId(), writeChan: writeChan}
+	usr := user{writeChan: writeChan}
 	//l4g.Info("User: %d \tConnection Established", usr.id)
 	go writeWS(ws, &usr)
 	readWS(ws, &usr)
@@ -83,8 +75,9 @@ func readWS(ws *websocket.Conn, usr *user) {
 // Removes a user from the tree when socket connection is closed
 func removeOnClose(usr *user) {
 	usr.tId++
-	perf := newPerfProfile(usr.id, usr.tId, string(cRemoveOp), perf_inTaskNum)
+	perf := newPerfProfile(usr.Id, usr.tId, string(cRemoveOp), perf_inTaskNum)
 	perf.start(perf_userProc)
+	idSet.Remove(usr.Id)
 	forwardMsg(cRemoveOp, usr, perf)
 }
 
@@ -97,7 +90,7 @@ func unmarshal(usr *user, buf []byte, ws *websocket.Conn) (msg *CJsonMsg, perf *
 	//l4g.Info("User: %d \tClient Message: %s", usr.id, string(buf[:n]))
 	msg = new(CJsonMsg)
 	err = json.Unmarshal(buf[:n], &msg)
-	perf = newPerfProfile(usr.id, usr.tId, string(msg.Op), perf_inTaskNum)
+	perf = newPerfProfile(usr.Id, usr.tId, string(msg.Op), perf_inTaskNum)
 	perf.start(perf_userProc)
 	return
 }
@@ -106,7 +99,10 @@ func unmarshal(usr *user, buf []byte, ws *websocket.Conn) (msg *CJsonMsg, perf *
 func processInit(init *CJsonMsg, usr *user, perf *perfProfile) (err error) {
 	switch init.Op {
 	case cAddOp:
-		usr.Name = init.Name
+		if err := idSet.Add(init.Id); err != nil {
+			return errors.New(fmt.Sprintf("Id (%s) already registered"))
+		}
+		usr.Id = init.Id
 		usr.Lat = init.Lat
 		usr.Lng = init.Lng
 		forwardMsg(cAddOp, usr, perf)

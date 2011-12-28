@@ -37,7 +37,7 @@ func TreeManager(minTreeMax int64, trackMovement bool, lg *log.Logger) {
 func handleAdd(add *clientMsg, tree quadtree.T, lg *log.Logger) {
 	usr := &add.usr
 	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
-	log.Println("User: %d \t Add Request \tmNS: %f mEW: %f", usr.id, mNS, mEW)
+	log.Println("User: %d \t Add Request \tmNS: %f mEW: %f", usr.Id, mNS, mEW)
 	vs := []*quadtree.View{nearbyView(mNS, mEW)}
 	tree.Survey(vs, addFun(usr))
 	tree.Insert(mNS, mEW, usr)
@@ -46,7 +46,7 @@ func handleAdd(add *clientMsg, tree quadtree.T, lg *log.Logger) {
 func handleRemove(rmv *clientMsg, tree quadtree.T, lg *log.Logger) {
 	usr := &rmv.usr
 	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
-	log.Println("User: %d \t Remove Request \tmNS: %f mEW: %f", usr.id, mNS, mEW)
+	log.Println("User: %d \t Remove Request \tmNS: %f mEW: %f", usr.Id, mNS, mEW)
 	deleteUsr(mNS, mEW, usr, tree)
 	vs := []*quadtree.View{nearbyView(mNS, mEW)}
 	tree.Survey(vs, removeFun(usr))
@@ -55,7 +55,7 @@ func handleRemove(rmv *clientMsg, tree quadtree.T, lg *log.Logger) {
 func handleNearby(nby *clientMsg, tree quadtree.T, lg *log.Logger) {
 	usr := nby.usr
 	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
-	log.Println("User: %d \t Nearby Request \t mNS %f mEW %f", usr.id, mNS, mEW)
+	log.Println("User: %d \t Nearby Request \t mNS %f mEW %f", usr.Id, mNS, mEW)
 	view := nearbyView(mNS, mEW)
 	vs := []*quadtree.View{view}
 	tree.Survey(vs, nearbyFun(&usr))
@@ -65,7 +65,7 @@ func handleMove(mv *clientMsg, tree quadtree.T, trackMovement bool, lg *log.Logg
 	usr := &mv.usr
 	nMNS, nMEW := metresFromOrigin(usr.Lat, usr.Lng)
 	oMNS, oMEW := metresFromOrigin(usr.OLat, usr.OLng)
-	log.Println("User: %d \t Relocate Request: \t oMNS: %f oMEW %f nMNS: %f nMEW %f", usr.id, oMNS, oMEW, nMNS, nMEW)
+	log.Println("User: %d \t Relocate Request: \t oMNS: %f oMEW %f nMNS: %f nMEW %f", usr.Id, oMNS, oMEW, nMNS, nMEW)
 	deleteUsr(oMNS, oMEW, usr, tree)
 	tree.Insert(nMNS, nMEW, usr)
 	nView := nearbyView(nMNS, nMEW)
@@ -163,7 +163,7 @@ func nearbyView(mNS, mEW float64) *quadtree.View {
 }
 
 func broadcastSend(op serverOp, usr *user, oUsr *user) {
-	perf := newPerfProfile(usr.id, usr.tId, string(op), perf_outTaskNum)
+	perf := newPerfProfile(usr.Id, usr.tId, string(op), perf_outTaskNum)
 	perf.start(perf_bSend)
 	msg := newServerMsg(op, usr, perf)
 	oUsr.writeChan <- msg

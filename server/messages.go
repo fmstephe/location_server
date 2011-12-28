@@ -17,12 +17,12 @@ const cNearbyOp = clientOp("cNearby")
 type CJsonMsg struct {
 	Op       clientOp
 	Lat, Lng float64
-	Name     string
+	Id     string
 }
 
 // Usually CJsonMsg structs are built by unmarshal - but this is hard for external test packages
-func TestMsg(op clientOp, lat, lng float64, name string) *CJsonMsg {
-	return &CJsonMsg{Op: op, Lat: lat, Lng: lng, Name: name}
+func TestMsg(op clientOp, lat, lng float64, id string) *CJsonMsg {
+	return &CJsonMsg{Op: op, Lat: lat, Lng: lng, Id: id}
 }
 
 // A client request

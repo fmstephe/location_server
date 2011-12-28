@@ -44,9 +44,9 @@ type perfUnit struct {
 	time     int64
 }
 
-func newPerfProfile(uId, tId int64, op string, taskNum int) *perfProfile {
+func newPerfProfile(uId string, tId int64, op string, taskNum int) *perfProfile {
 	t := make([]perfUnit, 0, taskNum)
-	return &perfProfile{pName: fmt.Sprintf("%d:%d:%s", uId, tId, op), timings: t}
+	return &perfProfile{pName: fmt.Sprintf("%s:%d:%s", uId, tId, op), timings: t}
 }
 
 func (p *perfProfile) start(taskName string) {
