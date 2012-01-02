@@ -1,24 +1,24 @@
 package locserver
 
 import (
-	"fmt"
 	"encoding/json"
 	"errors"
-	"io"
-	"websocket"
-	"location_server/profile"
-	"location_server/msgdef"
+	"fmt"
 	"github.com/fmstephe/simpleid"
+	"io"
+	"location_server/msgdef"
+	"location_server/profile"
+	"websocket"
 )
 
 var iOpErr = errors.New("Illegal Operation")
 var idSet = simpleid.NewIdMap()
 
 type user struct {
-	Id         string             // Unique identifier for this user
-	tId        int64             // A changing identifier used to tag each message with a transaction id
-	OLat, OLng float64           // Previous position of this user
-	Lat, Lng   float64           // Current position of this user
+	Id         string          // Unique identifier for this user
+	tId        int64           // A changing identifier used to tag each message with a transaction id
+	OLat, OLng float64         // Previous position of this user
+	Lat, Lng   float64         // Current position of this user
 	writeChan  chan *serverMsg // All messages sent here will be written to the websocket
 	// In the future this may contain a reference to the tree it is stored in
 }

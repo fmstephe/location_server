@@ -23,8 +23,8 @@ type P interface {
 	Start(string)
 	Stop()
 	StopAndStart(string)
-	StopAndString()string
-	String()string
+	StopAndString() string
+	String() string
 }
 
 type profile struct {

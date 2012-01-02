@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"location_server/msgdef"
 	"math/rand"
 	"time"
 	"websocket"
-	"location_server/msgdef"
 )
 
 const one_second = 1000000000

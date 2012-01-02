@@ -8,8 +8,8 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"os"
-	"websocket"
 	"runtime"
+	"websocket"
 )
 
 const index = "index.html"

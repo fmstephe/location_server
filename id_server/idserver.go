@@ -1,10 +1,10 @@
 package main
 
 import (
-	"net/http"
 	"encoding/json"
-	"location_server/msgdef"
 	"github.com/fmstephe/simpleid"
+	"location_server/msgdef"
+	"net/http"
 )
 
 var idMaker = simpleid.NewIdMaker()
@@ -21,6 +21,5 @@ func idProvider(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/", idProvider)
-	http.ListenAndServe(":8001",nil)
+	http.ListenAndServe(":8001", nil)
 }
-
