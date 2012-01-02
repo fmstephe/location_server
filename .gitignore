@@ -5,6 +5,8 @@ _*
 *.out
 *.log
 *.profile
-loadtest/loadtest
-locsrv/locsrv
+loc_server/loadtest/loadtest
+loc_server/locsrv/locsrv
 profile/profile
+id_server/id_server
+msg_server/msg_server
