@@ -1,7 +1,7 @@
 package locserver
 
 import (
-	"location_server/locserver/quadtree"
+	"location_server/loc_server/quadtree"
 	"location_server/msgdef"
 	"location_server/profile"
 	"log"

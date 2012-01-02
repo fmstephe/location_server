@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"io/ioutil"
-	"location_server/locserver/server"
+	"location_server/loc_server/server"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
