@@ -1,5 +1,5 @@
 #!/bin/bash
 
-example &
+example_server &
 locsrv &
 msg_server &
