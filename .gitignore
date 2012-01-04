@@ -8,5 +8,5 @@ _*
 loc_server/loadtest/loadtest
 loc_server/locsrv/locsrv
 profile/profile
-id_server/id_server
 msg_server/msg_server
+example_server/example_server
