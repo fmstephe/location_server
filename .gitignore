@@ -6,7 +6,7 @@ _*
 *.log
 *.profile
 loc_server/loadtest/loadtest
-loc_server/locsrv/locsrv
-profile/profile
+loc_server/loc_server/loc_server
 msg_server/msg_server
 example_server/example_server
+profile/profile
