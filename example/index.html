@@ -42,7 +42,7 @@ function nearby(lat, lng) {
 function clientObj() {
 	return {
 connect: function() {
-		 this.ws=new WebSocket("ws://localhost:8001/ws");
+		 this.ws=new WebSocket("ws://localhost:8002/loc");
 		 this.ws.onopen=this.onopen;
 		 this.ws.onmessage=this.onmessage;
 		 this.ws.onclose=this.onclose;
@@ -69,14 +69,20 @@ onclose: function(m) {
 	};
 }
 
-var added = false;
 var inited = false;
+var id;
 var map;
 var marker = null;
 var client = new clientObj();
 var users = new Array();
 
 function initialise() {
+	var idReq = new XMLHttpRequest();
+	idReq.open("GET", "http://localhost:8001/id", false);
+	idReq.send();
+	idMsg = JSON.parse(idReq.responseText);
+	id = idMsg.Id;
+	console.log(id)
 	client.connect();
 	var latlng = new google.maps.LatLng(54.97784, -1.612916);
 	var myOptions = {control: false,
@@ -114,17 +120,16 @@ function placeMarker(loc) {
 }
 
 function sendMsg(loc) {
-	var msg;
-	if (!added) {
-		msg = new add($F("name"));
-		added = true;
-	} else if (!inited){
-		msg = new initLoc(loc.lat(), loc.lng());
+	if (!inited) {
+		addMsg = new add(id);
+		client.send(addMsg);
+		initMsg = new initLoc(loc.lat(), loc.lng());
+		client.send(initMsg);
 		inited = true;
 	} else {
-		msg = new move(loc.lat(),loc.lng());
+		var mvMsg = new move(loc.lat(),loc.lng());
+		client.send(mvMsg);
 	}
-	client.send(msg);
 }
 
 </script>

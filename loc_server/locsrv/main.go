@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
 	"location_server/loc_server/server"
 	"log"
 	"net/http"
@@ -12,7 +11,6 @@ import (
 	"websocket"
 )
 
-const index = "index.html"
 const logPath = "/var/log/locserver/server.log"
 
 var iFile []byte
@@ -23,20 +21,6 @@ var threads *int = flag.Int("t", 1, "The number of threads available to the runt
 func init() {
 	flag.Parse()
 	runtime.GOMAXPROCS(*threads)
-	println("index request")
-	var err error
-	iFile, err = ioutil.ReadFile(index)
-	if err != nil {
-		panic("Unable to initialise index.html")
-	}
-}
-
-//
-// Static index HTML page serving function
-//
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	println("index request")
-	w.Write(iFile)
 }
 
 // TODO This is poorly - improve
@@ -55,7 +39,6 @@ func initLog() *log.Logger {
 func main() {
 	lg := initLog()
 	lg.Println("Location Server Started")
-	http.HandleFunc("/", indexHandler)
 	http.Handle("/loc", websocket.Handler(locserver.WebsocketUser))
 	go locserver.TreeManager(*minTreeMax, *trackMovement, lg)
 	http.ListenAndServe(":8002", nil)
