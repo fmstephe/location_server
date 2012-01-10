@@ -71,14 +71,14 @@ func WebsocketUser(ws *websocket.Conn) {
 func readWS(ws *websocket.Conn, usr *user) {
 	buf := make([]byte, 256)
 	if _, err := unmarshal(usr, buf, new(msgdef.CIdMsg), processReg, ws); err != nil {
-		fmt.Printf("User: %s \tConnection Terminated with %s\n", usr.Id, err.Error())
+		fmt.Printf("User: %s \tConnection Terminated with '%s'\n", usr.Id, err.Error())
 		return
 	}
 	if err := idSet.Add(usr.Id, usr); err != nil {
 		return
 	}
 	if msg, err := unmarshal(usr, buf, new(msgdef.CLocMsg), processInitLoc, ws); err != nil {
-		fmt.Printf("User: %s \tConnection Terminated with %s\n", usr.Id, err.Error())
+		fmt.Printf("User: %s \tConnection Terminated with '%s'\n", usr.Id, err.Error())
 		return
 	} else {
 		forwardMsg(msg)
@@ -87,7 +87,7 @@ func readWS(ws *websocket.Conn, usr *user) {
 	for {
 		usr.tId++
 		if msg, err := unmarshal(usr, buf, new(msgdef.CLocMsg), processRequest, ws); err != nil {
-			fmt.Printf("User: %s \tConnection Terminated with %s\n", usr.Id, err.Error())
+			fmt.Printf("User: %s \tConnection Terminated with '%s'\n", usr.Id, err.Error())
 			return
 		} else {
 			forwardMsg(msg)
