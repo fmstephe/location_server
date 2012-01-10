@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io/ioutil"
+	"os"
 	"encoding/json"
 	"github.com/fmstephe/simpleid"
 	"location_server/msgdef"
@@ -20,18 +20,15 @@ func idProvider(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func exampleHandler(w http.ResponseWriter, r *http.Request) {
-	println("index request")
-	if file, err := ioutil.ReadFile("index.html"); err != nil {
+func main() {
+	pwd, err := os.Getwd()
+	if err != nil {
 		println(err.Error())
 		return
-	} else {
-		w.Write(file)
 	}
-}
-
-func main() {
 	http.HandleFunc("/id", idProvider)
-	http.HandleFunc("/example", exampleHandler)
-	http.ListenAndServe(":8001", nil)
+	http.Handle("/", http.FileServer(http.Dir(pwd+"/html/")))
+	if err := http.ListenAndServe(":8001", nil); err != nil {
+		println(err.Error())
+	}
 }
