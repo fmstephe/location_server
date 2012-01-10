@@ -11,7 +11,7 @@ import (
 	"websocket"
 )
 
-var iOpErr = errors.New("Illegal Operation")
+var iOpErr = errors.New("Illegal Message Op. Operation unrecognised or provided in illegal order.")
 var idSet = simpleid.NewIdMap()
 
 type user struct {
@@ -61,7 +61,7 @@ func (usr *user) eq(oUsr *user) bool {
 func WebsocketUser(ws *websocket.Conn) {
 	writeChan := make(chan *serverMsg, 32)
 	usr := user{writeChan: writeChan}
-	fmt.Printf("User: %s \tConnection Established\n", usr.Id)
+	fmt.Printf("Connection Established\n")
 	go writeWS(ws, &usr)
 	readWS(ws, &usr)
 }
@@ -73,6 +73,8 @@ func readWS(ws *websocket.Conn, usr *user) {
 	if _, err := unmarshal(usr, buf, new(msgdef.CIdMsg), processReg, ws); err != nil {
 		fmt.Printf("User: %s \tConnection Terminated with '%s'\n", usr.Id, err.Error())
 		return
+	} else {
+		fmt.Printf("User: %s \tRegistered Successfully\n", usr.Id)
 	}
 	if err := idSet.Add(usr.Id, usr); err != nil {
 		return
@@ -191,7 +193,7 @@ func writeWS(ws *websocket.Conn, usr *user) {
 			fmt.Printf("User: %s \tError: %s\n", usr.Id, err.Error())
 			return
 		}
-		fmt.Printf("%s", perf.StopAndString())
+		fmt.Printf("%s\n", perf.StopAndString())
 	}
 }
 
