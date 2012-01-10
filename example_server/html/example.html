@@ -59,11 +59,13 @@ function handleLoc(msg) {
 	var op = msg.Op;
 	var usrInfo = msg.Usr;
 	if (op == "sAdd" || op == "sMoved" || op == "sNearby" || op == "sVisible") {
+		usrInfo.Name = "?"
 		if (users[usrInfo.Id]) {
 			users[usrInfo.Id].marker.setMap(null);
+			usrInfo.Name = users[usrInfo.Id].usrInfo.Name;
 		}
 		var loc = new google.maps.LatLng(usrInfo.Lat, usrInfo.Lng);
-		var marker = new google.maps.Marker({position: loc, map: map, title: null});
+		var marker = new google.maps.Marker({position: loc, map: map, title: usrInfo.Name});
 		var usr = new User(usrInfo, marker); 
 		users[usrInfo.Id] = usr;
 		google.maps.event.addListener(marker, 'click', function(event) { findName(usr) });
@@ -90,15 +92,15 @@ function handleMsg(msg) {
 		oldMarker.setMap(null);
 		newMarker = new google.maps.Marker({position:oldMarker.position, map: map, title: msgMsg});
 		users[from].marker = newMarker;
+		users[from].usrInfo.Name = msgMsg;
 		console.log("Updated user "+from+" with name "+msgMsg);
 	}
 }
 
 function placeMarker(loc) {
-	console.log("Click!")
-		if (marker != null) {
-			marker.setMap(null);
-		}
+	if (marker != null) {
+		marker.setMap(null);
+	}
 	marker = new google.maps.Marker({position:loc, map: map, title: "This is me!"});
 	sendMsg(loc);
 }
