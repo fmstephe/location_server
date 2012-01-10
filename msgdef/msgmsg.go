@@ -5,7 +5,7 @@ const CMsgOp = ClientOp("cMsg")
 
 type CMsgMsg struct {
 	Op  ClientOp
-	For string
+	To string
 	Msg string
 }
 
