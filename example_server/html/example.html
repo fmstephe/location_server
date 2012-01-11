@@ -34,7 +34,17 @@ var locService;
 var msgService;
 var users = new Array();
 
-function initialise() {
+function getLocalCoords() {
+	if (navigator.geolocation) {
+		navigator.geolocation.getCurrentPosition(initialise,function(error) { alert(error) });
+	} else {
+		alert("Get a real browser");
+	}
+}
+
+function initialise(position) {
+	var lat = position.coords.lattitude;
+	var lng = position.coords.longitude;
 	var idReq = new XMLHttpRequest();
 	idReq.open("GET", "http://"+host+":8001/id", false);
 	idReq.send();
@@ -46,7 +56,8 @@ function initialise() {
 	msgService = new WSClient("Message", "ws://"+host+":8003/msg", handleMsg, function(){ this.jsonsend(addMsg); }, function() {});
 	locService.connect();
 	msgService.connect();
-	var latlng = new google.maps.LatLng(54.97784, -1.612916);
+	//var latlng = new google.maps.LatLng(54.97784, -1.612916);
+	var latlng = new google.maps.LatLng(lat, lng);
 	var myOptions = {control: false,
 		zoom: 15,
 		center: latlng,
@@ -119,7 +130,7 @@ function sendMsg(loc) {
 
 </script>
 </head>
-<body onLoad="initialise()">
+<body onLoad="getLocalCoords()">
 	<h1>Set Name</h1>
 	<div id="name-entry">
 		<input type="text" id="name" name="name"/>
