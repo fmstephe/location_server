@@ -34,6 +34,10 @@ var thisCycle;
 // Display toggle for nerdy info
 var devMode;
 
+// Multiplayer services
+var locservice;
+var msgservice;
+
 function init() {
 	devMode = false;
 	lastCycle = new Date().getTime();

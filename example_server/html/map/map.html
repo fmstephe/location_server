@@ -7,8 +7,8 @@
 			#map_canvas { height: 100% }
 		</style>
 		<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+		<script type="text/javascript" src="http://178.79.176.206:8001/common/id.js"></script>
 		<script type="text/javascript" src="http://178.79.176.206:8001/common/wsUtil.js"></script>
-		<script type="text/javascript" src="http://178.79.176.206:8001/common/location.js"></script>
 		<script type="text/javascript" src="http://178.79.176.206:8001/common/message.js"></script>
 		<script type="text/javascript">
 			// Request Objects
@@ -50,7 +50,7 @@ function initialise(position) {
 	idReq.open("GET", "http://"+host+":8001/id", false);
 	idReq.send();
 	idMsg = JSON.parse(idReq.responseText);
-	id = idMsg.Id;
+	id = getId();
 	console.log(id);
 	addMsg = new Add(id);
 	locService = new WSClient("Location", "ws://"+host+":8002/loc", handleLoc, function(){ this.jsonsend(addMsg); }, function() {});
