@@ -43,8 +43,9 @@ function getLocalCoords() {
 }
 
 function initialise(position) {
-	var lat = position.coords.lattitude;
+	var lat = position.coords.latitude;
 	var lng = position.coords.longitude;
+	console.log(lat, lng);
 	var idReq = new XMLHttpRequest();
 	idReq.open("GET", "http://"+host+":8001/id", false);
 	idReq.send();
