@@ -40,11 +40,8 @@ function Player(x, name, turretLength, initPower, minPower, maxPower, powerInc, 
 	this.health = health;
 	this.turretLength = turretLength;
 	this.keyBindings = keyBindings;
-	this.canFire = true;
-	this.isPlaying = false;
 	this.incPower = incPowerPlayer;
 	this.decPower = decPowerPlayer;
-	this.createMissile = createMissilePlayer;
 	this.setClear = setClearPlayer;
 	this.shouldRemove = shouldRemovePlayer;
 	this.render = renderPlayer;
@@ -58,11 +55,6 @@ function incPowerPlayer() {
 function decPowerPlayer() {
 	this.power -= this.powerInc;
 	this.power = Math.max(this.power, this.minPower);
-}
-
-function createMissilePlayer(gravity) {
-	this.canFire = false;
-	return new Missile(this, gravity);
 }
 
 function setClearPlayer(ctxt, hgt) {
@@ -93,14 +85,9 @@ function renderPlayer(ctxt, hgt) {
 		ctxt.lineTo(turretX,turretY);
 		ctxt.closePath();
 		ctxt.stroke();
-		if (this.isPlaying) {
-			var powerP = Math.round((this.power/maxPower)*100);
-			ctxt.font = "20pt Calibri-bold";
-			ctxt.fillText(powerP+"%",this.x+this.turretLength, hgt-this.y);
-		} else {
-			ctxt.font = "20pt Calibri-bold";
-			ctxt.fillText(Math.floor(this.health),this.x+this.turretLength, hgt-this.y);
-		}
+		var powerP = Math.round((this.power/maxPower)*100);
+		ctxt.font = "20pt Calibri-bold";
+		ctxt.fillText(powerP+"%",this.x+this.turretLength, hgt-this.y);
 	}
 }
 
@@ -131,7 +118,6 @@ function setClearMissile(ctxt, hgt) {
 
 function removeMissile() {
 	this.removed = true;
-	this.player.canFire = true;
 }
 
 function shouldRemoveMissile() {
@@ -205,8 +191,8 @@ function renderExplosion(ctxt, hgt) {
 	ctxt.fill();
 }
 
-function Terrain(heightArray, w, h) {
-	this.heightArray = heightArray;
+function Terrain(w, h) {
+	this.heightArray = generateTerrain(w, h);
 	this.w = w;
 	this.h = h;
 	this.regionList = new LinkedList();

@@ -9,6 +9,7 @@ function LinkedList() {
 	this.forEach = forEach;
 	this.filter = filter;
 	this.circularNext = circularNext;
+	this.contains = contains;
 	this.length = function() {return this.size;};
 }
 
@@ -26,7 +27,7 @@ function Item(val) {
 
 function append(val) {
 	this.size++;
-	item = new Item(val);
+	var item = new Item(val);
 	if (this.first == null) {
 		this.first = item;
 		this.last = item;
@@ -39,7 +40,7 @@ function append(val) {
 }
 
 function forEach(fun) {
-	item = this.first;
+	var item = this.first;
 	while (item != null) {
 		fun(item.val);
 		item = item.next;
@@ -47,7 +48,7 @@ function forEach(fun) {
 }
 
 function filter(pred) {
-	item = this.first;
+	var item = this.first;
 	while (item != null) {
 		if (pred(item.val)) {
 			this.size--;
@@ -73,7 +74,7 @@ function remove(list, item) {
 }
 
 function circularNext(val) {
-	item = this.first;
+	var item = this.first;
 	while (item != null) {
 		if (item.val === val) {
 			if (item.next == null) {
@@ -85,4 +86,16 @@ function circularNext(val) {
 		item = item.next;
 	}
 	return null;
+}
+
+function contains(val) {
+	var item = this.first;
+	while (item != null) {
+		if (item.val === val) {
+			return true;
+		} else {
+			item = item.next;
+		}
+	}
+	return false;
 }

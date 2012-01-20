@@ -22,6 +22,8 @@ var terrain;
 var canvasHeight;
 var canvasWidth;
 // Game entity lists
+var keyBindingList;
+var launchList;
 var playerList;
 var missileList;
 var explosionList;
@@ -33,10 +35,6 @@ var lastCycle;
 var thisCycle;
 // Display toggle for nerdy info
 var devMode;
-
-// Multiplayer services
-var locservice;
-var msgservice;
 
 function init() {
 	devMode = false;
@@ -50,19 +48,21 @@ function init() {
 	bgCtxt = bgCanvas.getContext("2d");
 	canvasHeight = fgCanvas.height;
 	canvasWidth = fgCanvas.width;
-	var heightArray = generateTerrain(canvasWidth, canvasHeight);
-	terrain = new Terrain(heightArray, canvasWidth, canvasHeight);
+	terrain = new Terrain(canvasWidth, canvasHeight);
 	var kb1 = new KeyBindings(87,83,65,68,70);
 	var player1 = new Player(r(canvasWidth/3), "Player1", turretLength, initPower, minPower, maxPower, powerInc, expRadius, kb1);
 	var kb2 = new KeyBindings(73,75,74,76,72);
 	var player2 = new Player(canvasWidth-r(canvasWidth/3), "Player2", turretLength, initPower, minPower, maxPower, powerInc, expRadius, kb2);
 	explosionList = new LinkedList();
 	missileList = new LinkedList();
+	launchList = new LinkedList();
 	playerList = new LinkedList();
 	playerList.append(player1);
 	playerList.append(player2);
+	keyBindingList = new LinkedList();
+	keyBindingList.append(kb1);
+	keyBindingList.append(kb2);
 	currentPlayer = player1;
-	currentPlayer.isPlaying = true;
 	initRender();
 	setInterval(loop, framePause);
 }
@@ -78,7 +78,6 @@ function initRender() {
 }
 
 function loop() {
-	// Debug info, such as frame rate is logged here
 	manageInfo();
 	logInfo();
 	if (!gameOver) {
@@ -94,6 +93,11 @@ function loop() {
 		playerList.forEach(function(p) {updatePlayer(p);});
 		missileList.forEach(function(m) {updateMissile(m);});
 		explosionList.forEach(function(e) {updateExplosion(e);});
+		if (launchList.size == playerList.size) {
+			launchList.forEach(function(p) {launchMissile(p);});
+			launchList.clear();
+			keyBindingList.forEach(function(kb) {kb.reset();});
+		}
 		// If an explosion has caused the terrain to change clear out the affected region
 		terrain.setClear(terrainCtxt, canvasHeight);
 		// Render game entities
@@ -123,29 +127,33 @@ function switchPlayers() {
 	pPlayer = currentPlayer;
 	currentPlayer = null;
 	pPlayer.keyBindings.reset();
-	pPlayer.isPlaying = false;
 	currentPlayer = playerList.circularNext(pPlayer);
-	currentPlayer.isPlaying = true;
 }
 
 function updatePlayer(player) {
 	hr = terrain.heightArray;
 	player.y = hr[player.x];
-	if (player.keyBindings.left) {
-		player.arc -= rotationSpeed;
+	if (!launchList.contains(player)) {
+		if (player.keyBindings.left) {
+			player.arc -= rotationSpeed;
+		}
+		if (player.keyBindings.right) {
+			player.arc += rotationSpeed;
+		}
+		if (player.keyBindings.up) {
+			player.incPower();
+		}
+		if (player.keyBindings.down) {
+			player.decPower();
+		}
+		if (player.keyBindings.firing) {
+			launchList.append(player);
+		}
 	}
-	if (player.keyBindings.right) {
-		player.arc += rotationSpeed;
-	}
-	if (player.keyBindings.up) {
-		player.incPower();
-	}
-	if (player.keyBindings.down) {
-		player.decPower();
-	}
-	if (player.canFire && player.keyBindings.firing) {
-		missileList.append(player.createMissile(gravity));
-	}
+}
+
+function launchMissile(player) {
+	missileList.append(new Missile(player, gravity));
 }
 
 function updateMissile(missile) {
@@ -252,9 +260,7 @@ function captureKeydown(e) {
 		devMode = !devMode;
 		return;
 	}	       
-	if (currentPlayer != null) {
-		keydown(keyCode, currentPlayer.keyBindings);
-	}
+	keyBindingList.forEach(function(kb) {keydown(keyCode, kb);});
 }
 
 function keydown(keyCode, keyBinding) {
@@ -277,9 +283,7 @@ function keydown(keyCode, keyBinding) {
 
 function captureKeyup(e) {
 	var keyCode = e.keyCode;
-	if (currentPlayer != null) {
-		keyup(keyCode, currentPlayer.keyBindings);
-	}
+	keyBindingList.forEach(function(kb) {keyup(keyCode, kb);});
 }
 
 function keyup(keyCode, keyBinding) {

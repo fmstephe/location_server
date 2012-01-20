@@ -52,4 +52,3 @@ function normaliseWave(wave, upperLim, lowerLim) {
 		wave[i] = (inMagnitude * outMagnitude) + lowerLim
 	}
 }
-
