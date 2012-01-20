@@ -46,10 +46,6 @@ var msgService;
 
 function init() {
 	//
-	var idReq = new XMLHttpRequest();
-	idReq.open("GET", "http://"+host+":8001/id", false);
-	idReq.send();
-	idMsg = JSON.parse(idReq.responseText);
 	id = getId();
 	console.log("Id provided: " + id);
 	addMsg = new Add(id);
