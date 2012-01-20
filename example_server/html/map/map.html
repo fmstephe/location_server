@@ -46,10 +46,6 @@ function initialise(position) {
 	var lat = position.coords.latitude;
 	var lng = position.coords.longitude;
 	console.log(lat, lng);
-	var idReq = new XMLHttpRequest();
-	idReq.open("GET", "http://"+host+":8001/id", false);
-	idReq.send();
-	idMsg = JSON.parse(idReq.responseText);
 	id = getId();
 	console.log(id);
 	addMsg = new Add(id);
