@@ -1,4 +1,5 @@
 // Global Constants
+var host = "178.79.176.206";
 var maxPower = 200;
 var minPower = 0;
 var initPower = 100;
@@ -36,7 +37,27 @@ var thisCycle;
 // Display toggle for nerdy info
 var devMode;
 
+//
+var id;
+// Location Service
+var locService;
+// Message Service
+var msgService;
+
 function init() {
+	//
+	var idReq = new XMLHttpRequest();
+	idReq.open("GET", "http://"+host+":8001/id", false);
+	idReq.send();
+	idMsg = JSON.parse(idReq.responseText);
+	id = getId();
+	console.log("Id provided: " + id);
+	addMsg = new Add(id);
+	locService = new WSClient("Location", "ws://"+host+":8002/loc", handleLoc, function(){ this.jsonsend(addMsg); }, function() {});
+	msgService = new WSClient("Message", "ws://"+host+":8003/msg", handleMsg, function(){ this.jsonsend(addMsg); }, function() {});
+	locService.connect();
+	msgService.connect();
+	//
 	devMode = false;
 	lastCycle = new Date().getTime();
 	thisCycle = new Date().getTime();
@@ -119,7 +140,6 @@ function loop() {
 		var name = playerList.getFirst().name;
 		fgCtxt.clearRect(0,0,canvasWidth,canvasHeight);
 		fgCtxt.fillText(name + " wins!", canvasWidth/2, canvasHeight/2);
-
 	}
 }
 
