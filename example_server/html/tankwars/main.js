@@ -15,7 +15,10 @@ var expRadius = 50;
 document.onkeydown = captureKeydown
 document.onkeyup = captureKeyup
 
-// Global Variables
+// Location
+var lat;
+var lng;
+// Environment
 var fgCtxt;
 var terrainCtxt;
 var bgCtxt;
@@ -23,13 +26,13 @@ var terrain;
 var canvasHeight;
 var canvasWidth;
 // Game entity lists
+var localPlayer;
 var keyBindingList;
 var launchList;
 var playerList;
 var missileList;
 var explosionList;
 // Current player whose turn it is
-var currentPlayer;
 var gameOver = false;
 // Frame rate tracking 
 var lastCycle;
@@ -44,16 +47,43 @@ var locService;
 // Message Service
 var msgService;
 
-function init() {
-	//
+function getLocalCoords() {
+	if (navigator.geolocation) {
+		navigator.geolocation.getCurrentPosition(init,function(error) { console.log(JSON.stringify(error)), init({"coords": {"latitude":1, "longitude":1}}) });
+	} else {
+		alert("Get a real browser");
+	}
+}
+
+function init(position) {
+	lat = position.coords.latitude;
+	lng = position.coords.longitude;
 	id = getId();
 	console.log("Id provided: " + id);
+	initMsgService();
+}
+
+function initMsgService() {
 	addMsg = new Add(id);
-	locService = new WSClient("Location", "ws://"+host+":8002/loc", handleLoc, function(){ this.jsonsend(addMsg); }, function() {});
-	msgService = new WSClient("Message", "ws://"+host+":8003/msg", handleMsg, function(){ this.jsonsend(addMsg); }, function() {});
-	locService.connect();
+	msgService = new WSClient("Message", "ws://"+host+":8003/msg", handleMsg, function(){ 
+		this.jsonsend(addMsg); 
+		initLocService(); }, 
+		function() {});
 	msgService.connect();
-	//
+}
+
+function initLocService() {
+	addMsg = new Add(id);
+	initMsg = new InitLoc(lat, lng);
+	locService = new WSClient("Location", "ws://"+host+":8002/loc", handleLoc, function(){ 
+		this.jsonsend(addMsg); 
+		this.jsonsend(initMsg);
+       		initGame();}, 
+		function() {});
+	locService.connect();
+}
+
+function initGame() {
 	devMode = false;
 	lastCycle = new Date().getTime();
 	thisCycle = new Date().getTime();
@@ -67,25 +97,21 @@ function init() {
 	canvasWidth = fgCanvas.width;
 	terrain = new Terrain(canvasWidth, canvasHeight);
 	var kb1 = new KeyBindings(87,83,65,68,70);
-	var player1 = new Player(r(canvasWidth/3), "Player1", turretLength, initPower, minPower, maxPower, powerInc, expRadius, kb1);
-	var kb2 = new KeyBindings(73,75,74,76,72);
-	var player2 = new Player(canvasWidth-r(canvasWidth/3), "Player2", turretLength, initPower, minPower, maxPower, powerInc, expRadius, kb2);
+	localPlayer = new Player(r(canvasWidth), "Player1", turretLength, initPower, minPower, maxPower, powerInc, expRadius, kb1);
 	explosionList = new LinkedList();
 	missileList = new LinkedList();
 	launchList = new LinkedList();
 	playerList = new LinkedList();
-	playerList.append(player1);
-	playerList.append(player2);
+	playerList.append(localPlayer);
 	keyBindingList = new LinkedList();
 	keyBindingList.append(kb1);
-	keyBindingList.append(kb2);
-	currentPlayer = player1;
 	initRender();
 	setInterval(loop, framePause);
 }
 
 function initRender() {
 	fgCtxt.fillStyle = "rgba(255,30,40,1.0)";
+	fgCtxt.strokeStyle = "rgba(255,255,255,1.0)";
 	fgCtxt.lineWidth = 5;
 	terrainCtxt.fillStyle = "rgba(100,100,100,1.0)";
 	bgCtxt.fillStyle = "rgba(0,0,0,1.0)";
@@ -119,14 +145,12 @@ function loop() {
 		terrain.setClear(terrainCtxt, canvasHeight);
 		// Render game entities
 		terrain.render(terrainCtxt, canvasHeight);
-		fgCtxt.strokeStyle = "rgba(255,255,255,1.0)";
 		playerList.forEach(function(p){p.render(fgCtxt, canvasHeight)});
 		missileList.forEach(function(m){m.render(fgCtxt, canvasHeight)});
 		explosionList.forEach(function(e){e.render(fgCtxt, canvasHeight)});
 		terrain.clearMods();
-		//Check to see if any players are dead
-		playerList.filter(function(p) {return p.health <= 0});
-		if (playerList.length() < 2) {
+		//playerList.filter(function(p) {return p.health <= 0});
+		if (playerList.length() < 1) {
 			gameOver = true;
 		}
 	} else {
@@ -139,17 +163,10 @@ function loop() {
 	}
 }
 
-function switchPlayers() {
-	pPlayer = currentPlayer;
-	currentPlayer = null;
-	pPlayer.keyBindings.reset();
-	currentPlayer = playerList.circularNext(pPlayer);
-}
-
 function updatePlayer(player) {
 	hr = terrain.heightArray;
 	player.y = hr[player.x];
-	if (!launchList.contains(player)) {
+	if (!launchList.contains(player) && player.keyBindings != null) {
 		if (player.keyBindings.left) {
 			player.arc -= rotationSpeed;
 		}
@@ -183,7 +200,6 @@ function updateMissile(missile) {
 		for (x = startX; x <= endX; x++) {
 			yy = startY + (yD*((x-startX)/(endX-startX)));
 			if (hr[x] > yy) {
-				deleteMissile(missile);
 				explodeMissile(missile,x,yy);
 				return;
 			}
@@ -192,33 +208,27 @@ function updateMissile(missile) {
 		for (x = startX; x >= endX; x--) {
 			yy = startY + (yD*((startX-x)/(startX-endX)));
 			if (hr[x] > yy) {
-				deleteMissile(missile);
 				explodeMissile(missile,x,yy);
 				return;
 			}
 		}
 	} else { // Travelling straight up and down
 		if (missile.y < hr[startX]) {
-			deleteMissile(missile);
 			explodeMissile(missile,startX,hr[startX]);
 			return;
 
 		}
 	}
 	if (missile.x > canvasWidth || missile.x < 0 || missile.y < 0) {
-		deleteMissile(missile);
+		missle.remove();
 	}
-}
-
-function deleteMissile(missile) {
-	missile.remove();
-	switchPlayers();
 }
 
 function explodeMissile(missile, x, y) {
 	exp = new Explosion(x, y, expLife, expRadius);
 	explode(exp);
 	explosionList.append(exp); 
+	missle.remove();
 	return;
 }
 

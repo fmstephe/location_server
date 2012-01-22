@@ -28,9 +28,17 @@ function resetKeyBindings() {
 	this.firing = false;
 }
 
+function PlayerMsg(player) {
+	this.x = player.x;
+	this.name = player.name;
+	this.arc = player.arc;
+	this.power = player.power;
+	this.health = player.health;
+}
+
 function Player(x, name, turretLength, initPower, minPower, maxPower, powerInc, health, keyBindings) {
 	this.x = x;
-	this.y = 0; // This gets set automatically by the physics
+	this.y = 0; // This gets set automatically by the gmae loop
 	this.name = name;
 	this.arc = 0;
 	this.power = initPower;
