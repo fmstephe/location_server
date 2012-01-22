@@ -17,7 +17,7 @@ type user struct {
 }
 
 func readWS(ws *websocket.Conn) {
-	buf := make([]byte, 256)
+	buf := make([]byte, 2024)
 	idMsg := new(msgdef.CIdMsg)
 	if err := unmarshal(buf, idMsg, ws); err != nil {
 		fmt.Printf("Connection Terminated with %s\n", err.Error())
