@@ -1,5 +1,5 @@
 #!/bin/bash
 
-example_server &
-loc_server -m &
-msg_server &
+example_server > example.log &
+loc_server -m > loc.log &
+msg_server > msg.log &
