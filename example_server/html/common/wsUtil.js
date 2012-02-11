@@ -16,7 +16,7 @@ function WSClient(name, url, msgFun, opnFun, clsFun) {
 		this.ws.msgFun = this.msgFun;
 		this.ws.opnFun = this.opnFun;
 		this.ws.clsFun = this.clsFun;
-		this.earlyMsgs = new LinkedList();
+		this.ws.earlyMsgs = new LinkedList();
 	}
 }
 
@@ -24,7 +24,7 @@ function onopen() {
 	console.log(this.name+" Websocket Connection Open!");
 	this.opnFun();
 	var wsClosure = this;
-	earlyMsgs.forEach(function(obj) {wsClosure.jsonsend(obj)});
+	this.earlyMsgs.forEach(function(obj) {wsClosure.jsonsend(obj)});
 }
 
 function jsonsend(obj) {
