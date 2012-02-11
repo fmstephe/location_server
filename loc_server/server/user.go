@@ -20,7 +20,14 @@ type user struct {
 	OLat, OLng float64         // Previous position of this user
 	Lat, Lng   float64         // Current position of this user
 	writeChan  chan *serverMsg // All messages sent here will be written to the websocket
-	// In the future this may contain a reference to the tree it is stored in
+}
+
+func (u *user) writeMsg(msg *serverMsg) {
+	u.writeChan<-msg
+}
+
+func (u *user) receiveMsg() *serverMsg {
+	return <-u.writeChan
 }
 
 // A client request
@@ -47,6 +54,10 @@ func newServerMsg(op msgdef.ServerOp, usr *user, perf profile.P) *serverMsg {
 	m.Usr = *usr
 	m.perf = perf
 	return m
+}
+
+func (msg *serverMsg) Profile() profile.P {
+	return msg.perf
 }
 
 func (usr *user) eq(oUsr *user) bool {
@@ -177,10 +188,9 @@ func forwardMsg(msg *clientMsg) {
 //  Listen to writeChan
 //  Marshal values from writeChan and write to ws
 func writeWS(ws *websocket.Conn, usr *user) {
-	writeChan := usr.writeChan
 	defer closeWS(ws, usr)
 	for {
-		msg := <-writeChan
+		msg := usr.receiveMsg()
 		perf := msg.perf
 		perf.StopAndStart(profile_wSend)
 		buf, err := json.MarshalForHTML(msg)
