@@ -22,8 +22,7 @@ func idProvider(w http.ResponseWriter, r *http.Request) {
 }
 
 func restart(w http.ResponseWriter, r *http.Request) {
-	cmd := exec.Command("./scripts/update_servers.sh")
-	err := cmd.Run()
+	_, err := exec.LookPath("./scripts/update_servers.sh")
 	if err != nil {
 		println(err.Error())
 	}
