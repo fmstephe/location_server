@@ -12,8 +12,8 @@ var framePause = Math.floor(1000/frameRate);
 var expLife = 0.1*frameRate;
 var expRadius = 50;
 
-document.onkeydown = captureKeydown
-document.onkeyup = captureKeyup
+//document.onkeydown = captureKeydown
+//document.onkeyup = captureKeyup
 
 // Location
 var lat;
@@ -30,6 +30,7 @@ var localPlayer;
 var keyBindingList;
 var launchList;
 var playerList;
+var userList;
 var missileList;
 var explosionList;
 // Current player whose turn it is
@@ -51,7 +52,7 @@ function getLocalCoords() {
 	if (navigator.geolocation) {
 		navigator.geolocation.getCurrentPosition(init,function(error) { console.log(JSON.stringify(error)), init({"coords": {"latitude":1, "longitude":1}}) });
 	} else {
-		alert("Get a real browser");
+		alert("Your browser does not support websockets");
 	}
 }
 
@@ -60,27 +61,7 @@ function init(position) {
 	lng = position.coords.longitude;
 	id = getId();
 	console.log("Id provided: " + id);
-	initMsgService();
-}
-
-function initMsgService() {
-	addMsg = new Add(id);
-	msgService = new WSClient("Message", "ws://"+host+":8003/msg", handleMsg, function(){ 
-		this.jsonsend(addMsg); 
-		initLocService(); }, 
-		function() {});
-	msgService.connect();
-}
-
-function initLocService() {
-	addMsg = new Add(id);
-	initMsg = new InitLoc(lat, lng);
-	locService = new WSClient("Location", "ws://"+host+":8002/loc", handleLoc, function(){ 
-		this.jsonsend(addMsg); 
-		this.jsonsend(initMsg);
-       		initGame();}, 
-		function() {});
-	locService.connect();
+	initGame();
 }
 
 function initGame() {
@@ -105,8 +86,43 @@ function initGame() {
 	playerList.append(localPlayer);
 	keyBindingList = new LinkedList();
 	keyBindingList.append(kb1);
+	initMsgService();
+}
+
+function initMsgService() {
+	addMsg = new Add(id);
+	msgService = new WSClient("Message", "ws://"+host+":8003/msg", handleMsg, function(){ 
+		this.jsonsend(addMsg); 
+		initLocService(); }, 
+		function() {});
+	msgService.connect();
+}
+
+function initLocService() {
+	addMsg = new Add(id);
+	initMsg = new InitLoc(lat, lng);
+	userList = new LinkedList();
+	locService = new WSClient("Location", "ws://"+host+":8002/loc", handleLoc, function(){ 
+		this.jsonsend(addMsg); 
+		this.jsonsend(initMsg);
+       		initIntro();},
+		function() {});
+	locService.connect();
+}
+
+function initIntro() {
+	setInterval(introFunc, framePause*10);
+}
+
+function introFunc() {
+	users = "";
+	userList.forEach(function(u) {users += "<li>"+JSON.stringify(u)+"</li>"});
+	document.getElementById("player-list").innerHTML = users;
+}
+
+function getStartedFinally() {
 	initRender();
-	setInterval(loop, framePause);
+	setInterval(introFunc, framePause);
 }
 
 function initRender() {

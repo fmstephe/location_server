@@ -7,11 +7,13 @@ function handleMsg(msg) {
 
 function handleLoc(msg) {
 	var op = msg.Op;
+	console.log(op);
 	var usrInfo = msg.Usr;
 	if (op == "sAdd" || op == "sNearby" || op == "sVisible") {
 		playerMsg = new Msg(usrInfo.Id, JSON.stringify(new PlayerMsg(localPlayer)));
 		msgService.jsonsend(playerMsg);
-	} else if (op == "sMoved" || op == "sRemove" || op == "sNotVisible") {
-		// Noop
+		userList.append(usrInfo);
+	} else if (op == "sRemove" || op == "sNotVisible") {
+		userList.filter(function(u) {return usrInfo.Id == u.Id});
 	}
 }
