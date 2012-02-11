@@ -1,5 +1,9 @@
 package msgdef
 
+import (
+	"location_server/profile"
+)
+
 // Set the initial location of a user
 const CInitLocOp = ClientOp("cInitLoc")
 // Change the location of the user
@@ -32,4 +36,22 @@ func (m *CLocMsg) String() string {
 
 func TestLocMsg(op ClientOp, lat, lng float64) *CLocMsg {
 	return &CLocMsg{Op: op, Lat: lat, Lng: lng}
+}
+
+// A server message which contains only a serverOp and a user.CU
+type ServerMsg struct {
+	Op   ServerOp
+	Msg interface{}
+}
+
+type PServerMsg struct {
+	Msg ServerMsg
+	Profile profile.P
+}
+
+func NewPServerMsg(op ServerOp, msg interface{}, profile profile.P) *PServerMsg {
+	sm := new(ServerMsg)
+	sm.Op = op
+	sm.Msg = msg
+	return &PServerMsg{Msg: *sm, Profile: profile}
 }
