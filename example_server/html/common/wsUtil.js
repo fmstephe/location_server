@@ -16,22 +16,32 @@ function WSClient(name, url, msgFun, opnFun, clsFun) {
 		this.ws.msgFun = this.msgFun;
 		this.ws.opnFun = this.opnFun;
 		this.ws.clsFun = this.clsFun;
+		this.earlyMsgs = new LinkedList();
 	}
 }
 
 function onopen() {
 	console.log(this.name+" Websocket Connection Open!");
 	this.opnFun();
+	var wsClosure = this;
+	earlyMsgs.forEach(function(obj) {wsClosure.jsonsend(obj)});
 }
+
 function jsonsend(obj) {
-	msg = JSON.stringify(obj);
-	console.log(msg);
 	if (this.ws) {
-		this.ws.send(msg);
+		this.ws.jsonsend(obj);
 	} else {
-		this.send(msg);
+		if (this.readState == 0) { // in opening state
+			this.earlyMsgs.append(obj);
+			console.log("early message stored: "+JSON.stringify(obj));
+		} else {
+			msg = JSON.stringify(obj);
+			this.send(msg);
+			console.log("json message sent: "+msg);
+		}
 	}
 }
+
 function onmessage(m) { 
 	if (m.data) {
 		console.log(m.data);
@@ -39,6 +49,7 @@ function onmessage(m) {
 		this.msgFun(msg);
 	}   
 }
+
 function onclose(m) {
 	console.log(this.name+" Websocket Connection Closed!");
 	this.clsFun();
