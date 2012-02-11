@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"os/exec"
 	"encoding/json"
 	"github.com/fmstephe/simpleid"
 	"location_server/msgdef"
@@ -20,6 +21,14 @@ func idProvider(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func restart(w http.ResponseWriter, r *http.Request) {
+	cmd := exec.Command("./restart_servers.sh")
+	err := cmd.Run()
+	if err != nil {
+		println(err.Error())
+	}
+}
+
 func main() {
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -27,6 +36,7 @@ func main() {
 		return
 	}
 	http.HandleFunc("/id", idProvider)
+	http.HandleFunc("/restart", restart)
 	http.Handle("/", http.FileServer(http.Dir(pwd+"/html/")))
 	if err := http.ListenAndServe(":8001", nil); err != nil {
 		println(err.Error())
