@@ -3,5 +3,7 @@
 ./kill_servers.sh
 git fetch origin
 git rebase origin/master
-../gb
+cd ../
+gb
+cd -
 ./start_servers.sh
