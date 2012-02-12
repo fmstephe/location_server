@@ -23,6 +23,8 @@ const SRemoveOp = ServerOp("sRemove")
 const SNearbyOp = ServerOp("sNearby")
 // Indicates that a user has moved (and is visible to the receiver)
 const SMovedOp = ServerOp("sMoved")
+// Indicates that an error has occurred on the server
+const SErrorOp = ServerOp("sError")
 
 // A structure for unmarshalling lat/lng messages
 type CLocMsg struct {
@@ -42,16 +44,21 @@ func TestLocMsg(op ClientOp, lat, lng float64) *CLocMsg {
 type ServerMsg struct {
 	Op   ServerOp
 	Msg interface{}
+	profile profile.P
 }
 
-type PServerMsg struct {
-	Msg ServerMsg
-	Profile profile.P
+func (m *ServerMsg) Profile() profile.P {
+	return m.profile
 }
 
-func NewPServerMsg(op ServerOp, msg interface{}, profile profile.P) *PServerMsg {
+func NewServerMsg(op ServerOp, msg interface{}, profile profile.P) *ServerMsg {
 	sm := new(ServerMsg)
 	sm.Op = op
 	sm.Msg = msg
-	return &PServerMsg{Msg: *sm, Profile: profile}
+	sm.profile = profile
+	return sm
+}
+
+func NewServerError(msg interface{}, profile profile.P) *ServerMsg {
+	return NewServerMsg(SErrorOp, msg, profile)
 }

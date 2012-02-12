@@ -166,9 +166,9 @@ func nearbyView(mNS, mEW float64) *quadtree.View {
 }
 
 func broadcastSend(op msgdef.ServerOp, usr *user.U, oUsr *user.U) {
-	perf := profile.New(usr.Id, usr.TransactionId(), string(op), profile_outTaskNum)
-	perf.Start(profile_bSend)
-	msg := msgdef.NewPServerMsg(op, usr, perf)
+	profile := profile.New(usr.Id, usr.TransactionId(), string(op), profile_outTaskNum)
+	profile.Start(profile_bSend)
+	msg := msgdef.NewServerMsg(op, usr, profile)
 	oUsr.WriteMsg(msg)
 }
 

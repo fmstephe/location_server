@@ -10,19 +10,19 @@ type U struct {
 	tId        int64           // A changing identifier used to tag each message with a transaction id
 	OLat, OLng float64         // Previous position of this user
 	Lat, Lng   float64         // Current position of this user
-	writeChan chan *msgdef.PServerMsg
+	writeChan chan *msgdef.ServerMsg
 }
 
 func New() *U {
-	wc := make(chan *msgdef.PServerMsg, 32)
+	wc := make(chan *msgdef.ServerMsg, 32)
 	return &U{writeChan: wc}
 }
 
-func (usr *U) WriteMsg(msg *msgdef.PServerMsg) {
+func (usr *U) WriteMsg(msg *msgdef.ServerMsg) {
 	usr.writeChan<-msg
 }
 
-func (usr *U) ReceiveMsg() *msgdef.PServerMsg {
+func (usr *U) ReceiveMsg() *msgdef.ServerMsg {
 	return <-usr.writeChan
 }
 

@@ -47,6 +47,7 @@ func readWS(ws *websocket.Conn, usr *user.U) {
 		log.Printf("User: %s \tRegistered Successfully\n", usr.Id)
 	}
 	if err := idSet.Add(usr.Id, usr); err != nil {
+		msgLog(usr.Id, "Connection Terminated", "Attempting to insert duplicate user id.")
 		return
 	}
 	if msg, err := unmarshal(usr, buf, new(msgdef.CLocMsg), processInitLoc, ws); err != nil {
@@ -149,9 +150,8 @@ func forwardMsg(msg *clientMsg) {
 func writeWS(ws *websocket.Conn, usr *user.U) {
 	defer closeWS(ws, usr)
 	for {
-		pMsg := usr.ReceiveMsg()
-		profile := pMsg.Profile
-		msg := pMsg.Msg
+		msg := usr.ReceiveMsg()
+		profile := msg.Profile()
 		profile.StopAndStart(profile_wSend)
 		buf, err := json.MarshalForHTML(msg)
 		if err != nil {
