@@ -2,6 +2,7 @@ package locserver
 
 import (
 	"errors"
+	"log"
 	"fmt"
 	"io"
 	"websocket"
@@ -30,7 +31,7 @@ func newClientMsg(op msgdef.ClientOp, usr *user.U, profile profile.P) *clientMsg
 // NB: When we return from this function the websocket will be closed
 func WebsocketUser(ws *websocket.Conn) {
 	usr := user.New()
-	fmt.Printf("Connection Established\n")
+	log.Printf("Connection Established\n")
 	go writeWS(ws, usr)
 	readWS(ws, usr)
 }
@@ -40,16 +41,16 @@ func WebsocketUser(ws *websocket.Conn) {
 func readWS(ws *websocket.Conn, usr *user.U) {
 	buf := make([]byte, 256)
 	if _, err := unmarshal(usr, buf, new(msgdef.CIdMsg), processReg, ws); err != nil {
-		fmt.Printf("User: %s \tConnection Terminated with '%s'\n", usr.Id, err.Error())
+		msgLog(usr.Id, "Connection Terminated", err.Error())
 		return
 	} else {
-		fmt.Printf("User: %s \tRegistered Successfully\n", usr.Id)
+		log.Printf("User: %s \tRegistered Successfully\n", usr.Id)
 	}
 	if err := idSet.Add(usr.Id, usr); err != nil {
 		return
 	}
 	if msg, err := unmarshal(usr, buf, new(msgdef.CLocMsg), processInitLoc, ws); err != nil {
-		fmt.Printf("User: %s \tConnection Terminated with '%s'\n", usr.Id, err.Error())
+		msgLog(usr.Id, "Connection Terminated", err.Error())
 		return
 	} else {
 		forwardMsg(msg)
@@ -58,7 +59,7 @@ func readWS(ws *websocket.Conn, usr *user.U) {
 	for {
 		usr.NewTransactionId()
 		if msg, err := unmarshal(usr, buf, new(msgdef.CLocMsg), processRequest, ws); err != nil {
-			fmt.Printf("User: %s \tConnection Terminated with '%s'\n", usr.Id, err.Error())
+			msgLog(usr.Id, "Connection Terminated", err.Error())
 			return
 		} else {
 			forwardMsg(msg)
@@ -82,7 +83,7 @@ func unmarshal(usr *user.U, buf []byte, rMsg fmt.Stringer, proc func(fmt.Stringe
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
-	fmt.Printf("User: %s \tClient Message: %s\n", usr.Id, string(buf[:n]))
+	msgLog(usr.Id, "Client Message", string(buf[:n]))
 	if err = json.Unmarshal(buf[:n], rMsg); err != nil {
 		return nil, err
 	}
@@ -154,20 +155,27 @@ func writeWS(ws *websocket.Conn, usr *user.U) {
 		profile.StopAndStart(profile_wSend)
 		buf, err := json.MarshalForHTML(msg)
 		if err != nil {
-			fmt.Printf("User: %s \tError: %s\n", usr.Id, err.Error())
+			msgLog(usr.Id, "Error", err.Error())
 			return
 		}
-		fmt.Printf("User: %s \tServer Message: %s\n", usr.Id, string(buf))
+		msgLog(usr.Id, "Server Message", err.Error())
 		if _, err = ws.Write(buf); err != nil {
-			fmt.Printf("User: %s \tError: %s\n", usr.Id, err.Error())
+			msgLog(usr.Id, "Error", err.Error())
 			return
 		}
-		fmt.Printf("%s\n", profile.StopAndString())
+		log.Printf("%s\n", profile.StopAndString())
+		if msg.Op == msgdef.SErrorOp {
+			closeWS(ws, usr)
+		}
 	}
 }
 
 func closeWS(ws *websocket.Conn, usr *user.U) {
 	if err := ws.Close(); err != nil {
-		fmt.Printf("User: %s \tError: %s\n", usr.Id, err.Error())
+		msgLog(usr.Id, "Error", err.Error())
 	}
+}
+
+func msgLog(id string, title, msg string) {
+	log.Printf("User: %s\t%s\t%s", id, title, msg)
 }
