@@ -41,17 +41,17 @@ func WebsocketUser(ws *websocket.Conn) {
 func readWS(ws *websocket.Conn, usr *user.U) {
 	buf := make([]byte, 256)
 	if _, err := unmarshal(usr, buf, new(msgdef.CIdMsg), processReg, ws); err != nil {
-		msgLog(usr.Id, "Connection Terminated", err.Error())
+		writeBackError(usr, err.Error())
 		return
 	} else {
 		log.Printf("User: %s \tRegistered Successfully\n", usr.Id)
 	}
 	if err := idSet.Add(usr.Id, usr); err != nil {
-		msgLog(usr.Id, "Connection Terminated", "Attempting to insert duplicate user id.")
+		writeBackError(usr,"Attempting to insert duplicate user id")
 		return
 	}
 	if msg, err := unmarshal(usr, buf, new(msgdef.CLocMsg), processInitLoc, ws); err != nil {
-		msgLog(usr.Id, "Connection Terminated", err.Error())
+		writeBackError(usr, err.Error())
 		return
 	} else {
 		forwardMsg(msg)
@@ -60,12 +60,21 @@ func readWS(ws *websocket.Conn, usr *user.U) {
 	for {
 		usr.NewTransactionId()
 		if msg, err := unmarshal(usr, buf, new(msgdef.CLocMsg), processRequest, ws); err != nil {
-			msgLog(usr.Id, "Connection Terminated", err.Error())
+			writeBackError(usr, err.Error())
 			return
 		} else {
 			forwardMsg(msg)
 		}
 	}
+}
+
+// Log error message and ensure the message is communicated back to the clien (i.e. web-browser etc.)
+// The writing go-routine should close the websocket after writing this error message.
+func writeBackError(usr *user.U, errMsg string) {
+	msgLog(usr.Id, "Connection Terminated", errMsg)
+	profile := profile.New(usr.Id, usr.TransactionId(), errMsg, profile_outTaskNum)
+	usr.WriteMsg(msgdef.NewServerError(errMsg, profile))
+	usr.ReceiveClose()
 }
 
 // Removes a user.U from the tree when socket connection is closed
@@ -166,6 +175,7 @@ func writeWS(ws *websocket.Conn, usr *user.U) {
 		log.Printf("%s\n", profile.StopAndString())
 		if msg.Op == msgdef.SErrorOp {
 			closeWS(ws, usr)
+			return
 		}
 	}
 }
@@ -174,6 +184,7 @@ func closeWS(ws *websocket.Conn, usr *user.U) {
 	if err := ws.Close(); err != nil {
 		msgLog(usr.Id, "Error", err.Error())
 	}
+	usr.WriteClose()
 }
 
 func msgLog(id string, title, msg string) {

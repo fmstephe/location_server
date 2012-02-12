@@ -11,11 +11,13 @@ type U struct {
 	OLat, OLng float64         // Previous position of this user
 	Lat, Lng   float64         // Current position of this user
 	writeChan chan *msgdef.ServerMsg
+	closeChan chan bool
 }
 
 func New() *U {
 	wc := make(chan *msgdef.ServerMsg, 32)
-	return &U{writeChan: wc}
+	cc := make(chan bool, 1)
+	return &U{writeChan: wc, closeChan: cc}
 }
 
 func (usr *U) WriteMsg(msg *msgdef.ServerMsg) {
@@ -24,6 +26,15 @@ func (usr *U) WriteMsg(msg *msgdef.ServerMsg) {
 
 func (usr *U) ReceiveMsg() *msgdef.ServerMsg {
 	return <-usr.writeChan
+}
+
+func (usr *U) WriteClose() {
+	usr.closeChan<-true
+}
+
+func (usr *U) ReceiveClose() {
+	<-usr.closeChan
+	return
 }
 
 func (usr *U) TransactionId () int64 {
