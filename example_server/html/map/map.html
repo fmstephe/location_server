@@ -68,7 +68,7 @@ function initialise(position) {
 
 function handleLoc(msg) {
 	var op = msg.Op;
-	var usrInfo = msg.Usr;
+	var usrInfo = msg.Msg;
 	if (op == "sAdd" || op == "sMoved" || op == "sNearby" || op == "sVisible") {
 		usrInfo.Name = "?"
 		if (users[usrInfo.Id]) {
