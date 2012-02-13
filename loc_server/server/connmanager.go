@@ -15,6 +15,17 @@ import (
 var iOpErr = errors.New("Illegal Message Op. Operation unrecognised or provided in illegal order.")
 var idSet = simpleid.NewIdMap()
 
+func jsonMarshal(v interface{}) (msg []byte, payloadType byte, err error) {
+	msg, err = json.MarshalForHTML(v)
+	return msg, websocket.TextFrame, err
+}
+
+func jsonUnmarshal(msg []byte, payloadType byte, v interface{}) (err error) {
+	return json.Unmarshal(msg, v)
+}
+
+var JSONHtml = websocket.Codec{jsonMarshal,jsonUnmarshal}
+
 // A client request
 type clientMsg struct {
 	op   msgdef.ClientOp
@@ -38,8 +49,7 @@ func WebsocketUser(ws *websocket.Conn) {
 //  Listen to ws
 //  Unmarshall json objects from ws and write to readChan
 func readWS(ws *websocket.Conn, usr *user.U) {
-	buf := make([]byte, 256)
-	if _, err := unmarshal(usr, buf, new(msgdef.CIdMsg), processReg, ws); err != nil {
+	if _, err := unmarshal(usr, new(msgdef.CIdMsg), processReg, ws); err != nil {
 		writeBackError(usr, err.Error())
 		return
 	} else {
@@ -49,7 +59,7 @@ func readWS(ws *websocket.Conn, usr *user.U) {
 		writeBackError(usr,"Attempting to insert duplicate user id")
 		return
 	}
-	if msg, err := unmarshal(usr, buf, new(msgdef.CLocMsg), processInitLoc, ws); err != nil {
+	if msg, err := unmarshal(usr, new(msgdef.CLocMsg), processInitLoc, ws); err != nil {
 		writeBackError(usr, err.Error())
 		return
 	} else {
@@ -58,7 +68,7 @@ func readWS(ws *websocket.Conn, usr *user.U) {
 	defer removeOnClose(usr)
 	for {
 		usr.NewTransactionId()
-		if msg, err := unmarshal(usr, buf, new(msgdef.CLocMsg), processRequest, ws); err != nil {
+		if msg, err := unmarshal(usr, new(msgdef.CLocMsg), processRequest, ws); err != nil {
 			writeBackError(usr, err.Error())
 			return
 		} else {
@@ -87,12 +97,12 @@ func removeOnClose(usr *user.U) {
 }
 
 // Unmarshals into a *CMsg from the websocket connection returning an error if anything goes wrong
-func unmarshal(usr *user.U, buf []byte, rMsg fmt.Stringer, proc func(fmt.Stringer, *user.U, profile.P) (*clientMsg, error), ws *websocket.Conn) (*clientMsg, error) {
-	err := websocket.JSON.Receive(ws, rMsg)
+func unmarshal(usr *user.U, rMsg fmt.Stringer, proc func(fmt.Stringer, *user.U, profile.P) (*clientMsg, error), ws *websocket.Conn) (*clientMsg, error) {
+	err := JSONHtml.Receive(ws, rMsg)
 	if err != nil {
 		return nil, err
 	}
-	msgLog(usr.Id, "Client Message", rMsg.String())
+	msgLog(usr.Id, "Client Message", fmt.Sprintf("%v", rMsg))
 	profile := profile.New(usr.Id, usr.TransactionId(), rMsg.String(), profile_inTaskNum)
 	profile.Start(profile_userProc)
 	return proc(rMsg, usr, profile)
@@ -158,17 +168,13 @@ func writeWS(ws *websocket.Conn, usr *user.U) {
 		msg := usr.ReceiveMsg()
 		profile := msg.Profile()
 		profile.StopAndStart(profile_wSend)
-		buf, err := json.MarshalForHTML(msg)
+		msgLog(usr.Id, "Server Msg", fmt.Sprintf("%v", msg))
+		err := JSONHtml.Send(ws, msg)
+		log.Printf("%s\n", profile.StopAndString())
 		if err != nil {
 			msgLog(usr.Id, "Error", err.Error())
 			return
 		}
-		msgLog(usr.Id, "Server Message", err.Error())
-		if _, err = ws.Write(buf); err != nil {
-			msgLog(usr.Id, "Error", err.Error())
-			return
-		}
-		log.Printf("%s\n", profile.StopAndString())
 		if msg.Op == msgdef.SErrorOp {
 			closeWS(ws, usr)
 			return
@@ -183,6 +189,6 @@ func closeWS(ws *websocket.Conn, usr *user.U) {
 	usr.WriteClose()
 }
 
-func msgLog(id string, title, msg string) {
+func msgLog(id, title, msg string) {
 	log.Printf("User: %s\t%s\t%s", id, title, msg)
 }
