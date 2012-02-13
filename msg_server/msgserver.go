@@ -58,11 +58,8 @@ func removeUser(id string) {
 }
 
 func unmarshal(buf []byte, msg interface{}, ws *websocket.Conn) error {
-	n, err := ws.Read(buf)
+	err := websocket.JSON.Receive(ws, msg)
 	if err != nil {
-		return err
-	}
-	if err = json.Unmarshal(buf[:n], msg); err != nil {
 		return err
 	}
 	return nil
