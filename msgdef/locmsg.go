@@ -44,14 +44,14 @@ func TestLocMsg(op ClientOp, lat, lng float64) *CLocMsg {
 type ServerMsg struct {
 	Op   ServerOp
 	Msg interface{}
-	profile profile.P
+	profile *profile.P
 }
 
-func (m *ServerMsg) Profile() profile.P {
+func (m *ServerMsg) Profile() *profile.P {
 	return m.profile
 }
 
-func NewServerMsg(op ServerOp, msg interface{}, profile profile.P) *ServerMsg {
+func NewServerMsg(op ServerOp, msg interface{}, profile *profile.P) *ServerMsg {
 	sm := new(ServerMsg)
 	sm.Op = op
 	sm.Msg = msg
@@ -59,6 +59,6 @@ func NewServerMsg(op ServerOp, msg interface{}, profile profile.P) *ServerMsg {
 	return sm
 }
 
-func NewServerError(msg interface{}, profile profile.P) *ServerMsg {
+func NewServerError(msg interface{}, profile *profile.P) *ServerMsg {
 	return NewServerMsg(SErrorOp, msg, profile)
 }

@@ -30,10 +30,10 @@ var JSONHtml = websocket.Codec{jsonMarshal,jsonUnmarshal}
 type clientMsg struct {
 	op   msgdef.ClientOp
 	usr  user.U
-	profile profile.P
+	profile *profile.P
 }
 
-func newClientMsg(op msgdef.ClientOp, usr *user.U, profile profile.P) *clientMsg {
+func newClientMsg(op msgdef.ClientOp, usr *user.U, profile *profile.P) *clientMsg {
 	return &clientMsg{op: op, usr: *usr, profile: profile}
 }
 
@@ -49,27 +49,29 @@ func WebsocketUser(ws *websocket.Conn) {
 //  Listen to ws
 //  Unmarshall json objects from ws and write to readChan
 func readWS(ws *websocket.Conn, usr *user.U) {
-	if _, err := unmarshal(usr, new(msgdef.CIdMsg), processReg, ws); err != nil {
-		writeBackError(usr, err.Error())
+	var tId uint
+	if _, err := unmarshal(tId, usr, new(msgdef.CIdMsg), processReg, ws); err != nil {
+		writeBackError(tId, usr, err.Error())
 		return
 	} else {
 		log.Printf("User: %s \tRegistered Successfully\n", usr.Id)
 	}
 	if err := idSet.Add(usr.Id, usr); err != nil {
-		writeBackError(usr,"Attempting to insert duplicate user id")
+		writeBackError(tId, usr,"Attempting to insert duplicate user id")
 		return
 	}
-	if msg, err := unmarshal(usr, new(msgdef.CLocMsg), processInitLoc, ws); err != nil {
-		writeBackError(usr, err.Error())
+	tId++
+	if msg, err := unmarshal(tId, usr, new(msgdef.CLocMsg), processInitLoc, ws); err != nil {
+		writeBackError(tId, usr, err.Error())
 		return
 	} else {
 		forwardMsg(msg)
 	}
-	defer removeOnClose(usr)
+	defer removeOnClose(&tId, usr)
 	for {
-		usr.NewTransactionId()
-		if msg, err := unmarshal(usr, new(msgdef.CLocMsg), processRequest, ws); err != nil {
-			writeBackError(usr, err.Error())
+		tId++
+		if msg, err := unmarshal(tId, usr, new(msgdef.CLocMsg), processRequest, ws); err != nil {
+			writeBackError(tId, usr, err.Error())
 			return
 		} else {
 			forwardMsg(msg)
@@ -79,17 +81,18 @@ func readWS(ws *websocket.Conn, usr *user.U) {
 
 // Log error message and ensure the message is communicated back to the clien (i.e. web-browser etc.)
 // The writing go-routine should close the websocket after writing this error message.
-func writeBackError(usr *user.U, errMsg string) {
+func writeBackError(tId uint, usr *user.U, errMsg string) {
 	msgLog(usr.Id, "Connection Terminated", errMsg)
-	profile := profile.New(usr.Id, usr.TransactionId(), errMsg, profile_outTaskNum)
+	profile := profile.New(usr.Id, tId, errMsg, profile_outTaskNum)
 	usr.WriteMsg(msgdef.NewServerError(errMsg, profile))
 	usr.ReceiveClose()
+	msgLog(usr.Id, "Close Confirmation Received", "")
 }
 
 // Removes a user.U from the tree when socket connection is closed
-func removeOnClose(usr *user.U) {
-	tId := usr.NewTransactionId()
-	profile := profile.New(usr.Id, tId, string(msgdef.CRemoveOp), profile_inTaskNum)
+func removeOnClose(tId *uint, usr *user.U) {
+	(*tId)++
+	profile := profile.New(usr.Id, *tId, string(msgdef.CRemoveOp), profile_inTaskNum)
 	profile.Start(profile_userProc)
 	idSet.Remove(usr.Id)
 	msg := newClientMsg(msgdef.CRemoveOp, usr, profile)
@@ -97,20 +100,20 @@ func removeOnClose(usr *user.U) {
 }
 
 // Unmarshals into a *CMsg from the websocket connection returning an error if anything goes wrong
-func unmarshal(usr *user.U, rMsg fmt.Stringer, proc func(fmt.Stringer, *user.U, profile.P) (*clientMsg, error), ws *websocket.Conn) (*clientMsg, error) {
+func unmarshal(tId uint, usr *user.U, rMsg fmt.Stringer, proc func(fmt.Stringer, *user.U, *profile.P) (*clientMsg, error), ws *websocket.Conn) (*clientMsg, error) {
 	err := JSONHtml.Receive(ws, rMsg)
 	if err != nil {
 		return nil, err
 	}
 	msgLog(usr.Id, "Client Message", fmt.Sprintf("%v", rMsg))
-	profile := profile.New(usr.Id, usr.TransactionId(), rMsg.String(), profile_inTaskNum)
+	profile := profile.New(usr.Id, tId, rMsg.String(), profile_inTaskNum)
 	profile.Start(profile_userProc)
 	return proc(rMsg, usr, profile)
 }
 
 // Handle registration message
 // Function does not return a *clientMsg, success will leave usr with initialised Id field
-func processReg(rMsg fmt.Stringer, usr *user.U, profile profile.P) (*clientMsg, error) {
+func processReg(rMsg fmt.Stringer, usr *user.U, profile *profile.P) (*clientMsg, error) {
 	idMsg := rMsg.(*msgdef.CIdMsg)
 	switch idMsg.Op {
 	case msgdef.CAddOp:
@@ -121,7 +124,7 @@ func processReg(rMsg fmt.Stringer, usr *user.U, profile profile.P) (*clientMsg, 
 }
 
 // Handle initial location message
-func processInitLoc(rMsg fmt.Stringer, usr *user.U, profile profile.P) (msg *clientMsg, err error) {
+func processInitLoc(rMsg fmt.Stringer, usr *user.U, profile *profile.P) (msg *clientMsg, err error) {
 	initMsg := rMsg.(*msgdef.CLocMsg)
 	switch initMsg.Op {
 	case msgdef.CInitLocOp:
@@ -137,7 +140,7 @@ func processInitLoc(rMsg fmt.Stringer, usr *user.U, profile profile.P) (msg *cli
 }
 
 // Handle request messages - cRelocate, msg.CNearby
-func processRequest(rMsg fmt.Stringer, usr *user.U, profile profile.P) (msg *clientMsg, err error) {
+func processRequest(rMsg fmt.Stringer, usr *user.U, profile *profile.P) (msg *clientMsg, err error) {
 	locMsg := rMsg.(*msgdef.CLocMsg)
 	switch locMsg.Op {
 	case msgdef.CNearbyOp:
