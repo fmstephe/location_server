@@ -28,13 +28,14 @@ var JSONHtml = websocket.Codec{jsonMarshal,jsonUnmarshal}
 
 // A client request
 type clientMsg struct {
+	tId uint
 	op   msgdef.ClientOp
 	usr  user.U
 	profile *profile.P
 }
 
-func newClientMsg(op msgdef.ClientOp, usr *user.U, profile *profile.P) *clientMsg {
-	return &clientMsg{op: op, usr: *usr, profile: profile}
+func newClientMsg(tId uint, op msgdef.ClientOp, usr *user.U, profile *profile.P) *clientMsg {
+	return &clientMsg{tId: tId, op: op, usr: *usr, profile: profile}
 }
 
 // Central entry function for a websocket connection
@@ -83,7 +84,7 @@ func readWS(ws *websocket.Conn, usr *user.U) {
 // The writing go-routine should close the websocket after writing this error message.
 func writeBackError(tId uint, usr *user.U, errMsg string) {
 	msgLog(usr.Id, "Connection Terminated", errMsg)
-	profile := profile.New(usr.Id, tId, errMsg, profile_outTaskNum)
+	profile := profile.New(profile.ProfileName(tId, usr.Id, errMsg), profile_outTaskNum)
 	usr.WriteMsg(msgdef.NewServerError(errMsg, profile))
 	usr.ReceiveClose()
 	msgLog(usr.Id, "Close Confirmation Received", "")
@@ -92,28 +93,28 @@ func writeBackError(tId uint, usr *user.U, errMsg string) {
 // Removes a user.U from the tree when socket connection is closed
 func removeOnClose(tId *uint, usr *user.U) {
 	(*tId)++
-	profile := profile.New(usr.Id, *tId, string(msgdef.CRemoveOp), profile_inTaskNum)
+	profile := profile.New(profile.ProfileName(*tId, usr.Id, string(msgdef.CRemoveOp)), profile_inTaskNum)
 	profile.Start(profile_userProc)
 	idSet.Remove(usr.Id)
-	msg := newClientMsg(msgdef.CRemoveOp, usr, profile)
+	msg := newClientMsg(*tId, msgdef.CRemoveOp, usr, profile)
 	forwardMsg(msg)
 }
 
 // Unmarshals into a *CMsg from the websocket connection returning an error if anything goes wrong
-func unmarshal(tId uint, usr *user.U, rMsg fmt.Stringer, proc func(fmt.Stringer, *user.U, *profile.P) (*clientMsg, error), ws *websocket.Conn) (*clientMsg, error) {
+func unmarshal(tId uint, usr *user.U, rMsg fmt.Stringer, proc func(uint, fmt.Stringer, *user.U, *profile.P) (*clientMsg, error), ws *websocket.Conn) (*clientMsg, error) {
 	err := JSONHtml.Receive(ws, rMsg)
 	if err != nil {
 		return nil, err
 	}
 	msgLog(usr.Id, "Client Message", fmt.Sprintf("%v", rMsg))
-	profile := profile.New(usr.Id, tId, rMsg.String(), profile_inTaskNum)
+	profile := profile.New(profile.ProfileName(tId, usr.Id, rMsg.String()), profile_inTaskNum)
 	profile.Start(profile_userProc)
-	return proc(rMsg, usr, profile)
+	return proc(tId, rMsg, usr, profile)
 }
 
 // Handle registration message
 // Function does not return a *clientMsg, success will leave usr with initialised Id field
-func processReg(rMsg fmt.Stringer, usr *user.U, profile *profile.P) (*clientMsg, error) {
+func processReg(_ uint, rMsg fmt.Stringer, usr *user.U, profile *profile.P) (*clientMsg, error) {
 	idMsg := rMsg.(*msgdef.CIdMsg)
 	switch idMsg.Op {
 	case msgdef.CAddOp:
@@ -124,7 +125,7 @@ func processReg(rMsg fmt.Stringer, usr *user.U, profile *profile.P) (*clientMsg,
 }
 
 // Handle initial location message
-func processInitLoc(rMsg fmt.Stringer, usr *user.U, profile *profile.P) (msg *clientMsg, err error) {
+func processInitLoc(tId uint, rMsg fmt.Stringer, usr *user.U, profile *profile.P) (msg *clientMsg, err error) {
 	initMsg := rMsg.(*msgdef.CLocMsg)
 	switch initMsg.Op {
 	case msgdef.CInitLocOp:
@@ -132,7 +133,7 @@ func processInitLoc(rMsg fmt.Stringer, usr *user.U, profile *profile.P) (msg *cl
 		usr.OLng = initMsg.Lng
 		usr.Lat = initMsg.Lat
 		usr.Lng = initMsg.Lng
-		msg = newClientMsg(msgdef.CInitLocOp, usr, profile)
+		msg = newClientMsg(tId, msgdef.CInitLocOp, usr, profile)
 		return
 	}
 	err = iOpErr
@@ -140,18 +141,18 @@ func processInitLoc(rMsg fmt.Stringer, usr *user.U, profile *profile.P) (msg *cl
 }
 
 // Handle request messages - cRelocate, msg.CNearby
-func processRequest(rMsg fmt.Stringer, usr *user.U, profile *profile.P) (msg *clientMsg, err error) {
+func processRequest(tId uint, rMsg fmt.Stringer, usr *user.U, profile *profile.P) (msg *clientMsg, err error) {
 	locMsg := rMsg.(*msgdef.CLocMsg)
 	switch locMsg.Op {
 	case msgdef.CNearbyOp:
-		msg = newClientMsg(msgdef.CNearbyOp, usr, profile)
+		msg = newClientMsg(tId, msgdef.CNearbyOp, usr, profile)
 		return
 	case msgdef.CMoveOp:
 		usr.OLat = usr.Lat
 		usr.OLng = usr.Lng
 		usr.Lat = locMsg.Lat
 		usr.Lng = locMsg.Lng
-		msg = newClientMsg(msgdef.CMoveOp, usr, profile)
+		msg = newClientMsg(tId, msgdef.CMoveOp, usr, profile)
 		return
 	}
 	err = iOpErr

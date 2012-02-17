@@ -42,7 +42,7 @@ func handleInitLoc(initLoc *clientMsg, tree quadtree.T, lg *log.Logger) {
 	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
 	locLog(usr.Id, "InitLoc Request", mNS, mEW)
 	vs := []*quadtree.View{nearbyView(mNS, mEW)}
-	tree.Survey(vs, initLocFun(initLoc.profile.TID, usr))
+	tree.Survey(vs, initLocFun(initLoc.tId, usr))
 	tree.Insert(mNS, mEW, usr)
 }
 
@@ -52,7 +52,7 @@ func handleRemove(rmv *clientMsg, tree quadtree.T, lg *log.Logger) {
 	locLog(usr.Id, "Remove Request", mNS, mEW)
 	deleteUsr(mNS, mEW, usr, tree)
 	vs := []*quadtree.View{nearbyView(mNS, mEW)}
-	tree.Survey(vs, removeFun(rmv.profile.TID, usr))
+	tree.Survey(vs, removeFun(rmv.tId, usr))
 }
 
 func handleNearby(nby *clientMsg, tree quadtree.T, lg *log.Logger) {
@@ -61,7 +61,7 @@ func handleNearby(nby *clientMsg, tree quadtree.T, lg *log.Logger) {
 	locLog(usr.Id, "Nearby Request", mNS, mEW)
 	view := nearbyView(mNS, mEW)
 	vs := []*quadtree.View{view}
-	tree.Survey(vs, nearbyFun(nby.profile.TID, usr))
+	tree.Survey(vs, nearbyFun(nby.tId, usr))
 }
 
 func handleMove(mv *clientMsg, tree quadtree.T, trackMovement bool, lg *log.Logger) {
@@ -75,14 +75,14 @@ func handleMove(mv *clientMsg, tree quadtree.T, trackMovement bool, lg *log.Logg
 	oView := nearbyView(oMNS, oMEW)
 	// Alert out of bounds users
 	nvViews := oView.Subtract(nView)
-	tree.Survey(nvViews, notVisibleFun(mv.profile.TID, usr))
+	tree.Survey(nvViews, notVisibleFun(mv.tId, usr))
 	// Alert newly visible users
 	vViews := nView.Subtract(oView)
-	tree.Survey(vViews, visibleFun(mv.profile.TID, usr))
+	tree.Survey(vViews, visibleFun(mv.tId, usr))
 	// Alert watching users of the relocation
 	if trackMovement {
 		movedView := []*quadtree.View{nView.Intersect(oView)}
-		tree.Survey(movedView, movedFun(mv.profile.TID, usr))
+		tree.Survey(movedView, movedFun(mv.tId, usr))
 	}
 }
 
@@ -166,7 +166,7 @@ func nearbyView(mNS, mEW float64) *quadtree.View {
 }
 
 func broadcastSend(tId uint, op msgdef.ServerOp, usr *user.U, oUsr *user.U) {
-	profile := profile.New(usr.Id, tId, string(op), profile_outTaskNum)
+	profile := profile.New(profile.ProfileName(tId, usr.Id, string(op)), profile_outTaskNum)
 	profile.Start(profile_bSend)
 	msg := msgdef.NewServerMsg(op, usr, profile)
 	oUsr.WriteMsg(msg)

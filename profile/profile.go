@@ -20,7 +20,6 @@ type Profiler interface {
 }
 
 type P struct {
-	TID uint // Transaction ID
 	pName string // A, preferably unique, name for this performance profile
 	timings []perfUnit // Nanosecond task performance timings
 }
@@ -31,9 +30,14 @@ type perfUnit struct {
 	time     int64
 }
 
-func New(uId string, tId uint, op string, taskNum int) *P {
+func New(name string, taskNum int) *P {
 	t := make([]perfUnit, 0, taskNum)
-	return &P{TID: tId, pName: fmt.Sprintf("%s:%d:%s", uId, tId, op), timings: t}
+	return &P{pName: name, timings: t}
+}
+
+// Utility method to assist common profile naming pattern
+func ProfileName(tId uint, uId, msg string) string {
+	return fmt.Sprintf("%d:%s:%s", tId, uId, msg)
 }
 
 func (p *P) Start(taskName string) {
