@@ -51,10 +51,12 @@ function initialise(position) {
 	id = getId();
 	console.log(id);
 	addMsg = new Add(id);
-	locService = new WSClient("Location", "ws://"+host+":8002/loc", handleLoc, function(){ this.jsonsend(addMsg); }, function() {});
-	msgService = new WSClient("Message", "ws://"+host+":8003/msg", handleMsg, function(){ this.jsonsend(addMsg); }, function() {});
+	locService = new WSClient("Location", "ws://"+host+":8002/loc", handleLoc, function(){}, function() {});
+	msgService = new WSClient("Message", "ws://"+host+":8003/msg", handleMsg, function(){}, function() {});
 	locService.connect();
 	msgService.connect();
+	locService.jsonsend(addMsg);
+	msgService.jsonsend(addMsg);
 	//var latlng = new google.maps.LatLng(54.97784, -1.612916);
 	var latlng = new google.maps.LatLng(lat, lng);
 	var myOptions = {control: false,
