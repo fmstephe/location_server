@@ -31,10 +31,11 @@ function jsonsend(obj) {
 	if (this.ws) {
 		this.ws.jsonsend(obj);
 	} else {
-		if (this.readState == 0) { // in opening state
+		if (this.readyState == undefined || this.readyState == 0) { // in opening state
 			this.earlyMsgs.append(obj);
 			console.log("early message stored: "+JSON.stringify(obj));
 		} else {
+			console.log(this.readState);
 			msg = JSON.stringify(obj);
 			this.send(msg);
 			console.log("json message sent: "+msg);
