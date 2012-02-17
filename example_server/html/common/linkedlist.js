@@ -2,21 +2,6 @@ function LinkedList() {
 	this.size = 0;
 	this.first = null;
 	this.last = null;
-	this.getFirst = function() {return this.first.val;};
-	this.getLast = function() {return this.last.val;};
-	this.clear = clear;
-	this.append = append;
-	this.forEach = forEach;
-	this.filter = filter;
-	this.circularNext = circularNext;
-	this.contains = contains;
-	this.length = function() {return this.size;};
-}
-
-function clear() {
-	this.first = null;
-	this.last = null;
-	this.size = 0;
 }
 
 function Item(val) {
@@ -25,7 +10,25 @@ function Item(val) {
 	this.prev = null;
 }
 
-function append(val) {
+LinkedList.prototype.getFirst = function() {
+	return this.first.val;
+}
+
+LinkedList.prototype.getLast = function() {
+	return this.last.val;
+}
+
+LinkedList.prototype.length = function() {
+	return this.size;
+}
+
+LinkedList.prototype.clear = function() {
+	this.first = null;
+	this.last = null;
+	this.size = 0;
+}
+
+LinkedList.prototype.append = function(val) {
 	this.size++;
 	var item = new Item(val);
 	if (this.first == null) {
@@ -39,7 +42,7 @@ function append(val) {
 	}
 }
 
-function forEach(fun) {
+LinkedList.prototype.forEach = function(fun) {
 	var item = this.first;
 	while (item != null) {
 		fun(item.val);
@@ -47,7 +50,7 @@ function forEach(fun) {
 	}
 }
 
-function filter(pred) {
+LinkedList.prototype.filter = function(pred) {
 	var item = this.first;
 	while (item != null) {
 		if (pred(item.val)) {
@@ -59,7 +62,7 @@ function filter(pred) {
 	}
 }
 
-function remove(list, item) {
+LinkedList.prototype.remove = function(list, item) {
 	if (item.prev != null) {
 		item.prev.next = item.next;
 	} else {
@@ -73,7 +76,7 @@ function remove(list, item) {
 	return item.next;
 }
 
-function circularNext(val) {
+LinkedList.prototype.circularNext = function(val) {
 	var item = this.first;
 	while (item != null) {
 		if (item.val === val) {
@@ -88,7 +91,7 @@ function circularNext(val) {
 	return null;
 }
 
-function contains(val) {
+LinkedList.prototype.contains = function(val) {
 	var item = this.first;
 	while (item != null) {
 		if (item.val === val) {
