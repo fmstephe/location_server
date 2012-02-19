@@ -14,7 +14,7 @@ type CLocMsg struct {
 }
 
 func NewCLocMsg() *ClientMsg {
-	return &ClientMsg{Msg: CLocMsg{}}
+	return &ClientMsg{Msg: &CLocMsg{}}
 }
 
 // Indicates that a user has just been added (and is visible to the receiver)
