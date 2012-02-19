@@ -3,8 +3,7 @@ package locserver
 import (
 	"log"
 	"location_server/quadtree"
-	"location_server/msgdef"
-	"location_server/profile"
+	"location_server/msgutil/msgdef"
 	"location_server/loc_server/user"
 )
 
@@ -22,7 +21,6 @@ func TreeManager(minTreeMax int64, trackMovement bool, lg *log.Logger) {
 	tree := quadtree.NewQuadTree(maxSouthMetres, maxNorthMetres, maxWestMetres, maxEastMetres, minTreeMax)
 	for {
 		msg := <-msgChan
-		msg.profile.StopAndStart(profile_tmProc)
 		switch msg.op {
 		case msgdef.CInitLocOp:
 			handleInitLoc(msg, tree, lg)
@@ -33,7 +31,6 @@ func TreeManager(minTreeMax int64, trackMovement bool, lg *log.Logger) {
 		case msgdef.CNearbyOp:
 			handleNearby(msg, tree, lg)
 		}
-		lg.Println(msg.profile.StopAndString())
 	}
 }
 
@@ -166,10 +163,8 @@ func nearbyView(mNS, mEW float64) *quadtree.View {
 }
 
 func broadcastSend(tId uint, op msgdef.ServerOp, usr *user.U, oUsr *user.U) {
-	profile := profile.New(profile.ProfileName(tId, usr.Id, string(op)), profile_outTaskNum)
-	profile.Start(profile_bSend)
 	locMsg := msgdef.SLocMsg{Id: usr.Id, Lat: usr.Lat, Lng: usr.Lng}
-	msg := msgdef.NewPServerMsg(op, locMsg, profile)
+	msg := msgdef.NewServerMsg(op, locMsg)
 	oUsr.WriteMsg(msg)
 }
 

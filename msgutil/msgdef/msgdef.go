@@ -1,7 +1,7 @@
 package msgdef
 
 import (
-	"location_server/profile"
+	"location_server/perfprofile"
 )
 
 // User request operations
@@ -36,15 +36,15 @@ func NewServerError(msg interface{}) *ServerMsg {
 
 type PServerMsg struct {
 	Msg ServerMsg
-	Profile *profile.P
+	Profile *perfprofile.P
 }
 
-func NewPServerMsg(op ServerOp, msg interface{}, profile *profile.P) *PServerMsg {
+func NewPServerMsg(op ServerOp, msg interface{}, profile *perfprofile.P) *PServerMsg {
 	sm := NewServerMsg(op, msg)
 	return &PServerMsg{Msg: *sm, Profile: profile}
 }
 
-func NewPServerError(msg interface{}, profile *profile.P) *PServerMsg {
+func NewPServerError(msg interface{}, profile *perfprofile.P) *PServerMsg {
 	return NewPServerMsg(SErrorOp, msg, profile)
 }
 
