@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	"encoding/json"
 	"flag"
@@ -8,7 +9,6 @@ import (
 	"time"
 	"websocket"
 )
-
 const one_second = 1000000000
 
 var workers = flag.Int("w", 1, "The number of workers to be spawned")
@@ -121,3 +121,4 @@ func marshalAndSend(msg interface{}, ws *websocket.Conn) {
 		panic("Write: " + err.Error())
 	}
 }
+*/
