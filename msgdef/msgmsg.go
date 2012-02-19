@@ -4,16 +4,18 @@ package msgdef
 const CMsgOp = ClientOp("cMsg")
 
 type CMsgMsg struct {
-	Op  ClientOp
 	To string
-	Msg string
+	Content string
+}
+
+func NewCMsgMsg() *ClientMsg {
+	return &ClientMsg{Msg: &CMsgMsg{}}
 }
 
 // Delivers a message to a user
 const SMsgOp = ServerOp("sMsg")
 
 type SMsgMsg struct {
-	Op   ServerOp
 	From string
-	Msg  string
+	Content string
 }

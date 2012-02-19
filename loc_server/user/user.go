@@ -7,24 +7,23 @@ import (
 // A user
 type U struct {
 	Id         string          // Unique identifier for this user
-	tId        int64           // A changing identifier used to tag each message with a transaction id
 	OLat, OLng float64         // Previous position of this user
 	Lat, Lng   float64         // Current position of this user
-	writeChan chan *msgdef.ServerMsg
+	writeChan chan *msgdef.PServerMsg
 	closeChan chan bool
 }
 
 func New() *U {
-	wc := make(chan *msgdef.ServerMsg, 32)
+	wc := make(chan *msgdef.PServerMsg, 32)
 	cc := make(chan bool, 1)
 	return &U{writeChan: wc, closeChan: cc}
 }
 
-func (usr *U) WriteMsg(msg *msgdef.ServerMsg) {
+func (usr *U) WriteMsg(msg *msgdef.PServerMsg) {
 	usr.writeChan<-msg
 }
 
-func (usr *U) ReceiveMsg() *msgdef.ServerMsg {
+func (usr *U) ReceiveMsg() *msgdef.PServerMsg {
 	return <-usr.writeChan
 }
 
@@ -35,15 +34,6 @@ func (usr *U) WriteClose() {
 func (usr *U) ReceiveClose() {
 	<-usr.closeChan
 	return
-}
-
-func (usr *U) TransactionId () int64 {
-	return usr.tId
-}
-
-func (usr *U) NewTransactionId() int64 {
-	usr.tId++
-	return usr.tId
 }
 
 func (usr *U) Eq(oUsr *U) bool {

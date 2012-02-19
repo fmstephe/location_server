@@ -16,7 +16,7 @@ const (
 //
 // Single Threaded Tree Manager Code 
 //
-var msgChan = make(chan clientMsg, 255) // Global Channel for all requests
+var msgChan = make(chan *task, 255) // Global Channel for all requests
 
 func TreeManager(minTreeMax int64, trackMovement bool, lg *log.Logger) {
 	tree := quadtree.NewQuadTree(maxSouthMetres, maxNorthMetres, maxWestMetres, maxEastMetres, minTreeMax)
@@ -25,19 +25,19 @@ func TreeManager(minTreeMax int64, trackMovement bool, lg *log.Logger) {
 		msg.profile.StopAndStart(profile_tmProc)
 		switch msg.op {
 		case msgdef.CInitLocOp:
-			handleInitLoc(&msg, tree, lg)
+			handleInitLoc(msg, tree, lg)
 		case msgdef.CRemoveOp:
-			handleRemove(&msg, tree, lg)
+			handleRemove(msg, tree, lg)
 		case msgdef.CMoveOp:
-			handleMove(&msg, tree, trackMovement, lg)
+			handleMove(msg, tree, trackMovement, lg)
 		case msgdef.CNearbyOp:
-			handleNearby(&msg, tree, lg)
+			handleNearby(msg, tree, lg)
 		}
 		lg.Println(msg.profile.StopAndString())
 	}
 }
 
-func handleInitLoc(initLoc *clientMsg, tree quadtree.T, lg *log.Logger) {
+func handleInitLoc(initLoc *task, tree quadtree.T, lg *log.Logger) {
 	usr := &initLoc.usr
 	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
 	locLog(usr.Id, "InitLoc Request", mNS, mEW)
@@ -46,7 +46,7 @@ func handleInitLoc(initLoc *clientMsg, tree quadtree.T, lg *log.Logger) {
 	tree.Insert(mNS, mEW, usr)
 }
 
-func handleRemove(rmv *clientMsg, tree quadtree.T, lg *log.Logger) {
+func handleRemove(rmv *task, tree quadtree.T, lg *log.Logger) {
 	usr := &rmv.usr
 	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
 	locLog(usr.Id, "Remove Request", mNS, mEW)
@@ -55,7 +55,7 @@ func handleRemove(rmv *clientMsg, tree quadtree.T, lg *log.Logger) {
 	tree.Survey(vs, removeFun(rmv.tId, usr))
 }
 
-func handleNearby(nby *clientMsg, tree quadtree.T, lg *log.Logger) {
+func handleNearby(nby *task, tree quadtree.T, lg *log.Logger) {
 	usr := &nby.usr
 	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
 	locLog(usr.Id, "Nearby Request", mNS, mEW)
@@ -64,7 +64,7 @@ func handleNearby(nby *clientMsg, tree quadtree.T, lg *log.Logger) {
 	tree.Survey(vs, nearbyFun(nby.tId, usr))
 }
 
-func handleMove(mv *clientMsg, tree quadtree.T, trackMovement bool, lg *log.Logger) {
+func handleMove(mv *task, tree quadtree.T, trackMovement bool, lg *log.Logger) {
 	usr := &mv.usr
 	oMNS, oMEW := metresFromOrigin(usr.OLat, usr.OLng)
 	nMNS, nMEW := metresFromOrigin(usr.Lat, usr.Lng)
@@ -168,7 +168,8 @@ func nearbyView(mNS, mEW float64) *quadtree.View {
 func broadcastSend(tId uint, op msgdef.ServerOp, usr *user.U, oUsr *user.U) {
 	profile := profile.New(profile.ProfileName(tId, usr.Id, string(op)), profile_outTaskNum)
 	profile.Start(profile_bSend)
-	msg := msgdef.NewServerMsg(op, usr, profile)
+	locMsg := msgdef.SLocMsg{Id: usr.Id, Lat: usr.Lat, Lng: usr.Lng}
+	msg := msgdef.NewPServerMsg(op, locMsg, profile)
 	oUsr.WriteMsg(msg)
 }
 

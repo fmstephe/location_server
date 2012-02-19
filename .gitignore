@@ -5,7 +5,6 @@ _*
 *.out
 *.log
 *.profile
-loadtest
 profile
 loc_server/loc_server/loc_server
 msg_server/msg_server
