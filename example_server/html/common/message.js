@@ -1,28 +1,25 @@
-function Add(id) {
-	this.Op = "cAdd";
-	this.Id = id; 
-}
-
-function Msg(to, msg) {
-	this.To = to
+function ClientMessage(op, msg) {
+	this.Op = op;
 	this.Msg = msg;
 }
 
+function Add(id) {
+	return new ClientMessage("cAdd", {Id: id});
+}
+
+function Msg(to, content) {
+	return new ClientMessage("cMsg", {To: to, Content: content});
+}
+
 function Move(lat, lng) {
-	this.Op = "cMove";
-	this.Lat = lat;
-	this.Lng = lng;
+	return new ClientMessage("cMove", {Lat: lat, Lng: lng});
 }
 
 function InitLoc(lat, lng) {
-	this.Op = "cInitLoc";
-	this.Lat = lat;
-	this.Lng = lng;
+	return new ClientMessage("cInitLoc", {Lat: lat, Lng: lng});
 }
 
 function Nearby(lat, lng) {
-	this.Op = "cNearby";
-	this.Lat = lat;
-	this.Lng = lng;
+	return new ClientMessage("cNearby", {Lat: lat, Lng: lng});
 }
 
