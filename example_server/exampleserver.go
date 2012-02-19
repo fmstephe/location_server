@@ -5,7 +5,7 @@ import (
 	"os/exec"
 	"encoding/json"
 	"github.com/fmstephe/simpleid"
-	"location_server/msgdef"
+	"location_server/msgutil/msgdef"
 	"net/http"
 )
 
