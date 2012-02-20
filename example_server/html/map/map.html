@@ -89,24 +89,24 @@ function handleLoc(msg) {
 
 function findName(usr) {
 	var to = usr.usrInfo.Id;
-	var msgMsg = "name?"
-	msg = new Msg(to, msgMsg);
+	var content = "name?"
+	msg = new Msg(to, content);
 	msgService.jsonsend(msg);
 }
 
 function handleMsg(msg) {
-	var from = msg.From;
-	var msgMsg = msg.Msg;
-	if (msgMsg == "name?") {
+	var from = msg.Msg.From;
+	var content = msg.Msg.Content;
+	if (content == "name?") {
 		reply = new Msg(from, $F("name"));
 		msgService.jsonsend(reply);
 	} else if (users[from] != null) {
 		var oldMarker = users[from].marker;
 		oldMarker.setMap(null);
-		newMarker = new google.maps.Marker({position:oldMarker.position, map: map, title: msgMsg});
+		newMarker = new google.maps.Marker({position:oldMarker.position, map: map, title: content});
 		users[from].marker = newMarker;
-		users[from].usrInfo.Name = msgMsg;
-		console.log("Updated user "+from+" with name "+msgMsg);
+		users[from].usrInfo.Name = content;
+		console.log("Updated user "+from+" with name "+content);
 	}
 }
 
