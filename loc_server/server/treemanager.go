@@ -4,7 +4,6 @@ import (
 	"log"
 	"location_server/quadtree"
 	"location_server/msgutil/msgdef"
-	"location_server/loc_server/user"
 )
 
 const (
@@ -35,37 +34,37 @@ func TreeManager(minTreeMax int64, trackMovement bool, lg *log.Logger) {
 }
 
 func handleInitLoc(initLoc *task, tree quadtree.T, lg *log.Logger) {
-	usr := &initLoc.usr
-	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
-	locLog(usr.Id, "InitLoc Request", mNS, mEW)
+	usr := initLoc.usr
+	mNS, mEW := metresFromOrigin(usr.lat, usr.lng)
+	locLog(usr.id, "InitLoc Request", mNS, mEW)
 	vs := []*quadtree.View{nearbyView(mNS, mEW)}
 	tree.Survey(vs, initLocFun(initLoc.tId, usr))
 	tree.Insert(mNS, mEW, usr)
 }
 
 func handleRemove(rmv *task, tree quadtree.T, lg *log.Logger) {
-	usr := &rmv.usr
-	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
-	locLog(usr.Id, "Remove Request", mNS, mEW)
+	usr := rmv.usr
+	mNS, mEW := metresFromOrigin(usr.lat, usr.lng)
+	locLog(usr.id, "Remove Request", mNS, mEW)
 	deleteUsr(mNS, mEW, usr, tree)
 	vs := []*quadtree.View{nearbyView(mNS, mEW)}
 	tree.Survey(vs, removeFun(rmv.tId, usr))
 }
 
 func handleNearby(nby *task, tree quadtree.T, lg *log.Logger) {
-	usr := &nby.usr
-	mNS, mEW := metresFromOrigin(usr.Lat, usr.Lng)
-	locLog(usr.Id, "Nearby Request", mNS, mEW)
+	usr := nby.usr
+	mNS, mEW := metresFromOrigin(usr.lat, usr.lng)
+	locLog(usr.id, "Nearby Request", mNS, mEW)
 	view := nearbyView(mNS, mEW)
 	vs := []*quadtree.View{view}
 	tree.Survey(vs, nearbyFun(nby.tId, usr))
 }
 
 func handleMove(mv *task, tree quadtree.T, trackMovement bool, lg *log.Logger) {
-	usr := &mv.usr
-	oMNS, oMEW := metresFromOrigin(usr.OLat, usr.OLng)
-	nMNS, nMEW := metresFromOrigin(usr.Lat, usr.Lng)
-	locLogL(usr.Id, "Relocate Request", oMNS, oMEW, nMNS, oMEW)
+	usr := mv.usr
+	oMNS, oMEW := metresFromOrigin(usr.olat, usr.olng)
+	nMNS, nMEW := metresFromOrigin(usr.lat, usr.lng)
+	locLogL(usr.id, "Relocate Request", oMNS, oMEW, nMNS, oMEW)
 	deleteUsr(oMNS, oMEW, usr, tree)
 	tree.Insert(nMNS, nMEW, usr)
 	nView := nearbyView(nMNS, nMEW)
@@ -84,30 +83,30 @@ func handleMove(mv *task, tree quadtree.T, trackMovement bool, lg *log.Logger) {
 }
 
 // Deletes usr from tree at the given coords
-func deleteUsr(mNS, mEW float64, usr *user.U, tree quadtree.T) {
+func deleteUsr(mNS, mEW float64, usr *user, tree quadtree.T) {
 	v := quadtree.PointViewP(mNS, mEW)
 	pred := func(_, _ float64, e interface{}) bool {
-		oUsr := e.(*user.U)
-		return usr.Eq(oUsr)
+		oUsr := e.(*user)
+		return usr.eq(oUsr)
 	}
 	tree.Delete(v, pred)
 }
 
 // Returns a function used for telling usr about each of the other users who are nearby
-func nearbyFun(tId uint, usr *user.U) func(mNS, mEW float64, e interface{}) {
+func nearbyFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
-		oUsr := e.(*user.U)
-		if !usr.Eq(oUsr) {
+		oUsr := e.(*user)
+		if !usr.eq(oUsr) {
 			broadcastSend(tId, msgdef.SNearbyOp, usr, oUsr)
 		}
 	}
 }
 
 // Returns a function used for alerting users that another user has been added to the system
-func initLocFun(tId uint, usr *user.U) func(mNS, mEW float64, e interface{}) {
+func initLocFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
-		oUsr := e.(*user.U)
-		if !usr.Eq(oUsr) {
+		oUsr := e.(*user)
+		if !usr.eq(oUsr) {
 			broadcastSend(tId, msgdef.SAddOp, usr, oUsr)
 			broadcastSend(tId, msgdef.SAddOp, oUsr, usr)
 		}
@@ -116,27 +115,27 @@ func initLocFun(tId uint, usr *user.U) func(mNS, mEW float64, e interface{}) {
 
 // Returns a function used for alerting users that another user has been removed from the system
 // NB: Relies on the assumption that usr is not currently present in tree
-func removeFun(tId uint, usr *user.U) func(mNS, mEW float64, e interface{}) {
+func removeFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
-		oUsr := e.(*user.U)
+		oUsr := e.(*user)
 		broadcastSend(tId, msgdef.SRemoveOp, usr, oUsr)
 	}
 }
 
 // Returns a function used for alerting users that another user is going out of range and should be removed
-func notVisibleFun(tId uint, usr *user.U) func(mNS, mEW float64, e interface{}) {
+func notVisibleFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
-		oUsr := e.(*user.U)
+		oUsr := e.(*user)
 		broadcastSend(tId, msgdef.SNotVisibleOp, usr, oUsr)
 		broadcastSend(tId, msgdef.SNotVisibleOp, oUsr, usr)
 	}
 }
 
 // Returns a function used for alerting users that another user has just become visible and should be added
-func visibleFun(tId uint, usr *user.U) func(mNS, mEW float64, e interface{}) {
+func visibleFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
-		oUsr := e.(*user.U)
-		if !usr.Eq(oUsr) {
+		oUsr := e.(*user)
+		if !usr.eq(oUsr) {
 			broadcastSend(tId, msgdef.SVisibleOp, usr, oUsr)
 			broadcastSend(tId, msgdef.SVisibleOp, oUsr, usr)
 		}
@@ -144,10 +143,10 @@ func visibleFun(tId uint, usr *user.U) func(mNS, mEW float64, e interface{}) {
 }
 
 // Returns a function used for alerting users that another user has changed position and should be updated
-func movedFun(tId uint, usr *user.U) func(mNS, mEW float64, e interface{}) {
+func movedFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
-		oUsr := e.(*user.U)
-		if !usr.Eq(oUsr) {
+		oUsr := e.(*user)
+		if !usr.eq(oUsr) {
 			broadcastSend(tId, msgdef.SMovedOp, usr, oUsr)
 		}
 	}
@@ -162,10 +161,10 @@ func nearbyView(mNS, mEW float64) *quadtree.View {
 	return quadtree.NewViewP(sth, nth, wst, est)
 }
 
-func broadcastSend(tId uint, op msgdef.ServerOp, usr *user.U, oUsr *user.U) {
-	locMsg := msgdef.SLocMsg{Id: usr.Id, Lat: usr.Lat, Lng: usr.Lng}
+func broadcastSend(tId uint, op msgdef.ServerOp, usr *user, oUsr *user) {
+	locMsg := msgdef.SLocMsg{Id: usr.id, Lat: usr.lat, Lng: usr.lng}
 	msg := msgdef.NewServerMsg(op, locMsg)
-	oUsr.WriteMsg(msg)
+	oUsr.msgWriter.WriteMsg(msg)
 }
 
 func locLog(id, msgType string, mNS, mEW float64) {

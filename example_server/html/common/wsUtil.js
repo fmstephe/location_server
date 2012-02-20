@@ -35,7 +35,6 @@ function jsonsend(obj) {
 			this.earlyMsgs.append(obj);
 			console.log("early message stored: "+JSON.stringify(obj));
 		} else {
-			console.log(this.readState);
 			msg = JSON.stringify(obj);
 			this.send(msg);
 			console.log("json message sent: "+msg);
