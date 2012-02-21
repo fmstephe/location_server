@@ -1,7 +1,8 @@
 package locserver
 
 import (
-	"log"
+	"fmt"
+	"location_server/logutil"
 	"location_server/quadtree"
 	"location_server/msgutil/msgdef"
 )
@@ -16,55 +17,55 @@ const (
 //
 var msgChan = make(chan *task, 255) // Global Channel for all requests
 
-func TreeManager(minTreeMax int64, trackMovement bool, lg *log.Logger) {
+func TreeManager(minTreeMax int64, trackMovement bool) {
 	tree := quadtree.NewQuadTree(maxSouthMetres, maxNorthMetres, maxWestMetres, maxEastMetres, minTreeMax)
 	for {
 		msg := <-msgChan
 		switch msg.op {
 		case msgdef.CInitLocOp:
-			handleInitLoc(msg, tree, lg)
+			handleInitLoc(msg, tree)
 		case msgdef.CRemoveOp:
-			handleRemove(msg, tree, lg)
+			handleRemove(msg, tree)
 		case msgdef.CMoveOp:
-			handleMove(msg, tree, trackMovement, lg)
+			handleMove(msg, tree, trackMovement)
 		case msgdef.CNearbyOp:
-			handleNearby(msg, tree, lg)
+			handleNearby(msg, tree)
 		}
 	}
 }
 
-func handleInitLoc(initLoc *task, tree quadtree.T, lg *log.Logger) {
+func handleInitLoc(initLoc *task, tree quadtree.T) {
 	usr := initLoc.usr
 	mNS, mEW := metresFromOrigin(usr.lat, usr.lng)
-	locLog(usr.id, "InitLoc Request", mNS, mEW)
+	locLog(initLoc.tId, usr.id, "InitLoc Request", mNS, mEW)
 	vs := []*quadtree.View{nearbyView(mNS, mEW)}
 	tree.Survey(vs, initLocFun(initLoc.tId, usr))
 	tree.Insert(mNS, mEW, usr)
 }
 
-func handleRemove(rmv *task, tree quadtree.T, lg *log.Logger) {
+func handleRemove(rmv *task, tree quadtree.T) {
 	usr := rmv.usr
 	mNS, mEW := metresFromOrigin(usr.lat, usr.lng)
-	locLog(usr.id, "Remove Request", mNS, mEW)
+	locLog(rmv.tId, usr.id, "Remove Request", mNS, mEW)
 	deleteUsr(mNS, mEW, usr, tree)
 	vs := []*quadtree.View{nearbyView(mNS, mEW)}
 	tree.Survey(vs, removeFun(rmv.tId, usr))
 }
 
-func handleNearby(nby *task, tree quadtree.T, lg *log.Logger) {
+func handleNearby(nby *task, tree quadtree.T) {
 	usr := nby.usr
 	mNS, mEW := metresFromOrigin(usr.lat, usr.lng)
-	locLog(usr.id, "Nearby Request", mNS, mEW)
+	locLog(nby.tId, usr.id, "Nearby Request", mNS, mEW)
 	view := nearbyView(mNS, mEW)
 	vs := []*quadtree.View{view}
 	tree.Survey(vs, nearbyFun(nby.tId, usr))
 }
 
-func handleMove(mv *task, tree quadtree.T, trackMovement bool, lg *log.Logger) {
+func handleMove(mv *task, tree quadtree.T, trackMovement bool) {
 	usr := mv.usr
 	oMNS, oMEW := metresFromOrigin(usr.olat, usr.olng)
 	nMNS, nMEW := metresFromOrigin(usr.lat, usr.lng)
-	locLogL(usr.id, "Relocate Request", oMNS, oMEW, nMNS, oMEW)
+	locLogL(mv.tId, usr.id, "Relocate Request", oMNS, oMEW, nMNS, oMEW)
 	deleteUsr(oMNS, oMEW, usr, tree)
 	tree.Insert(nMNS, nMEW, usr)
 	nView := nearbyView(nMNS, nMEW)
@@ -167,10 +168,10 @@ func broadcastSend(tId uint, op msgdef.ServerOp, usr *user, oUsr *user) {
 	oUsr.msgWriter.WriteMsg(msg)
 }
 
-func locLog(id, msgType string, mNS, mEW float64) {
-	log.Printf("User: %s \t %s \tmNS: %f mEW: %f", id, msgType, mNS, mEW)
+func locLog(tId uint, uId, msgType string, mNS, mEW float64) {
+	logutil.Log(tId, uId, fmt.Sprintf("%s - mNS: %f mEW: %f", msgType, mNS, mEW))
 }
 
-func locLogL(id, msgType string, oMNS, oMEW, nMNS, nMEW float64) {
-	log.Printf("User: %s \t %s \t oMNS: %f oMEW %f nMNS: %f nMEW %f", id, msgType, oMNS, oMEW, nMNS, nMEW)
+func locLogL(tId uint, uId, msgType string, oMNS, oMEW, nMNS, nMEW float64) {
+	logutil.Log(tId, uId, fmt.Sprintf("%s - oMNS: %f oMEW %f nMNS: %f nMEW %f", msgType, oMNS, oMEW, nMNS, nMEW))
 }
