@@ -24,6 +24,8 @@ type ServerOp string
 type ServerMsg struct {
 	Op   ServerOp
 	Msg interface{}
+	tId uint
+	uId string
 }
 
 func NewServerMsg(op ServerOp, msg interface{}) *ServerMsg {
@@ -32,6 +34,14 @@ func NewServerMsg(op ServerOp, msg interface{}) *ServerMsg {
 
 func NewServerError(msg interface{}) *ServerMsg {
 	return &ServerMsg{Op: SErrorOp, Msg: msg}
+}
+
+func (msg *ServerMsg) TransactionId() uint {
+	return msg.tId
+}
+
+func (msg *ServerMsg) UserId() string {
+	return msg.uId
 }
 
 type PServerMsg struct {

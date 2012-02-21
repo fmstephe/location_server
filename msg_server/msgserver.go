@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"websocket"
-	"encoding/json"
+	"location_server/logutil"
 	"location_server/msgutil/msgwriter"
 	"location_server/msgutil/msgdef"
 	"location_server/msgutil/jsonutil"
@@ -16,10 +16,10 @@ var idMap = simpleid.NewIdMap()
 
 type user struct {
 	id string
-	msgWriter *msgWriter.W
+	msgWriter *msgwriter.W
 }
 
-func newUser(ws *websocket.Conn) {
+func newUser(ws *websocket.Conn) *user {
 	return &user{msgWriter: msgwriter.New(ws)}
 }
 
@@ -28,49 +28,51 @@ func readWS(ws *websocket.Conn) {
 	usr := newUser(ws)
 	idMsg := msgdef.NewCIdMsg()
 	if err := jsonutil.JSONCodec.Receive(ws, idMsg); err != nil {
-		usr.msgWriter.ErrorAndClose(tId, err.Error())
+		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
 	}
 	processReg(idMsg, usr)
-	if err := idMap.Add(usr.Id, usr); err != nil {
-		usr.msgWriter.ErrorAndClose(tId, err.Error())
+	if err := idMap.Add(usr.id, usr); err != nil {
+		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
 	}
-	fmt.Printf("Msg Srvr: User: %s\tAdded successfully to the message network\n", usr.Id)
-	defer idMap.Remove(usr.Id)
+	logutil.Registered(tId, usr.id)
+	defer removeUser(&tId, usr.id)
 	for {
 		tId++
 		cMsg := msgdef.NewCMsgMsg()
 		if err := jsonutil.JSONCodec.Receive(ws, cMsg); err != nil {
-			usr.msgWriter.ErrorAndClose(tId, err.Error())
+			usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 			return
 		}
 		msg := cMsg.Msg.(*msgdef.CMsgMsg)
 		if idMap.Contains(msg.To) {
-			forUser := idMap.Get(msg.To).(*user.U)
-			msgMsg := &msgdef.SMsgMsg{From: usr.Id, Content: msg.Content}
-			forUser.WriteMsg(msgdef.NewServerMsg(msgdef.SMsgOp, msgMsg))
+			forUser := idMap.Get(msg.To).(*user)
+			msgMsg := &msgdef.SMsgMsg{From: usr.id, Content: msg.Content}
+			forUser.msgWriter.WriteMsg(msgdef.NewServerMsg(msgdef.SMsgOp, msgMsg))
+			logutil.Log(tId, usr.id, fmt.Sprintf("Content: '%s' send to: '%s'", msg.Content, msg.To))
 		} else {
-			usr.msgWriter.ErrorAndClose(tId, fmt.Sprintf("User: %s is not present",msg.To)
+			usr.msgWriter.ErrorAndClose(tId, usr.id, fmt.Sprintf("User: %s is not present",msg.To))
 			return
 		}
 	}
 }
 
-func processReg(clientMsg *msgdef.ClientMsg, usr *user.U) error {
+func processReg(clientMsg *msgdef.ClientMsg, usr *user) error {
 	idMsg := clientMsg.Msg.(*msgdef.CIdMsg)
 	switch clientMsg.Op {
 	case msgdef.CAddOp:
-		usr.Id = idMsg.Id
+		usr.id = idMsg.Id
 		return nil
 	}
 	return errors.New("Incorrect op-code for id registration: "+string(clientMsg.Op))
 }
 
-func removeUser(id string) {
-	if idMap.Contains(id) {
-		idMap.Remove(id)
-		fmt.Printf("User: %s\t Successfully removed from the message network\n")
+func removeUser(tId *uint, uId string) {
+	(*tId)++
+	if idMap.Contains(uId) {
+		idMap.Remove(uId)
+		logutil.Deregistered(*tId, uId)
 	} else {
 		panic(fmt.Sprintf("User: %s\t Could not be removed from the message network"))
 	}

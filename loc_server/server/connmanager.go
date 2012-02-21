@@ -2,8 +2,8 @@ package locserver
 
 import (
 	"errors"
-	"log"
 	"websocket"
+	"location_server/logutil"
 	"location_server/msgutil/msgwriter"
 	"location_server/msgutil/msgdef"
 	"location_server/msgutil/jsonutil"
@@ -43,43 +43,42 @@ func newTask(tId uint, op msgdef.ClientOp, usr *user) *task {
 func WebsocketUser(ws *websocket.Conn) {
 	var tId uint
 	var err error
-	log.Printf("Connection Established\n")
 	usr := newUser(ws)
 	idMsg := msgdef.NewCIdMsg()
-	if err = unmarshal(ws, idMsg); err != nil {
-		usr.msgWriter.ErrorAndClose(tId, err.Error())
+	if err = jsonutil.JSONCodec.Receive(ws, idMsg); err != nil {
+		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
 	}
 	if err = processReg(idMsg, usr); err != nil {
-		usr.msgWriter.ErrorAndClose(tId, err.Error())
+		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
 	}
 	if err = idSet.Add(usr.id, usr); err != nil {
-		usr.msgWriter.ErrorAndClose(tId, err.Error())
+		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
 	}
+	logutil.Registered(tId, usr.id)
 	defer removeId(&tId, usr)
-	log.Printf("User: %s \tRegistered Successfully\n", usr.id)
 	tId++
 	initLocMsg := msgdef.NewCLocMsg()
-	if err = unmarshal(ws, initLocMsg); err != nil {
-		usr.msgWriter.ErrorAndClose(tId, err.Error())
+	if err = jsonutil.JSONCodec.Receive(ws, initLocMsg); err != nil {
+		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
 	}
 	if err = processInitLoc(tId, initLocMsg, usr); err != nil {
-		usr.msgWriter.ErrorAndClose(tId, err.Error())
+		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
 	}
 	defer removeFromTree(&tId, usr)
 	for {
 		tId++
 		locMsg := msgdef.NewCLocMsg()
-		if err = unmarshal(ws, locMsg); err != nil {
-			usr.msgWriter.ErrorAndClose(tId, err.Error())
+		if err = jsonutil.JSONCodec.Receive(ws, locMsg); err != nil {
+			usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 			return
 		}
 		if err = processRequest(tId, locMsg, usr); err != nil {
-			usr.msgWriter.ErrorAndClose(tId, err.Error())
+			usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 			return
 		}
 	}
@@ -87,24 +86,14 @@ func WebsocketUser(ws *websocket.Conn) {
 
 func removeId(tId *uint, usr *user) {
 	(*tId)++
-	// TODO should probably log this
+	logutil.Deregistered(*tId, usr.id)
 	idSet.Remove(usr.id)
 }
 
 func removeFromTree(tId *uint, usr *user) {
 	(*tId)++
-	// TODO should probably log this
 	msg := newTask(*tId, msgdef.CRemoveOp, usr)
 	forwardMsg(msg)
-}
-
-// Unmarshals into a *task from the websocket connection returning an error if anything goes wrong
-func unmarshal(ws *websocket.Conn, clientMsg *msgdef.ClientMsg) error {
-	if err := jsonutil.JSONCodec.Receive(ws, clientMsg); err != nil {
-		return err
-	}
-	//msgLog(usr.id, "Client Message", fmt.Sprintf("%v", clientMsg))
-	return nil
 }
 
 // Handle registration message
@@ -157,8 +146,4 @@ func processRequest(tId uint, clientMsg *msgdef.ClientMsg, usr *user) error {
 
 func forwardMsg(msg *task) {
 	msgChan <- msg
-}
-
-func msgLog(id, title, msg string) {
-	log.Printf("User: %s\t%s\t%s", id, title, msg)
 }

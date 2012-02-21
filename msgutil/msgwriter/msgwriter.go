@@ -1,7 +1,9 @@
 package msgwriter
 
 import (
+	"fmt"
 	"websocket"
+	"location_server/logutil"
 	"location_server/msgutil/jsonutil"
 	"location_server/msgutil/msgdef"
 )
@@ -24,21 +26,21 @@ func (msgWriter *W) WriteMsg(msg *msgdef.ServerMsg) {
 	msgWriter.msgChan<-msg
 }
 
-func (msgWriter *W) ErrorAndClose(tId uint, errMsg string) {
-	//msgLog(usr.Id, "Connection Terminated", errMsg)
+func (msgWriter *W) ErrorAndClose(tId uint, uId, errMsg string) {
+	logutil.Log(tId, uId, "Connection Terminated: "+errMsg)
 	msgWriter.WriteMsg(msgdef.NewServerError(errMsg))
 	<-msgWriter.closeChan
-	//msgLog(usr.Id, "Close Confirmation Received", "")
+	logutil.Log(tId, uId, "Close Confirmation Received")
 }
 
 func (msgWriter *W) listenAndWrite() {
-	defer msgWriter.closeWS()
+	defer msgWriter.sendClose()
 	for {
 		msg := <-msgWriter.msgChan
-		// TODO log the message here
+		logutil.Log(msg.TransactionId(), msg.UserId(), fmt.Sprintf("%v",msg))
 		err := jsonutil.JSONCodec.Send(msgWriter.ws, msg)
 		if err != nil {
-			// TODO log the error here
+			logutil.Log(msg.TransactionId(), msg.UserId(), err.Error())
 			return
 		}
 		if msg.Op == msgdef.SErrorOp {
@@ -47,9 +49,6 @@ func (msgWriter *W) listenAndWrite() {
 	}
 }
 
-func (msgWriter *W) closeWS() {
-	if err := msgWriter.ws.Close(); err != nil {
-		//msgLog("Error closing websocket connection: ", err.Error())
-	}
+func (msgWriter *W) sendClose() {
 	msgWriter.closeChan<-true
 }
