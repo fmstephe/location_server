@@ -14,6 +14,7 @@ func Log(tId uint, uId, msg string) {
 
 func ServerStarted(name string) {
 	log.Printf(name + " Server Started")
+}
 
 func Connected() {
 	log.Printf("Connection Established")
