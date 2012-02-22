@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"encoding/json"
 	"github.com/fmstephe/simpleid"
+	"location_server/logutil"
 	"location_server/msgutil/msgdef"
 	"net/http"
 )
@@ -31,6 +32,7 @@ func restart(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	logutil.ServerStarted("Example")
 	pwd, err := os.Getwd()
 	if err != nil {
 		println(err.Error())

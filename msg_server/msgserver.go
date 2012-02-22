@@ -79,6 +79,7 @@ func removeUser(tId *uint, uId string) {
 }
 
 func main() {
+	logutil.ServerStarted("Message")
 	http.Handle("/msg", websocket.Handler(readWS))
 	http.ListenAndServe(":8003", nil)
 }
