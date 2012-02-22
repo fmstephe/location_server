@@ -20,7 +20,7 @@ type Profiler interface {
 }
 
 type P struct {
-	pName string // A, preferably unique, name for this performance profile
+	pName   string     // A, preferably unique, name for this performance profile
 	timings []perfUnit // Nanosecond task performance timings
 }
 

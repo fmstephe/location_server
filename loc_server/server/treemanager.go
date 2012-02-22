@@ -3,8 +3,8 @@ package locserver
 import (
 	"fmt"
 	"location_server/logutil"
-	"location_server/quadtree"
 	"location_server/msgutil/msgdef"
+	"location_server/quadtree"
 )
 
 const (

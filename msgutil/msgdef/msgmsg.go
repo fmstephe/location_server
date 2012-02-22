@@ -4,7 +4,7 @@ package msgdef
 const CMsgOp = ClientOp("cMsg")
 
 type CMsgMsg struct {
-	To string
+	To      string
 	Content string
 }
 
@@ -16,6 +16,6 @@ func NewCMsgMsg() *ClientMsg {
 const SMsgOp = ServerOp("sMsg")
 
 type SMsgMsg struct {
-	From string
+	From    string
 	Content string
 }

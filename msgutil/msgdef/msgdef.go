@@ -8,7 +8,7 @@ import (
 type ClientOp string
 
 type ClientMsg struct {
-	Op ClientOp
+	Op  ClientOp
 	Msg interface{}
 }
 
@@ -19,10 +19,9 @@ func NewClientMsg(op ClientOp, msg interface{}) *ClientMsg {
 // Server reply operations
 type ServerOp string
 
-
 // A server message which contains only a serverOp and a user.CU
 type ServerMsg struct {
-	Op   ServerOp
+	Op  ServerOp
 	Msg interface{}
 	tId uint
 	uId string
@@ -45,7 +44,7 @@ func (msg *ServerMsg) UserId() string {
 }
 
 type PServerMsg struct {
-	Msg ServerMsg
+	Msg     ServerMsg
 	Profile *perfprofile.P
 }
 
@@ -57,4 +56,3 @@ func NewPServerMsg(op ServerOp, msg interface{}, profile *perfprofile.P) *PServe
 func NewPServerError(msg interface{}, profile *perfprofile.P) *PServerMsg {
 	return NewPServerMsg(SErrorOp, msg, profile)
 }
-

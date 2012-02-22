@@ -3,19 +3,19 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/fmstephe/simpleid"
+	"location_server/logutil"
+	"location_server/msgutil/jsonutil"
+	"location_server/msgutil/msgdef"
+	"location_server/msgutil/msgwriter"
 	"net/http"
 	"websocket"
-	"location_server/logutil"
-	"location_server/msgutil/msgwriter"
-	"location_server/msgutil/msgdef"
-	"location_server/msgutil/jsonutil"
-	"github.com/fmstephe/simpleid"
 )
 
 var idMap = simpleid.NewIdMap()
 
 type user struct {
-	id string
+	id        string
 	msgWriter *msgwriter.W
 }
 
@@ -52,7 +52,7 @@ func readWS(ws *websocket.Conn) {
 			forUser.msgWriter.WriteMsg(msgdef.NewServerMsg(msgdef.SMsgOp, msgMsg))
 			logutil.Log(tId, usr.id, fmt.Sprintf("Content: '%s' send to: '%s'", msg.Content, msg.To))
 		} else {
-			usr.msgWriter.ErrorAndClose(tId, usr.id, fmt.Sprintf("User: %s is not present",msg.To))
+			usr.msgWriter.ErrorAndClose(tId, usr.id, fmt.Sprintf("User: %s is not present", msg.To))
 			return
 		}
 	}
@@ -65,7 +65,7 @@ func processReg(clientMsg *msgdef.ClientMsg, usr *user) error {
 		usr.id = idMsg.Id
 		return nil
 	}
-	return errors.New("Incorrect op-code for id registration: "+string(clientMsg.Op))
+	return errors.New("Incorrect op-code for id registration: " + string(clientMsg.Op))
 }
 
 func removeUser(tId *uint, uId string) {

@@ -2,15 +2,15 @@ package msgwriter
 
 import (
 	"fmt"
-	"websocket"
 	"location_server/logutil"
 	"location_server/msgutil/jsonutil"
 	"location_server/msgutil/msgdef"
+	"websocket"
 )
 
 type W struct {
-	ws *websocket.Conn
-	msgChan chan *msgdef.ServerMsg
+	ws        *websocket.Conn
+	msgChan   chan *msgdef.ServerMsg
 	closeChan chan bool
 }
 
@@ -23,7 +23,7 @@ func New(ws *websocket.Conn) *W {
 }
 
 func (msgWriter *W) WriteMsg(msg *msgdef.ServerMsg) {
-	msgWriter.msgChan<-msg
+	msgWriter.msgChan <- msg
 }
 
 func (msgWriter *W) ErrorAndClose(tId uint, uId, errMsg string) {
@@ -37,7 +37,7 @@ func (msgWriter *W) listenAndWrite() {
 	defer msgWriter.sendClose()
 	for {
 		msg := <-msgWriter.msgChan
-		logutil.Log(msg.TransactionId(), msg.UserId(), fmt.Sprintf("%v",msg))
+		logutil.Log(msg.TransactionId(), msg.UserId(), fmt.Sprintf("%v", msg))
 		err := jsonutil.JSONCodec.Send(msgWriter.ws, msg)
 		if err != nil {
 			logutil.Log(msg.TransactionId(), msg.UserId(), err.Error())
@@ -50,5 +50,5 @@ func (msgWriter *W) listenAndWrite() {
 }
 
 func (msgWriter *W) sendClose() {
-	msgWriter.closeChan<-true
+	msgWriter.closeChan <- true
 }

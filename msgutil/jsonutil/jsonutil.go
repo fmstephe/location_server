@@ -1,8 +1,8 @@
 package jsonutil
 
 import (
-	"websocket"
 	"encoding/json"
+	"websocket"
 )
 
 func jsonMarshal(v interface{}) (msg []byte, payloadType byte, err error) {
@@ -14,4 +14,4 @@ func jsonUnmarshal(msg []byte, payloadType byte, v interface{}) (err error) {
 	return json.Unmarshal(msg, v)
 }
 
-var JSONCodec = websocket.Codec{jsonMarshal,jsonUnmarshal}
+var JSONCodec = websocket.Codec{jsonMarshal, jsonUnmarshal}

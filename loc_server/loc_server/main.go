@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"location_server/logutil"
 	"location_server/loc_server/server"
+	"location_server/logutil"
 	"net/http"
 	_ "net/http/pprof"
 	"runtime"

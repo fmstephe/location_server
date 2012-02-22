@@ -1,13 +1,13 @@
 package main
 
 import (
-	"os"
-	"os/exec"
 	"encoding/json"
 	"github.com/fmstephe/simpleid"
 	"location_server/logutil"
 	"location_server/msgutil/msgdef"
 	"net/http"
+	"os"
+	"os/exec"
 )
 
 var idMaker = simpleid.NewIdMaker()
@@ -25,7 +25,7 @@ func idProvider(w http.ResponseWriter, r *http.Request) {
 func restart(w http.ResponseWriter, r *http.Request) {
 	os.Chdir("scripts")
 	cmd := exec.Command("./update_servers.sh")
-	err:= cmd.Run()
+	err := cmd.Run()
 	if err != nil {
 		println(err.Error())
 	}

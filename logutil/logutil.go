@@ -9,7 +9,7 @@ func LogFree(msg string) {
 }
 
 func Log(tId uint, uId, msg string) {
-	log.Printf("%d\t%s\t%s",tId, uId, msg)
+	log.Printf("%d\t%s\t%s", tId, uId, msg)
 }
 
 func ServerStarted(name string) {

@@ -2,21 +2,21 @@ package locserver
 
 import (
 	"errors"
-	"websocket"
-	"location_server/logutil"
-	"location_server/msgutil/msgwriter"
-	"location_server/msgutil/msgdef"
-	"location_server/msgutil/jsonutil"
 	"github.com/fmstephe/simpleid"
+	"location_server/logutil"
+	"location_server/msgutil/jsonutil"
+	"location_server/msgutil/msgdef"
+	"location_server/msgutil/msgwriter"
+	"websocket"
 )
 
 var iOpErr = errors.New("Illegal Message Op. Operation unrecognised or provided in illegal order.")
 var idSet = simpleid.NewIdMap()
 
 type user struct {
-	id string
+	id                   string
 	lat, olat, lng, olng float64
-	msgWriter *msgwriter.W
+	msgWriter            *msgwriter.W
 }
 
 func (usr *user) eq(oUsr *user) bool {
@@ -30,8 +30,8 @@ func newUser(ws *websocket.Conn) *user {
 // A client request
 type task struct {
 	tId uint
-	op   msgdef.ClientOp
-	usr  *user
+	op  msgdef.ClientOp
+	usr *user
 }
 
 func newTask(tId uint, op msgdef.ClientOp, usr *user) *task {

@@ -6,11 +6,11 @@ import (
 
 // A user
 type U struct {
-	Id         string          // Unique identifier for this user
-	OLat, OLng float64         // Previous position of this user
-	Lat, Lng   float64         // Current position of this user
-	writeChan chan *msgdef.ServerMsg
-	closeChan chan bool
+	Id         string  // Unique identifier for this user
+	OLat, OLng float64 // Previous position of this user
+	Lat, Lng   float64 // Current position of this user
+	writeChan  chan *msgdef.ServerMsg
+	closeChan  chan bool
 }
 
 func New() *U {
@@ -20,7 +20,7 @@ func New() *U {
 }
 
 func (usr *U) WriteMsg(msg *msgdef.ServerMsg) {
-	usr.writeChan<-msg
+	usr.writeChan <- msg
 }
 
 func (usr *U) ReceiveMsg() *msgdef.ServerMsg {
@@ -28,7 +28,7 @@ func (usr *U) ReceiveMsg() *msgdef.ServerMsg {
 }
 
 func (usr *U) WriteClose() {
-	usr.closeChan<-true
+	usr.closeChan <- true
 }
 
 func (usr *U) ReceiveClose() {

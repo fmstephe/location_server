@@ -2,6 +2,7 @@ package msgdef
 
 // Register the id of a user
 const CAddOp = ClientOp("cAdd")
+
 // Deregister the id of a user, plus additional cleanup
 const CRemoveOp = ClientOp("cRemove")
 
