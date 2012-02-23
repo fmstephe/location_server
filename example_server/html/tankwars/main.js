@@ -40,29 +40,8 @@ var lastCycle;
 var thisCycle;
 // Display toggle for nerdy info
 var devMode;
-
 //
 var id;
-// Location Service
-var locService;
-// Message Service
-var msgService;
-
-function getLocalCoords() {
-	if (navigator.geolocation) {
-		navigator.geolocation.getCurrentPosition(init,function(error) { console.log(JSON.stringify(error)), init({"coords": {"latitude":1, "longitude":1}}) });
-	} else {
-		alert("Your browser does not support websockets");
-	}
-}
-
-function init(position) {
-	lat = position.coords.latitude;
-	lng = position.coords.longitude;
-	id = getId();
-	console.log("Id provided: " + id);
-	initGame();
-}
 
 function initGame() {
 	devMode = false;
@@ -86,28 +65,7 @@ function initGame() {
 	playerList.append(localPlayer);
 	keyBindingList = new LinkedList();
 	keyBindingList.append(kb1);
-	initMsgService();
-}
-
-function initMsgService() {
-	addMsg = new Add(id);
-	msgService = new WSClient("Message", "ws://"+host+":8003/msg", handleMsg, function(){ 
-		this.jsonsend(addMsg); 
-		initLocService(); }, 
-		function() {});
-	msgService.connect();
-}
-
-function initLocService() {
-	addMsg = new Add(id);
-	initMsg = new InitLoc(lat, lng);
-	userList = new LinkedList();
-	locService = new WSClient("Location", "ws://"+host+":8002/loc", handleLoc, function(){ 
-		this.jsonsend(addMsg); 
-		this.jsonsend(initMsg);
-       		initIntro();},
-		function() {});
-	locService.connect();
+	initIntro();
 }
 
 function initIntro() {

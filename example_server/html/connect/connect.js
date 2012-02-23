@@ -1,20 +1,51 @@
-function new Connecter(id, lat, lng, msgListeners, locListeners) {
-	var addMsg = new Add(id);
-	var locMsg = new InitLoc(lat, lng);
-	this.msgListeners = msgListeners;
-	this.locListeners = locListeners;
-	this.msgService = new WSClient("Message", "ws://"+host+":8003/msg", handleMsg, function(){}, function() {});
-	this.locService = new WSClient("Location", "ws://"+host+":8002/loc", handleLoc, function(){}, function() {});
+function new Connecter(id, msgListeners, locListeners) {
+	var handleLoc = function(loc) {
+		for (var i in locListeners) {
+			locListeners[i].handleLoc(loc);
+		}
+	}
+	var handleMsg = function(msg) {
+		for (var i in msgListeners) {
+			msgListeners[i].handleMsg(msg);
+		}
+	}
+	var initLoc = function(position) {
+		lat = position.coords.latitude;
+		lng = position.coords.longitude;
+		var locMsg = new InitLoc(lat, lng);
+		locService.jsonsend(locMsg)
+	}
+	this.msgService = new WSClient("Message", "ws://178.79.176.206:8003/msg", handleMsg, function(){}, function() {});
+	this.locService = new WSClient("Location", "ws://178.79.176.206:8002/loc", handleLoc, function(){}, function() {});
 	this.msgService.connect();
 	this.locService.connect();
+	var addMsg = new Add(id);
 	this.msgService.jsonsend(addMsg);
 	this.locService.jsonsend(addMsg);
-	this.locService.jsonsend(locMsg);
-	this.users = new LinkedList();
+	setInitCoords(initLoc);
 }
 
-function initIntro() {
-	setInterval(introFunc, framePause*10);
+Connector.prototype.sendMsg = function(msg) {
+	this.msgService.jsonsend(msg);
+}
+
+Connector.prototype.sendLoc = function(loc) {
+	this.locService.jsonsend(loc);
+}
+
+function setInitCoords(initLoc) {
+	if (navigator.geolocation) {
+		navigator.geolocation.getCurrentPosition(initLoc, function(error) { console.log(JSON.stringify(error)), initLoc({"coords": {"latitude":1, "longitude":1}}) }); 
+	} else {
+		alert("Your browser does not support websockets");
+	}
+}
+
+function init(position) {
+	lat = position.coords.latitude;
+	lng = position.coords.longitude;
+	var locMsg = new InitLoc(lat, lng);
+	
 }
 
 function introFunc() {
@@ -23,7 +54,7 @@ function introFunc() {
 	document.getElementById("player-list").innerHTML = users;
 }
 
-function handleMsg(msg) {
+/*
 	console.log(msg);
 	var m = JSON.parse(msg.Msg);
 	var p = new Player(m.x, m.name, turretLength, m.power, minPower, maxPower, powerInc, expRadius, null);
@@ -41,4 +72,4 @@ function handleLoc(msg) {
 	} else if (op == "sRemove" || op == "sNotVisible") {
 		userList.filter(function(u) {return usrInfo.Id == u.Id});
 	}   
-}
+}*/
