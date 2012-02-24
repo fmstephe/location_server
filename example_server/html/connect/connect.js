@@ -1,4 +1,4 @@
-function new Connecter(id, msgListeners, locListeners) {
+function new Connecter(msgListeners, locListeners) {
 	var handleLoc = function(loc) {
 		for (var i in locListeners) {
 			locListeners[i].handleLoc(loc);
@@ -19,6 +19,7 @@ function new Connecter(id, msgListeners, locListeners) {
 	this.locService = new WSClient("Location", "ws://178.79.176.206:8002/loc", handleLoc, function(){}, function() {});
 	this.msgService.connect();
 	this.locService.connect();
+	var id = getId();
 	var addMsg = new Add(id);
 	this.msgService.jsonsend(addMsg);
 	this.locService.jsonsend(addMsg);
@@ -47,29 +48,3 @@ function init(position) {
 	var locMsg = new InitLoc(lat, lng);
 	
 }
-
-function introFunc() {
-	users = "";
-	userList.forEach(function(u) {users += "<li>"+JSON.stringify(u)+"</li>"});
-	document.getElementById("player-list").innerHTML = users;
-}
-
-/*
-	console.log(msg);
-	var m = JSON.parse(msg.Msg);
-	var p = new Player(m.x, m.name, turretLength, m.power, minPower, maxPower, powerInc, expRadius, null);
-	playerList.append(p);
-}
-
-function handleLoc(msg) {
-	var op = msg.Op;
-	console.log(op);
-	var usrInfo = msg.Usr;
-	if (op == "sAdd" || op == "sNearby" || op == "sVisible") {
-		playerMsg = new Msg(usrInfo.Id, JSON.stringify(new PlayerMsg(localPlayer)));
-		msgService.jsonsend(playerMsg);
-		userList.append(usrInfo);
-	} else if (op == "sRemove" || op == "sNotVisible") {
-		userList.filter(function(u) {return usrInfo.Id == u.Id});
-	}   
-}*/
