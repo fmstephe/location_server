@@ -28,6 +28,7 @@ function Connect(msgListeners, locListeners) {
 }
 
 Connect.prototype.sendMsg = function(msg) {
+	console.log(msg);
 	this.msgService.jsonsend(msg);
 }
 

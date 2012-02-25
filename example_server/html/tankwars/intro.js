@@ -11,14 +11,23 @@ var svcHandler = {
 			selectionUsers.filter(function(u) {return usrInfo.Id == u.Id});
 		}
 		users = "";
-		selectionUsers.forEach(function(u) {users += "<li>"+JSON.stringify(u)+"</li>"});
+		selectionUsers.forEach(function(u) {users += userLiLink(u)});
 		document.getElementById("player-list").innerHTML = users;
 	},
 	handleMsg: function(msg) {
-		alert(msg);
+		alert(msg.Op + msg.Msg.From + msg.Msg.Content);
 	}
 }
 
 function main() {
 	connect = new Connect([svcHandler], [svcHandler]);
+}
+
+function userLiLink(user) {
+	return "<li><a href=\"javascript:void(0)\" onclick=\"startGame('"+user.Id+"')\">"+JSON.stringify(user)+"</a></li>";
+}
+
+function startGame(id) {
+	var msg = new Msg(id, "start!");
+	connect.sendMsg(msg);
 }
