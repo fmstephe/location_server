@@ -18,13 +18,8 @@ var expRadius = 50;
 // Location
 var lat;
 var lng;
-// Environment
-var fgCtxt;
-var terrainCtxt;
-var bgCtxt;
+// terrain
 var terrain;
-var canvasHeight;
-var canvasWidth;
 // Game entity lists
 var localPlayer;
 var keyBindingList;
@@ -43,7 +38,7 @@ var devMode;
 //
 var id;
 
-function initGame() {
+function initGame(xPos, divs) {
 	devMode = false;
 	lastCycle = new Date().getTime();
 	thisCycle = new Date().getTime();
@@ -55,9 +50,10 @@ function initGame() {
 	bgCtxt = bgCanvas.getContext("2d");
 	canvasHeight = fgCanvas.height;
 	canvasWidth = fgCanvas.width;
-	terrain = new Terrain(canvasWidth, canvasHeight);
+	terrain = new Terrain(canvasWidth, canvasHeight, divs);
 	var kb1 = new KeyBindings(87,83,65,68,70);
-	localPlayer = new Player(r(canvasWidth), "Player1", turretLength, initPower, minPower, maxPower, powerInc, expRadius, kb1);
+	//var xPos = Math.floor(Math.random()*canvasWidth)+1;
+	localPlayer = new Player(xPos, "Player1", turretLength, initPower, minPower, maxPower, powerInc, expRadius, kb1);
 	explosionList = new LinkedList();
 	missileList = new LinkedList();
 	launchList = new LinkedList();
@@ -248,10 +244,6 @@ function logInfo() {
 		frameRate = 1000/elapsed;
 		console.log("Frame Rate: " + Math.floor(frameRate), "\tPlayers: " + playerList.length(), "\tMissiles: " + missileList.length(), "\tExplosions: " + explosionList.length());
 	}
-}
-
-function r(lim) {
-	return Math.floor(Math.random()*lim)+1
 }
 
 function captureKeydown(e) {

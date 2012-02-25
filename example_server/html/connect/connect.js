@@ -28,7 +28,6 @@ function Connect(msgListeners, locListeners) {
 }
 
 Connect.prototype.sendMsg = function(msg) {
-	console.log(msg);
 	this.msgService.jsonsend(msg);
 }
 
@@ -48,5 +47,4 @@ function init(position) {
 	lat = position.coords.latitude;
 	lng = position.coords.longitude;
 	var locMsg = new InitLoc(lat, lng);
-	
 }

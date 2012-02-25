@@ -199,8 +199,8 @@ function renderExplosion(ctxt, hgt) {
 	ctxt.fill();
 }
 
-function Terrain(w, h) {
-	this.heightArray = generateTerrain(w, h);
+function Terrain(w, h, divs) {
+	this.heightArray = generateTerrain(w, h, divs);
 	this.w = w;
 	this.h = h;
 	this.regionList = new LinkedList();

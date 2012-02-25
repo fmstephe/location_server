@@ -1,5 +1,14 @@
 var selectionUsers = new LinkedList();
 var connect;
+var gameStarted = false;
+var myPos;
+var divs;
+// Constant Globals
+var canvasHeight;
+var canvasWidth;
+var fgCtxt;
+var terrainCtxt;
+var bgCtxt;
 
 var svcHandler = {
 	handleLoc: function(loc) {
@@ -16,10 +25,37 @@ var svcHandler = {
 	},
 	handleMsg: function(msg) {
 		alert(msg.Op + msg.Msg.From + msg.Msg.Content);
+		var from = msg.Msg.From;
+		var content = JSON.parse(msg.Msg.Content);
+		if (content.op == "start") {
+			if (gameStarted) {
+				connect.sendMsg(new Msg(from, JSON.stringify({op:"engaged"})));
+			} else {
+				connect.sendMsg(new Msg(from, JSON.stringify({op:"accepted"})));
+				myPos = content.pos;
+				divs = content.divs;
+				gameStarted = true;
+				initGame(myPos, divs);
+			}
+		}
+		if (content.op == "engaged") {
+			gameStarted = false;
+		}
+		if (content.op == "accepted") {
+			initGame(myPos, divs);	
+		}
 	}
 }
 
 function main() {
+	var fgCanvas = document.getElementById("foreground");
+	var terrainCanvas = document.getElementById("terrain");
+	var bgCanvas = document.getElementById("background");
+	fgCtxt = fgCanvas.getContext("2d");
+	terrainCtxt = terrainCanvas.getContext("2d");
+	bgCtxt = bgCanvas.getContext("2d");
+	canvasHeight = fgCanvas.height;
+	canvasWidth = fgCanvas.width;
 	connect = new Connect([svcHandler], [svcHandler]);
 }
 
@@ -28,6 +64,11 @@ function userLiLink(user) {
 }
 
 function startGame(id) {
-	var msg = new Msg(id, "start!");
+	var pair = positionPair(canvasWidth);
+	myPos = pair[0];
+	var oPos = pair[1];
+	divs = genDivisors();
+	var msg = new Msg(id, JSON.stringify({op: "start", defs: {div: divs, pos: oPos}}));
 	connect.sendMsg(msg);
+	gameStarted = true;
 }
