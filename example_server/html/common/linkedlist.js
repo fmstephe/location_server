@@ -62,7 +62,7 @@ LinkedList.prototype.filter = function(pred) {
 	}
 }
 
-LinkedList.prototype.remove = function(list, item) {
+remove = function(list, item) {
 	if (item.prev != null) {
 		item.prev.next = item.next;
 	} else {

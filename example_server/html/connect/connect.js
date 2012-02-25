@@ -1,4 +1,4 @@
-function new Connecter(msgListeners, locListeners) {
+function Connect(msgListeners, locListeners) {
 	var handleLoc = function(loc) {
 		for (var i in locListeners) {
 			locListeners[i].handleLoc(loc);
@@ -9,12 +9,6 @@ function new Connecter(msgListeners, locListeners) {
 			msgListeners[i].handleMsg(msg);
 		}
 	}
-	var initLoc = function(position) {
-		lat = position.coords.latitude;
-		lng = position.coords.longitude;
-		var locMsg = new InitLoc(lat, lng);
-		locService.jsonsend(locMsg)
-	}
 	this.msgService = new WSClient("Message", "ws://178.79.176.206:8003/msg", handleMsg, function(){}, function() {});
 	this.locService = new WSClient("Location", "ws://178.79.176.206:8002/loc", handleLoc, function(){}, function() {});
 	this.msgService.connect();
@@ -23,14 +17,21 @@ function new Connecter(msgListeners, locListeners) {
 	var addMsg = new Add(id);
 	this.msgService.jsonsend(addMsg);
 	this.locService.jsonsend(addMsg);
+	var lsvc = this.locService;
+	var initLoc = function(position) {
+		lat = position.coords.latitude;
+		lng = position.coords.longitude;
+		var locMsg = new InitLoc(lat, lng);
+		lsvc.jsonsend(locMsg)
+	}
 	setInitCoords(initLoc);
 }
 
-Connector.prototype.sendMsg = function(msg) {
+Connect.prototype.sendMsg = function(msg) {
 	this.msgService.jsonsend(msg);
 }
 
-Connector.prototype.sendLoc = function(loc) {
+Connect.prototype.sendLoc = function(loc) {
 	this.locService.jsonsend(loc);
 }
 
