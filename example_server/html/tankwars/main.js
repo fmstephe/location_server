@@ -22,8 +22,7 @@ var lng;
 var terrain;
 // Game entity lists
 var localPlayer;
-var keyBindings;
-var keyBindingList;
+var keybindings;
 var launchList;
 var playerList;
 var missileList;
@@ -53,7 +52,7 @@ function initGame(xPosMe, xPosYou, divs) {
 	canvasHeight = fgCanvas.height;
 	canvasWidth = fgCanvas.width;
 	terrain = new Terrain(canvasWidth, canvasHeight, divs);
-	var kb1 = new KeyBindings(87,83,65,68,70);
+	keybindings = new KeyBindings(87,83,65,68,70);
 	localPlayer = new Player(xPosMe, "Player1", turretLength, initPower, minPower, maxPower, powerInc, expRadius, kb1);
 	explosionList = new LinkedList();
 	missileList = new LinkedList();
@@ -263,7 +262,7 @@ function keydown(keyCode, keyBinding) {
 
 function captureKeyup(e) {
 	var keyCode = e.keyCode;
-	keyup(keyCode, kb);
+	keyup(keyCode, keybindings);
 }
 
 function keyup(keyCode, keyBinding) {
