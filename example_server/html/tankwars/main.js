@@ -21,7 +21,7 @@ var lng;
 // terrain
 var terrain;
 // Game entity lists
-var localPlayer;
+var playerMe, playerYou;
 var keybindings;
 var launchList;
 var playerList;
@@ -53,12 +53,14 @@ function initGame(xPosMe, xPosYou, divs) {
 	canvasWidth = fgCanvas.width;
 	terrain = new Terrain(canvasWidth, canvasHeight, divs);
 	keybindings = new KeyBindings(87,83,65,68,70);
-	localPlayer = new Player(xPosMe, "Player1", turretLength, initPower, minPower, maxPower, powerInc, expRadius, kb1);
+	playerMe = new Player(xPosMe, "Player1", turretLength, initPower, minPower, maxPower, powerInc, expRadius, keybindings);
+	playerYou = new Player(xPosYou, "Player2", turretLength, initPower, minPower, maxPower, powerInc, expRadius, null);
 	explosionList = new LinkedList();
 	missileList = new LinkedList();
 	launchList = new LinkedList();
 	playerList = new LinkedList();
-	playerList.append(localPlayer);
+	playerList.append(playerMe);
+	playerList.append(playerYou);
 	getStartedFinally();
 }
 
@@ -106,7 +108,6 @@ function loop() {
 		missileList.forEach(function(m){m.render(fgCtxt, canvasHeight)});
 		explosionList.forEach(function(e){e.render(fgCtxt, canvasHeight)});
 		terrain.clearMods();
-		//playerList.filter(function(p) {return p.health <= 0});
 		if (playerList.length() < 1) {
 			gameOver = true;
 		}
@@ -123,6 +124,7 @@ function loop() {
 function updatePlayer(player) {
 	hr = terrain.heightArray;
 	player.y = hr[player.x];
+	console.log(JSON.stringify(player));
 	if (!launchList.contains(player) && player.keyBindings != null) {
 		if (player.keyBindings.left) {
 			player.arc -= rotationSpeed;
@@ -239,7 +241,7 @@ function captureKeydown(e) {
 		devMode = !devMode;
 		return;
 	}
-	keydown(keycode, keybindings);
+	keydown(keyCode, keybindings);
 }
 
 function keydown(keyCode, keyBinding) {
