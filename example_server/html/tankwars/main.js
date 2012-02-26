@@ -12,8 +12,8 @@ var framePause = Math.floor(1000/frameRate);
 var expLife = 0.1*frameRate;
 var expRadius = 50;
 
-//document.onkeydown = captureKeydown
-//document.onkeyup = captureKeyup
+document.onkeydown = captureKeydown
+document.onkeyup = captureKeyup
 
 // Location
 var lat;
@@ -22,10 +22,10 @@ var lng;
 var terrain;
 // Game entity lists
 var localPlayer;
+var keyBindings;
 var keyBindingList;
 var launchList;
 var playerList;
-var userList;
 var missileList;
 var explosionList;
 // Current player whose turn it is
@@ -38,8 +38,8 @@ var devMode;
 //
 var id;
 
-function initGame(xPos, divs) {
-	console.log(xPos);
+function initGame(xPosMe, xPosYou, divs) {
+	console.log(xPosMe);
 	console.log(divs);
 	devMode = false;
 	lastCycle = new Date().getTime();
@@ -54,8 +54,7 @@ function initGame(xPos, divs) {
 	canvasWidth = fgCanvas.width;
 	terrain = new Terrain(canvasWidth, canvasHeight, divs);
 	var kb1 = new KeyBindings(87,83,65,68,70);
-	//var xPos = Math.floor(Math.random()*canvasWidth)+1;
-	localPlayer = new Player(xPos, "Player1", turretLength, initPower, minPower, maxPower, powerInc, expRadius, kb1);
+	localPlayer = new Player(xPosMe, "Player1", turretLength, initPower, minPower, maxPower, powerInc, expRadius, kb1);
 	explosionList = new LinkedList();
 	missileList = new LinkedList();
 	launchList = new LinkedList();

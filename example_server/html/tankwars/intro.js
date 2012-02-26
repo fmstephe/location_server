@@ -1,7 +1,7 @@
 var selectionUsers = new LinkedList();
 var connect;
 var gameStarted = false;
-var myPos;
+var xPosMe, xPosYou;
 var divs;
 // Constant Globals
 var canvasHeight;
@@ -24,7 +24,6 @@ var svcHandler = {
 		document.getElementById("player-list").innerHTML = users;
 	},
 	handleMsg: function(msg) {
-		alert(msg.Op + msg.Msg.From + msg.Msg.Content);
 		var from = msg.Msg.From;
 		var content = JSON.parse(msg.Msg.Content);
 		if (content.op == "start") {
@@ -32,17 +31,21 @@ var svcHandler = {
 				connect.sendMsg(new Msg(from, JSON.stringify({op:"engaged"})));
 			} else {
 				connect.sendMsg(new Msg(from, JSON.stringify({op:"accepted"})));
-				myPos = content.defs.pos;
+				xPosMe = content.defs.pos[1];
+				xPosYou = content.defs.pos[0];
 				divs = content.defs.divs;
 				gameStarted = true;
-				initGame(myPos, divs);
+				initGame(xPosMe, xPosYou, divs);
 			}
 		}
 		if (content.op == "engaged") {
 			gameStarted = false;
 		}
 		if (content.op == "accepted") {
-			initGame(myPos, divs);	
+			initGame(xPosMe, xPosYou, divs);
+		}
+		if (content.op == "fire") {
+			launchList.append({from: from, params: content.params});
 		}
 	}
 }
@@ -65,10 +68,10 @@ function userLiLink(user) {
 
 function startGame(id) {
 	var pair = positionPair(canvasWidth);
-	myPos = pair[0];
-	var oPos = pair[1];
+	xPosMe = pair[0];
+	xPosYou = pair[1];
 	divs = genDivisors();
-	var msg = new Msg(id, JSON.stringify({op: "start", defs: {divs: divs, pos: oPos}}));
+	var msg = new Msg(id, JSON.stringify({op: "start", defs: {divs: divs, pos: pair}}));
 	connect.sendMsg(msg);
 	gameStarted = true;
 }
