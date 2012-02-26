@@ -60,8 +60,6 @@ function initGame(xPosMe, xPosYou, divs) {
 	launchList = new LinkedList();
 	playerList = new LinkedList();
 	playerList.append(localPlayer);
-	keyBindingList = new LinkedList();
-	keyBindingList.append(kb1);
 	getStartedFinally();
 }
 
@@ -100,7 +98,6 @@ function loop() {
 		if (launchList.size == playerList.size) {
 			launchList.forEach(function(p) {launchMissile(p);});
 			launchList.clear();
-			keyBindingList.forEach(function(kb) {kb.reset();});
 		}
 		// If an explosion has caused the terrain to change clear out the affected region
 		terrain.setClear(terrainCtxt, canvasHeight);
@@ -242,8 +239,8 @@ function captureKeydown(e) {
 	if (keyCode == 48) {
 		devMode = !devMode;
 		return;
-	}	       
-	keyBindingList.forEach(function(kb) {keydown(keyCode, kb);});
+	}
+	keydown(keycode, keybindings);
 }
 
 function keydown(keyCode, keyBinding) {
@@ -266,7 +263,7 @@ function keydown(keyCode, keyBinding) {
 
 function captureKeyup(e) {
 	var keyCode = e.keyCode;
-	keyBindingList.forEach(function(kb) {keyup(keyCode, kb);});
+	keyup(keyCode, kb);
 }
 
 function keyup(keyCode, keyBinding) {
