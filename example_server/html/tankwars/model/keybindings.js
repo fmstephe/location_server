@@ -9,10 +9,9 @@ function KeyBindings(upKey, downKey, leftKey, rightKey, firingKey) {
 	this.left = false;
 	this.right = false;
 	this.firing = false;
-	this.reset = resetKeyBindings;
 }
 
-function resetKeyBindings() {
+KeyBindings.prototype.reset = function() {
 	this.up = false;
 	this.down = false;
 	this.left = false;

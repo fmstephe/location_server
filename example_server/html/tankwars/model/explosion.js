@@ -5,13 +5,9 @@ function Explosion(x, y, life, radius) {
 	this.radius = radius;
 	this.shouldRender = true;
 	this.shouldRemove = false;
-	this.setClear = setClearExplosion;
-	this.deplete = depleteExplosion;
-	this.shouldRemove = shouldRemoveExplosion;
-	this.render = renderExplosion;
 }
 
-function setClearExplosion(ctxt, hgt) {
+Explosion.prototype.setClear = function(ctxt, hgt) {
 	var x = this.x - this.radius-2;
 	var y = hgt - (this.y + this.radius + 2);
 	var w = this.radius*2 + 4;
@@ -19,15 +15,15 @@ function setClearExplosion(ctxt, hgt) {
 	ctxt.clearRect(x,y,w,h);
 }
 
-function depleteExplosion() {
+Explosion.prototype.deplete = function() {
 	this.life--;
 }
 
-function shouldRemoveExplosion() {
+Explosion.prototype.shouldRemove = function() {
 	return this.life <= 0;
 }
 
-function renderExplosion(ctxt, hgt) {
+Explosion.prototype.render = function(ctxt, hgt) {
 	var x = Math.floor(this.x);
 	var y = Math.floor(this.y);
 	ctxt.beginPath();

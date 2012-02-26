@@ -8,14 +8,9 @@ function Missile(player, gravity) {
 	this.player = player;
 	this.gravity = gravity;
 	this.removed = false;
-	this.setClear = setClearMissile;
-	this.remove = removeMissile;
-	this.shouldRemove = shouldRemoveMissile;
-	this.render = renderMissile;
-	this.advance = advance;
 }
 
-function setClearMissile(ctxt, hgt) {
+Missile.protoype.setClear = function(ctxt, hgt) {
 	var x = Math.min(this.pX,this.x)-10;
 	var y = hgt - (Math.max(this.pY,this.y)+10);
 	var width = Math.abs(this.pX-this.x)+20;
@@ -23,15 +18,15 @@ function setClearMissile(ctxt, hgt) {
 	ctxt.clearRect(x,y,width,h);
 }
 
-function removeMissile() {
+Missile.protoype.remove = function() {
 	this.removed = true;
 }
 
-function shouldRemoveMissile() {
+Missile.protoype.shouldRemove = function() {
 	return this.removed;
 }
 
-function renderMissile(ctxt, hgt) {
+Missile.protoype.render = function(ctxt, hgt) {
 	if (!this.removed) {
 		var pX = this.pX;
 		var pY = hgt - this.pY;
@@ -48,7 +43,7 @@ function renderMissile(ctxt, hgt) {
 	}
 }
 
-function advance() {
+Missile.protoype.advance = function() {
 	this.ppX = this.pX;
 	this.ppY = this.pY;
 	this.pX = this.x;

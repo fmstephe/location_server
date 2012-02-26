@@ -10,15 +10,15 @@ function Terrain(w, h, divs) {
 	this.notifyMod(0,w);
 }
 
-function notifyModTerrain(from, to) {
+Terrain.prototype.notifyMod = function(from, to) {
 	this.regionList.append(new Region(from,to));
 }
 
-function clearModsTerrain() {
+Terrain.prototype.clearMods = function() {
 	this.regionList.clear();
 }
 
-function setClearTerrain(ctxt, hgt) {
+Terrain.prototype.setClear = function(ctxt, hgt) {
 	this.regionList.forEach(function(r) {doClearTerrain(ctxt,r,hgt);});
 }
 
@@ -30,7 +30,7 @@ function doClearTerrain(ctxt, region, hgt) {
 	ctxt.clearRect(x,y,w,h);
 }
 
-function renderTerrain(ctxt, hgt) {
+Terrain.prototype.render = function(ctxt, hgt) {
 	this.regionList.forEach(function(r) {doRenderTerrain(ctxt,r,hgt);});
 }
 

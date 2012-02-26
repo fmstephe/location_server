@@ -10,24 +10,27 @@ function Player(x, name, turretLength, initPower, minPower, maxPower, powerInc, 
 	this.health = health;
 	this.turretLength = turretLength;
 	this.keyBindings = keyBindings;
-	this.incPower = incPowerPlayer;
-	this.decPower = decPowerPlayer;
-	this.setClear = setClearPlayer;
-	this.shouldRemove = shouldRemovePlayer;
-	this.render = renderPlayer;
 }
 
-function incPowerPlayer() {
+function PlayerMsg(player) {
+	this.x = player.x;
+	this.name = player.name;
+	this.arc = player.arc;
+	this.power = player.power;
+	this.health = player.health;
+}
+
+Player.prototype.incPower = function() {
 	this.power += this.powerInc;
 	this.power = Math.min(this.power, this.maxPower);
 }
 
-function decPowerPlayer() {
+Player.prototype.decPower = function() {
 	this.power -= this.powerInc;
 	this.power = Math.max(this.power, this.minPower);
 }
 
-function setClearPlayer(ctxt, hgt) {
+Player.prototype.setClear = function(ctxt, hgt) {
 	var x = this.x-this.turretLength;
 	var y = hgt - (this.y + this.turretLength);
 	var w = this.turretLength*6; // This is a cludge value to allow for clearing power % text
@@ -35,11 +38,11 @@ function setClearPlayer(ctxt, hgt) {
 	ctxt.clearRect(x, y, w, h);
 }
 
-function shouldRemovePlayer() {
+Player.prototype.shouldRemove = function() {
 	return false;
 }
 
-function renderPlayer(ctxt, hgt) {
+Player.prototype.render = function(ctxt, hgt) {
 	if (this.health > 0) {
 		ctxt.beginPath();
 		ctxt.arc(this.x, hgt-this.y, 10, 0, 2*Math.PI, true);
@@ -57,4 +60,3 @@ function renderPlayer(ctxt, hgt) {
 		ctxt.fillText(powerP+"%",this.x+this.turretLength, hgt-this.y);
 	}
 }
-
