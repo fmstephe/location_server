@@ -3,10 +3,6 @@ function Terrain(w, h, divs) {
 	this.w = w;
 	this.h = h;
 	this.regionList = new LinkedList();
-	this.notifyMod = notifyModTerrain;
-	this.clearMods = clearModsTerrain;
-	this.setClear = setClearTerrain;
-	this.render = renderTerrain;
 	this.notifyMod(0,w);
 }
 
