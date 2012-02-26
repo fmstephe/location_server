@@ -39,6 +39,8 @@ var devMode;
 var id;
 
 function initGame(xPos, divs) {
+	console.log(xPos);
+	console.log(divs);
 	devMode = false;
 	lastCycle = new Date().getTime();
 	thisCycle = new Date().getTime();
@@ -61,22 +63,12 @@ function initGame(xPos, divs) {
 	playerList.append(localPlayer);
 	keyBindingList = new LinkedList();
 	keyBindingList.append(kb1);
-	initIntro();
-}
-
-function initIntro() {
-	setInterval(introFunc, framePause*10);
-}
-
-function introFunc() {
-	users = "";
-	userList.forEach(function(u) {users += "<li>"+JSON.stringify(u)+"</li>"});
-	document.getElementById("player-list").innerHTML = users;
+	getStartedFinally();
 }
 
 function getStartedFinally() {
 	initRender();
-	setInterval(introFunc, framePause);
+	setInterval(loop, framePause);
 }
 
 function initRender() {

@@ -32,8 +32,8 @@ var svcHandler = {
 				connect.sendMsg(new Msg(from, JSON.stringify({op:"engaged"})));
 			} else {
 				connect.sendMsg(new Msg(from, JSON.stringify({op:"accepted"})));
-				myPos = content.pos;
-				divs = content.divs;
+				myPos = content.defs.pos;
+				divs = content.defs.divs;
 				gameStarted = true;
 				initGame(myPos, divs);
 			}
@@ -68,7 +68,7 @@ function startGame(id) {
 	myPos = pair[0];
 	var oPos = pair[1];
 	divs = genDivisors();
-	var msg = new Msg(id, JSON.stringify({op: "start", defs: {div: divs, pos: oPos}}));
+	var msg = new Msg(id, JSON.stringify({op: "start", defs: {divs: divs, pos: oPos}}));
 	connect.sendMsg(msg);
 	gameStarted = true;
 }
