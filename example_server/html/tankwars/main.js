@@ -61,12 +61,9 @@ function initGame(xPosMe, xPosYou, divs) {
 	playerList = new LinkedList();
 	playerList.append(playerMe);
 	playerList.append(playerYou);
-	getStartedFinally();
-}
-
-function getStartedFinally() {
 	initRender();
 	setInterval(loop, framePause);
+	getStartedFinally();
 }
 
 function initRender() {

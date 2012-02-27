@@ -1,6 +1,7 @@
 var selectionUsers = new LinkedList();
 var connect;
 var gameStarted = false;
+var oUserId;
 var xPosMe, xPosYou;
 var divs;
 // Constant Globals
@@ -59,7 +60,9 @@ function main() {
 	bgCtxt = bgCanvas.getContext("2d");
 	canvasHeight = fgCanvas.height;
 	canvasWidth = fgCanvas.width;
-	connect = new Connect([svcHandler], [svcHandler]);
+	var handlers = new LinkedList();
+	handlers.append(svcHandler);
+	connect = new Connect(handlers, handlers);
 }
 
 function userLiLink(user) {
