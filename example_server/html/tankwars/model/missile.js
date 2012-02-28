@@ -1,16 +1,13 @@
-function Missile(player, gravity) {
-	this.pushX = (player.power*Math.sin(player.arc));
-	this.pushY = (player.power*Math.cos(player.arc));
-	this.x = player.x+(player.turretLength*Math.sin(player.arc));
-	this.y = player.y+(player.turretLength*Math.cos(player.arc));
+function Missile(power, arc, x, y, gravity) {
+	this.pushX = (power*Math.sin(arc));
+	this.pushY = (power*Math.cos(arc));
 	this.pX = this.x;
 	this.pY = this.y;
-	this.player = player;
 	this.gravity = gravity;
 	this.removed = false;
 }
 
-Missile.protoype.setClear = function(ctxt, hgt) {
+Missile.prototype.setClear = function(ctxt, hgt) {
 	var x = Math.min(this.pX,this.x)-10;
 	var y = hgt - (Math.max(this.pY,this.y)+10);
 	var width = Math.abs(this.pX-this.x)+20;
@@ -18,15 +15,15 @@ Missile.protoype.setClear = function(ctxt, hgt) {
 	ctxt.clearRect(x,y,width,h);
 }
 
-Missile.protoype.remove = function() {
+Missile.prototype.remove = function() {
 	this.removed = true;
 }
 
-Missile.protoype.shouldRemove = function() {
+Missile.prototype.shouldRemove = function() {
 	return this.removed;
 }
 
-Missile.protoype.render = function(ctxt, hgt) {
+Missile.prototype.render = function(ctxt, hgt) {
 	if (!this.removed) {
 		var pX = this.pX;
 		var pY = hgt - this.pY;
@@ -43,7 +40,7 @@ Missile.protoype.render = function(ctxt, hgt) {
 	}
 }
 
-Missile.protoype.advance = function() {
+Missile.prototype.advance = function() {
 	this.ppX = this.pX;
 	this.ppY = this.pY;
 	this.pX = this.x;

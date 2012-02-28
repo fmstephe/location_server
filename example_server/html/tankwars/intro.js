@@ -1,7 +1,7 @@
 var selectionUsers = new LinkedList();
 var connect;
 var gameStarted = false;
-var oUserId;
+var idMe, idYou;
 var xPosMe, xPosYou;
 var divs;
 // Constant Globals
@@ -26,12 +26,13 @@ var svcHandler = {
 	},
 	handleMsg: function(msg) {
 		var from = msg.Msg.From;
-		var content = JSON.parse(msg.Msg.Content);
+		var content = msg.Msg.Content;
 		if (content.op == "start") {
 			if (gameStarted) {
-				connect.sendMsg(new Msg(from, JSON.stringify({op:"engaged"})));
+				connect.sendMsg(new Msg(from, {op: "engaged"}));
 			} else {
-				connect.sendMsg(new Msg(from, JSON.stringify({op:"accepted"})));
+				connect.sendMsg(new Msg(from, {op: "accepted"}));
+				idYou = from;
 				xPosMe = content.defs.pos[1];
 				xPosYou = content.defs.pos[0];
 				divs = content.defs.divs;
@@ -63,18 +64,20 @@ function main() {
 	var handlers = new LinkedList();
 	handlers.append(svcHandler);
 	connect = new Connect(handlers, handlers);
+	idMe = connect.id;
 }
 
 function userLiLink(user) {
 	return "<li><a href=\"javascript:void(0)\" onclick=\"startGame('"+user.Id+"')\">"+JSON.stringify(user)+"</a></li>";
 }
 
-function startGame(id) {
+function startGame(otherId) {
+	idYou = otherId;
 	var pair = positionPair(canvasWidth);
 	xPosMe = pair[0];
 	xPosYou = pair[1];
 	divs = genDivisors();
-	var msg = new Msg(id, JSON.stringify({op: "start", defs: {divs: divs, pos: pair}}));
+	var msg = new Msg(idYou, {op: "start", defs: {divs: divs, pos: pair}});
 	connect.sendMsg(msg);
 	gameStarted = true;
 }

@@ -62,8 +62,22 @@ function initGame(xPosMe, xPosYou, divs) {
 	playerList.append(playerMe);
 	playerList.append(playerYou);
 	initRender();
-	setInterval(loop, framePause);
-	getStartedFinally();
+	initConnection();
+}
+
+function initConnection() {
+//	connect.addMsgListener(playerMsgListener);
+	connect.sync(idMe, idYou, "start-game", function() {setInterval(loop, framePause)});
+}
+
+function playerMsgListener(msg) {
+	var from = msg.Msg.From;
+	var content = msg.Msg.Content;
+	if (from == idYou) {
+	       if (content.x && content.name && content.arc && content.power && content.health) {
+		       launchList.append(content);
+	       }
+	}	       
 }
 
 function initRender() {
@@ -136,13 +150,19 @@ function updatePlayer(player) {
 			player.decPower();
 		}
 		if (player.keyBindings.firing) {
-			launchList.append(player);
+			var playerMsg = new PlayerMsg(player);
+			launchList.append(playerMsg);
+			connect.sendMsg(oUserId, playerMsg);
 		}
 	}
 }
 
-function launchMissile(player) {
-	missileList.append(new Missile(player, gravity));
+function launchMissile(playerMsg) {
+	var power = playerMsg.power;
+	var arc = playerMsg.arc;
+	var x = playerMsg.x+(playerMsg.turretLength*Math.sin(arc));
+	var y = playerMsg.y+(playerMsg.turretLength*Math.cos(arc));
+	missileList.append(new Missile(power, arc, x, y, gravity));
 }
 
 function updateMissile(missile) {
