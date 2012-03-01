@@ -66,7 +66,7 @@ Connect.prototype.sync = function(idMe, idYou, syncName, fun) {
 	var synced = false;
 	var cnct = this;
 	// NB: The correctness of this approach relies on the interval function being unable to run even once before this function has completed
-	intervalId = setInterval(function() {cnct.sendMsg(SyncRequest(idYou, syncName));}, 300);
+	var intervalId = setInterval(function() {cnct.sendMsg(SyncRequest(idYou, syncName));}, 300);
 	var syncListener = function(msg) {
 		var from = msg.Msg.From;
 		var content = msg.Msg.Content;
@@ -75,7 +75,7 @@ Connect.prototype.sync = function(idMe, idYou, syncName, fun) {
 			if (name == syncName && from == idYou) {
 				clearInterval(intervalId);
 				cnct.rmvMsgListener(syncListener);
-				cnct.sendMsg(SyncRequest(idYou, syncName));
+				cnct.sendMsg(SyncResponse(idYou, syncName));
 				fun();
 			} else {
 				console.log("Received 2sync request with unexpected id " + id + " from " + from);
