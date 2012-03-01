@@ -37,14 +37,14 @@ function jsonsend(obj) {
 		} else {
 			msg = JSON.stringify(obj);
 			this.send(msg);
-			console.log("json message sent: "+msg);
+			console.log("json msg delivered: "+msg);
 		}
 	}
 }
 
 function onmessage(m) { 
 	if (m.data) {
-		console.log(m.data);
+		console.log(" json msg received: "+m.data);
 		var msg = JSON.parse(m.data);
 		this.msgFun(msg);
 	}   
