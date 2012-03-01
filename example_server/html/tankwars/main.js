@@ -12,9 +12,6 @@ var framePause = Math.floor(1000/frameRate);
 var expLife = 0.1*frameRate;
 var expRadius = 50;
 
-document.onkeydown = captureKeydown
-document.onkeyup = captureKeyup
-
 // Location
 var lat;
 var lng;
@@ -40,6 +37,8 @@ var id;
 function initGame(xPosMe, xPosYou, divs) {
 	console.log(xPosMe);
 	console.log(divs);
+	document.onkeydown = captureKeydown;
+	document.onkeyup = captureKeyup;
 	devMode = false;
 	lastCycle = new Date().getTime();
 	thisCycle = new Date().getTime();
@@ -70,14 +69,18 @@ function initConnection() {
 	connect.sync(idMe, idYou, "start-game", function() {setInterval(loop, framePause)});
 }
 
-function playerMsgListener(msg) {
-	var from = msg.Msg.From;
-	var content = msg.Msg.Content;
-	if (from == idYou) {
-	       if (content.x && content.name && content.arc && content.power && content.health) {
-		       launchList.append(content);
-	       }
-	}	       
+function playerMsgListener() {
+	return {
+		handleMsg : function(msg) {
+				    var from = msg.Msg.From;
+				    var content = msg.Msg.Content;
+				    if (from == idYou) {
+					    if (content.x && content.name && content.arc && content.power && content.health) {
+						    launchList.append(content);
+					    }
+				    }
+			    }
+	}
 }
 
 function initRender() {
@@ -135,24 +138,24 @@ function loop() {
 function updatePlayer(player) {
 	hr = terrain.heightArray;
 	player.y = hr[player.x];
-	console.log(JSON.stringify(player));
-	if (!launchList.contains(player) && player.keyBindings != null) {
-		if (player.keyBindings.left) {
+	if (!player.isFiring) {
+		if (keybindings.left) {
 			player.arc -= rotationSpeed;
 		}
-		if (player.keyBindings.right) {
+		if (keybindings.right) {
 			player.arc += rotationSpeed;
 		}
-		if (player.keyBindings.up) {
+		if (keybindings.up) {
 			player.incPower();
 		}
-		if (player.keyBindings.down) {
+		if (keybindings.down) {
 			player.decPower();
 		}
-		if (player.keyBindings.firing) {
+		if (keybindings.firing) {
 			var playerMsg = new PlayerMsg(player);
 			launchList.append(playerMsg);
-			connect.sendMsg(oUserId, playerMsg);
+			var msg = new Msg(idYou, playerMsg);
+			connect.sendMsg(msg);
 		}
 	}
 }
@@ -192,7 +195,6 @@ function updateMissile(missile) {
 		if (missile.y < hr[startX]) {
 			explodeMissile(missile,startX,hr[startX]);
 			return;
-
 		}
 	}
 	if (missile.x > canvasWidth || missile.x < 0 || missile.y < 0) {
