@@ -1,7 +1,7 @@
 function Player(x, name, turretLength, initPower, minPower, maxPower, powerInc, health, keyBindings) {
 	this.x = x;
 	this.y = 0; // This gets set automatically by the gmae loop
-	this.isFiring;
+	this.hasLaunched;
 	this.name = name;
 	this.arc = 0;
 	this.power = initPower;
@@ -14,7 +14,10 @@ function Player(x, name, turretLength, initPower, minPower, maxPower, powerInc, 
 }
 
 function PlayerMsg(player) {
+	this.isPlayerMsg = true;
 	this.x = player.x;
+	this.y = player.y;
+	this.turretLength = player.turretLength;
 	this.name = player.name;
 	this.arc = player.arc;
 	this.power = player.power;

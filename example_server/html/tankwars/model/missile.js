@@ -1,6 +1,8 @@
 function Missile(power, arc, x, y, gravity) {
 	this.pushX = (power*Math.sin(arc));
 	this.pushY = (power*Math.cos(arc));
+	this.x = x;
+	this.y = y;
 	this.pX = this.x;
 	this.pY = this.y;
 	this.gravity = gravity;
@@ -32,6 +34,7 @@ Missile.prototype.render = function(ctxt, hgt) {
 		ctxt.strokeStyle = ctxt.createLinearGradient(Math.floor(pX),Math.floor(pY),Math.floor(x),Math.floor(y));
 		ctxt.strokeStyle.addColorStop(0,"rgba(255,255,255,0.1)");
 		ctxt.strokeStyle.addColorStop(1,"rgba(255,255,255,1)");
+		//ctxt.strokeStyle = "rgba(255,255,255,1.0)";
 		ctxt.beginPath();
 		ctxt.moveTo(pX,pY);
 		ctxt.lineTo(x,y);
@@ -41,8 +44,6 @@ Missile.prototype.render = function(ctxt, hgt) {
 }
 
 Missile.prototype.advance = function() {
-	this.ppX = this.pX;
-	this.ppY = this.pY;
 	this.pX = this.x;
 	this.pY = this.y;
 	this.x += this.pushX;

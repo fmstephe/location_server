@@ -65,21 +65,15 @@ function initGame(xPosMe, xPosYou, divs) {
 }
 
 function initConnection() {
-//	connect.addMsgListener(playerMsgListener);
+	connect.addMsgListener({handleMsg : playerMsgListener});
 	connect.sync(idMe, idYou, "start-game", function() {setInterval(loop, framePause)});
 }
 
-function playerMsgListener() {
-	return {
-		handleMsg : function(msg) {
-				    var from = msg.Msg.From;
-				    var content = msg.Msg.Content;
-				    if (from == idYou) {
-					    if (content.x && content.name && content.arc && content.power && content.health) {
-						    launchList.append(content);
-					    }
-				    }
-			    }
+function playerMsgListener(msg) {
+	var from = msg.Msg.From;
+	var content = msg.Msg.Content;
+	if (from == idYou && content.isPlayerMsg) {
+		launchList.append(content);
 	}
 }
 
@@ -138,7 +132,7 @@ function loop() {
 function updatePlayer(player) {
 	hr = terrain.heightArray;
 	player.y = hr[player.x];
-	if (!player.isFiring) {
+	if (!player.hasLaunched && player === playerMe) {
 		if (keybindings.left) {
 			player.arc -= rotationSpeed;
 		}
@@ -152,6 +146,7 @@ function updatePlayer(player) {
 			player.decPower();
 		}
 		if (keybindings.firing) {
+			player.hasLaunched = true;
 			var playerMsg = new PlayerMsg(player);
 			launchList.append(playerMsg);
 			var msg = new Msg(idYou, playerMsg);
@@ -165,12 +160,19 @@ function launchMissile(playerMsg) {
 	var arc = playerMsg.arc;
 	var x = playerMsg.x+(playerMsg.turretLength*Math.sin(arc));
 	var y = playerMsg.y+(playerMsg.turretLength*Math.cos(arc));
+	console.log(JSON.stringify(playerMsg));
+	console.log(power);
+	console.log(arc);
+	console.log(x);
+	console.log(y);
+	console.log(gravity);
 	missileList.append(new Missile(power, arc, x, y, gravity));
 }
 
 function updateMissile(missile) {
 	hr = terrain.heightArray;
 	missile.advance();
+	console.log(JSON.stringify(missile));
 	var startX = Math.floor(missile.pX);
 	var endX = Math.floor(missile.x);
 	var yD = missile.y - missile.pY;
@@ -250,7 +252,8 @@ function logInfo() {
 	if (devMode) {
 		elapsed = thisCycle - lastCycle;
 		frameRate = 1000/elapsed;
-		console.log("Frame Rate: " + Math.floor(frameRate), "\tPlayers: " + playerList.length(), "\tMissiles: " + missileList.length(), "\tExplosions: " + explosionList.length());
+		//console.log("Frame Rate: " + Math.floor(frameRate), "\tPlayers: " + playerList.length(), "\tMissiles: " + missileList.length(), "\tExplosions: " + explosionList.length());
+		console.log(missileList.size);
 	}
 }
 
