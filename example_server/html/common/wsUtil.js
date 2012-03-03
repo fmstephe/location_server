@@ -33,18 +33,18 @@ function jsonsend(obj) {
 	} else {
 		if (this.readyState == undefined || this.readyState == 0) { // in opening state
 			this.earlyMsgs.append(obj);
-			console.log("early message stored: "+JSON.stringify(obj));
+			console.log(this.name + ": early message stored: "+JSON.stringify(obj));
 		} else {
 			msg = JSON.stringify(obj);
 			this.send(msg);
-			console.log("json msg delivered: "+msg);
+			console.log(this.name + ": json msg delivered: "+msg);
 		}
 	}
 }
 
 function onmessage(m) { 
 	if (m.data) {
-		console.log(" json msg received: "+m.data);
+		console.log(this.name + ": json msg received: "+m.data);
 		var msg = JSON.parse(m.data);
 		this.msgFun(msg);
 	}   

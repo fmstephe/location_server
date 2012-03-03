@@ -62,6 +62,21 @@ LinkedList.prototype.filter = function(pred) {
 	}
 }
 
+LinkedList.prototype.satOne = function(pred) {
+	if (this.length() == 0) {
+		return false;
+	}
+	var sat = false;
+	this.forEach(function(e){sat || pred(e)});
+	return sat;
+}
+
+LinkedList.prototype.satAll = function(pred) {
+	var sat = true;
+	this.forEach(function(e){sat = (sat && pred(e));});
+	return sat;
+}
+
 remove = function(list, item) {
 	if (item.prev != null) {
 		item.prev.next = item.next;

@@ -3,8 +3,6 @@ function Explosion(x, y, life, radius) {
 	this.y = y;
 	this.life = life;
 	this.radius = radius;
-	this.shouldRender = true;
-	this.shouldRemove = false;
 }
 
 Explosion.prototype.setClear = function(ctxt, hgt) {

@@ -30,16 +30,11 @@ var gameOver = false;
 var lastCycle;
 var thisCycle;
 // Display toggle for nerdy info
-var devMode;
-//
-var id;
+var devMode = false;
 
 function initGame(xPosMe, xPosYou, divs) {
-	console.log(xPosMe);
-	console.log(divs);
 	document.onkeydown = captureKeydown;
 	document.onkeyup = captureKeyup;
-	devMode = false;
 	lastCycle = new Date().getTime();
 	thisCycle = new Date().getTime();
 	var fgCanvas = document.getElementById("foreground");
@@ -52,8 +47,8 @@ function initGame(xPosMe, xPosYou, divs) {
 	canvasWidth = fgCanvas.width;
 	terrain = new Terrain(canvasWidth, canvasHeight, divs);
 	keybindings = new KeyBindings(87,83,65,68,70);
-	playerMe = new Player(xPosMe, "Player1", turretLength, initPower, minPower, maxPower, powerInc, expRadius, keybindings);
-	playerYou = new Player(xPosYou, "Player2", turretLength, initPower, minPower, maxPower, powerInc, expRadius, null);
+	playerMe = new Player(idMe, xPosMe, "Player1", turretLength, initPower, minPower, maxPower, powerInc, expRadius, keybindings);
+	playerYou = new Player(idYou, xPosYou, "Player2", turretLength, initPower, minPower, maxPower, powerInc, expRadius, null);
 	explosionList = new LinkedList();
 	missileList = new LinkedList();
 	launchList = new LinkedList();
@@ -104,7 +99,7 @@ function loop() {
 		playerList.forEach(function(p) {updatePlayer(p);});
 		missileList.forEach(function(m) {updateMissile(m);});
 		explosionList.forEach(function(e) {updateExplosion(e);});
-		if (launchList.size == playerList.size) {
+		if (launchList.length() == playerList.size) {
 			launchList.forEach(function(p) {launchMissile(p);});
 			launchList.clear();
 		}
@@ -132,7 +127,7 @@ function loop() {
 function updatePlayer(player) {
 	hr = terrain.heightArray;
 	player.y = hr[player.x];
-	if (!player.hasLaunched && player === playerMe) {
+	if (player === playerMe) {
 		if (keybindings.left) {
 			player.arc -= rotationSpeed;
 		}
@@ -145,8 +140,7 @@ function updatePlayer(player) {
 		if (keybindings.down) {
 			player.decPower();
 		}
-		if (keybindings.firing) {
-			player.hasLaunched = true;
+		if (missileList.length() == 0 && launchList.satAll(function(e){return player.id != e.id}) && keybindings.firing) {
 			var playerMsg = new PlayerMsg(player);
 			launchList.append(playerMsg);
 			var msg = new Msg(idYou, playerMsg);
@@ -160,19 +154,12 @@ function launchMissile(playerMsg) {
 	var arc = playerMsg.arc;
 	var x = playerMsg.x+(playerMsg.turretLength*Math.sin(arc));
 	var y = playerMsg.y+(playerMsg.turretLength*Math.cos(arc));
-	console.log(JSON.stringify(playerMsg));
-	console.log(power);
-	console.log(arc);
-	console.log(x);
-	console.log(y);
-	console.log(gravity);
 	missileList.append(new Missile(power, arc, x, y, gravity));
 }
 
 function updateMissile(missile) {
 	hr = terrain.heightArray;
 	missile.advance();
-	console.log(JSON.stringify(missile));
 	var startX = Math.floor(missile.pX);
 	var endX = Math.floor(missile.x);
 	var yD = missile.y - missile.pY;
@@ -200,7 +187,7 @@ function updateMissile(missile) {
 		}
 	}
 	if (missile.x > canvasWidth || missile.x < 0 || missile.y < 0) {
-		missle.remove();
+		missile.remove();
 	}
 }
 
@@ -208,7 +195,7 @@ function explodeMissile(missile, x, y) {
 	exp = new Explosion(x, y, expLife, expRadius);
 	explode(exp);
 	explosionList.append(exp); 
-	missle.remove();
+	missile.remove();
 	return;
 }
 
@@ -253,7 +240,7 @@ function logInfo() {
 		elapsed = thisCycle - lastCycle;
 		frameRate = 1000/elapsed;
 		//console.log("Frame Rate: " + Math.floor(frameRate), "\tPlayers: " + playerList.length(), "\tMissiles: " + missileList.length(), "\tExplosions: " + explosionList.length());
-		console.log(missileList.size);
+		console.log(missileList.length());
 	}
 }
 
