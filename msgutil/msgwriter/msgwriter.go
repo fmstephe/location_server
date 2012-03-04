@@ -1,11 +1,11 @@
 package msgwriter
 
 import (
+	"code.google.com/p/go.net/websocket"
 	"fmt"
 	"location_server/logutil"
 	"location_server/msgutil/jsonutil"
 	"location_server/msgutil/msgdef"
-	"websocket"
 )
 
 type W struct {

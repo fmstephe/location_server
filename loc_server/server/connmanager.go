@@ -1,13 +1,13 @@
 package locserver
 
 import (
+	"code.google.com/p/go.net/websocket"
 	"errors"
 	"github.com/fmstephe/simpleid"
 	"location_server/logutil"
 	"location_server/msgutil/jsonutil"
 	"location_server/msgutil/msgdef"
 	"location_server/msgutil/msgwriter"
-	"websocket"
 )
 
 var iOpErr = errors.New("Illegal Message Op. Operation unrecognised or provided in illegal order.")

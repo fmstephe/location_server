@@ -1,13 +1,13 @@
 package main
 
 import (
+	"code.google.com/p/go.net/websocket"
 	"flag"
 	"location_server/loc_server/server"
 	"location_server/logutil"
 	"net/http"
 	_ "net/http/pprof"
 	"runtime"
-	"websocket"
 )
 
 const logPath = "/var/log/locserver/server.log"

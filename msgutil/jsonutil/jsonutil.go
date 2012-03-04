@@ -1,8 +1,8 @@
 package jsonutil
 
 import (
+	"code.google.com/p/go.net/websocket"
 	"encoding/json"
-	"websocket"
 )
 
 func jsonMarshal(v interface{}) (msg []byte, payloadType byte, err error) {

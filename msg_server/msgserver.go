@@ -1,6 +1,7 @@
 package main
 
 import (
+	"code.google.com/p/go.net/websocket"
 	"errors"
 	"fmt"
 	"github.com/fmstephe/simpleid"
@@ -9,7 +10,6 @@ import (
 	"location_server/msgutil/msgdef"
 	"location_server/msgutil/msgwriter"
 	"net/http"
-	"websocket"
 )
 
 var idMap = simpleid.NewIdMap()
