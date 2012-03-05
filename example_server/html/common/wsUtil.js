@@ -7,7 +7,8 @@ function WSClient(name, url, msgFun, opnFun, clsFun) {
 	this.clsFun = clsFun;
 	
 	this.connect = function() {
-		this.ws = new WebSocket(url);
+		if ("Websocket" in window) { this.ws = new WebSocket(url); }
+		else if ("MozWebsocket" in window) { this.ws = new MozWebSocket(url); }
 		this.ws.onopen = onopen;
 		this.ws.onmessage = onmessage;
 		this.ws.onclose = onclose;
