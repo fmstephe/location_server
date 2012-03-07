@@ -23,6 +23,11 @@ func newUser(ws *websocket.Conn) *user {
 	return &user{msgWriter: msgwriter.New(ws)}
 }
 
+// TODO there is a race condition here
+// A writer may acquire a reader who is shutting down
+// The writer will write to the reader's channel but the
+// reader will never read the msg
+// ???
 func readWS(ws *websocket.Conn) {
 	var tId uint
 	usr := newUser(ws)
