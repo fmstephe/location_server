@@ -34,8 +34,11 @@ type task struct {
 	usr *user
 }
 
-func newTask(tId uint, op msgdef.ClientOp, usr *user) *task {
-	return &task{tId: tId, op: op, usr: usr}
+// NB: The user here is a value, not a pointer
+// A copy has been made to avoid race conditions with
+// future user updates
+func newTask(tId uint, op msgdef.ClientOp, usr user) *task {
+	return &task{tId: tId, op: op, usr: &usr}
 }
 
 //  Listen to ws
@@ -92,12 +95,12 @@ func removeId(tId *uint, usr *user) {
 
 func removeFromTree(tId *uint, usr *user) {
 	(*tId)++
-	msg := newTask(*tId, msgdef.CRemoveOp, usr)
+	msg := newTask(*tId, msgdef.CRemoveOp, *usr)
 	forwardMsg(msg)
 }
 
 // Handle registration message
-// Function does not return a *task, success will leave usr with initialised Id field
+// Success will leave usr with initialised Id field
 func processReg(clientMsg *msgdef.ClientMsg, usr *user) error {
 	idMsg := clientMsg.Msg.(*msgdef.CIdMsg)
 	switch clientMsg.Op {
@@ -117,19 +120,19 @@ func processInitLoc(tId uint, clientMsg *msgdef.ClientMsg, usr *user) error {
 		usr.olng = initMsg.Lng
 		usr.lat = initMsg.Lat
 		usr.lng = initMsg.Lng
-		msg := newTask(tId, msgdef.CInitLocOp, usr)
+		msg := newTask(tId, msgdef.CInitLocOp, *usr)
 		forwardMsg(msg)
 		return nil
 	}
 	return iOpErr
 }
 
-// Handle request messages - cMove, msg.CNearby
+// Handle request messages - cMove, cNearby
 func processRequest(tId uint, clientMsg *msgdef.ClientMsg, usr *user) error {
 	locMsg := clientMsg.Msg.(*msgdef.CLocMsg)
 	switch clientMsg.Op {
 	case msgdef.CNearbyOp:
-		msg := newTask(tId, msgdef.CNearbyOp, usr)
+		msg := newTask(tId, msgdef.CNearbyOp, *usr)
 		forwardMsg(msg)
 		return nil
 	case msgdef.CMoveOp:
@@ -137,7 +140,7 @@ func processRequest(tId uint, clientMsg *msgdef.ClientMsg, usr *user) error {
 		usr.olng = usr.lng
 		usr.lat = locMsg.Lat
 		usr.lng = locMsg.Lng
-		msg := newTask(tId, msgdef.CMoveOp, usr)
+		msg := newTask(tId, msgdef.CMoveOp, *usr)
 		forwardMsg(msg)
 		return nil
 	}
