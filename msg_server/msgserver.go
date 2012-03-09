@@ -58,7 +58,7 @@ func readWS(ws *websocket.Conn) {
 			logutil.Log(tId, usr.id, fmt.Sprintf("Content: '%s' send to: '%s'", msg.Content, msg.To))
 		} else {
 			nfMsg := &msgdef.SMsgMsg{From: msg.To, Content: fmt.Sprintf("User: %s was not found", msg.To)}
-			usr.msgWriter.WriteMsg(msgdef.NewServerMsg(msgdef.SNotRegdOp, nfMsg))
+			usr.msgWriter.WriteMsg(msgdef.NewServerMsg(msgdef.SNotUserOp, nfMsg))
 		}
 	}
 }

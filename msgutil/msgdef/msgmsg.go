@@ -14,6 +14,7 @@ func NewCMsgMsg() *ClientMsg {
 
 // Delivers a message to a user
 const SMsgOp = ServerOp("sMsg")
+const SNotUserOp = ServerOp("sNotUser")
 
 type SMsgMsg struct {
 	From    string
