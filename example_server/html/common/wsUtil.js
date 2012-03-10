@@ -18,6 +18,8 @@ function WSClient(name, url, msgFun, opnFun, clsFun) {
 		this.ws.opnFun = this.opnFun;
 		this.ws.clsFun = this.clsFun;
 		this.ws.earlyMsgs = new LinkedList();
+		this.ws.sentMsgs = new LinkedList();
+		this.ws.id = 1;
 	}
 }
 

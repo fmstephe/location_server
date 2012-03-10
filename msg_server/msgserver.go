@@ -23,11 +23,6 @@ func newUser(ws *websocket.Conn) *user {
 	return &user{msgWriter: msgwriter.New(ws)}
 }
 
-// TODO there is a race condition here
-// A writer may acquire a reader who is shutting down
-// The writer will write to the reader's channel but the
-// reader will never read the msg
-// ???
 func readWS(ws *websocket.Conn) {
 	var tId uint
 	usr := newUser(ws)
@@ -53,12 +48,12 @@ func readWS(ws *websocket.Conn) {
 		msg := cMsg.Msg.(*msgdef.CMsgMsg)
 		if idMap.Contains(msg.To) {
 			forUser := idMap.Get(msg.To).(*user)
-			msgMsg := &msgdef.SMsgMsg{From: usr.id, Content: msg.Content}
+			msgMsg := &msgdef.SMsgMsg{From: usr.id, Id: msg.Id, sends: msg.sends, Content: msg.Content}
 			forUser.msgWriter.WriteMsg(msgdef.NewServerMsg(msgdef.SMsgOp, msgMsg))
-			logutil.Log(tId, usr.id, fmt.Sprintf("Content: '%s' send to: '%s'", msg.Content, msg.To))
+			logutil.Log(tId, usr.id, fmt.Sprintf("Content: '%s' sent to: '%s'", msg.Content, msg.To))
 		} else {
-			nfMsg := &msgdef.SMsgMsg{From: msg.To, Content: fmt.Sprintf("User: %s was not found", msg.To)}
-			usr.msgWriter.WriteMsg(msgdef.NewServerMsg(msgdef.SNotUserOp, nfMsg))
+			nuMsg := &msgdef.SMsgMsg{From: msg.To, Content: fmt.Sprintf("User: %s was not found", msg.To)}
+			usr.msgWriter.WriteMsg(msgdef.NewServerMsg(msgdef.SNotUserOp, nuMsg))
 		}
 	}
 }
