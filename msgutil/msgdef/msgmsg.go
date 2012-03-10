@@ -20,7 +20,7 @@ const SMsgOp = ServerOp("sMsg")
 type SMsgMsg struct {
 	From    string
 	Id      string
-	sends   uint
+	Sends   uint
 	Content string
 }
 

@@ -18,8 +18,28 @@ function WSClient(name, url, msgFun, opnFun, clsFun) {
 		this.ws.opnFun = this.opnFun;
 		this.ws.clsFun = this.clsFun;
 		this.ws.earlyMsgs = new LinkedList();
-		this.ws.sentMsgs = new LinkedList();
+		this.ws.unackedMsgs = new LinkedList();
 		this.ws.id = 1;
+	}
+
+	setInterval(function(){processUnacked(this.ws)});
+}
+
+function TimeStampedMsg(msg) {
+	this.msg = msg;
+	this.timestamp = new Date().getTime();
+}
+
+function processUnacked(ws) {
+	var time = Date().getTime();
+	ws.unackedMsgs.forEach(function(tsMsg){resend(ws, tsMsg, time, 1000)});
+}
+
+function resend(ws, tsMsg, time, threshold) {
+	if (time-tsMsg.timestamp > threshold) {
+		tsMsg.msg = new ResendMsg(tsMsg.msg);
+		tsMsg.timestamp = time;
+		ws.jsonsend(tsMsg);
 	}
 }
 
@@ -40,6 +60,9 @@ function jsonsend(obj) {
 		} else {
 			msg = JSON.stringify(obj);
 			this.send(msg);
+			if (msg.Msg.Sends == 1) {
+				this.unackedMsgs.append(new TimeStampedMsg(msg));
+			}
 			console.log(this.name + ": json msg delivered: "+msg);
 		}
 	}
@@ -49,7 +72,11 @@ function onmessage(m) {
 	if (m.data) {
 		console.log(this.name + ": json msg received: "+m.data);
 		var msg = JSON.parse(m.data);
-		this.msgFun(msg);
+		if (msg.Op == "sAck") {
+			this.unackedMsgs.filter(function(tsMsg) {return tsMsg.msg.Msg.Id == msg.Msg.Id});
+		} else {
+			this.msgFun(msg);
+		}
 	}   
 }
 

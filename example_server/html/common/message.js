@@ -7,8 +7,12 @@ function Add(id) {
 	return new ClientMessage("cAdd", {Id: id});
 }
 
-function Msg(to, content) {
-	return new ClientMessage("cMsg", {To: to, Content: content});
+function Msg(to, id, content) {
+	return new ClientMessage("cMsg", {To: to, Id: id, Sends: 1, Content: content});
+}
+
+function ResendMsg(msg) {
+	return new ClientMessage("cMsg", {To: msg.Msg.To, Id: msg.Msg.Id, Sends: msg.Msg.Sends+1, Content: msg.Msg.Content});
 }
 
 function Move(lat, lng) {
@@ -22,4 +26,3 @@ function InitLoc(lat, lng) {
 function Nearby(lat, lng) {
 	return new ClientMessage("cNearby", {Lat: lat, Lng: lng});
 }
-
