@@ -37,10 +37,12 @@ const SNearbyOp = ServerOp("sNearby")
 // Indicates that a user has moved (and is visible to the receiver)
 const SMovedOp = ServerOp("sMoved")
 
-// Indicates that an error has occurred on the server
-const SErrorOp = ServerOp("sError")
-
 type SLocMsg struct {
+	Op ServerOp
 	Id       string
 	Lat, Lng float64
+}
+
+func NewSLocMsg(op ServerOp, id string, lat, lng float64) *SLocMsg {
+	return &SLocMsg{Op: op, Id: id, Lat: lat, Lng: lng}
 }

@@ -5,8 +5,6 @@ const CMsgOp = ClientOp("cMsg")
 
 type CMsgMsg struct {
 	To      string
-	Id      string
-	sends   uint
 	Content string
 }
 
@@ -18,23 +16,15 @@ func NewCMsgMsg() *ClientMsg {
 const SMsgOp = ServerOp("sMsg")
 
 type SMsgMsg struct {
+	Op ServerOp
 	From    string
-	Id      string
-	Sends   uint
 	Content string
 }
 
-// Indicates that the user 
+// Indicates that UserId is not registered on the msg_server
 const SNotUserOp = ServerOp("sNotUser")
 
 type SNotUser struct {
+	Op ServerOp
 	UserId string
-}
-
-// Acknowledges a message was received
-const SAckOp = ServerOp("sAck")
-
-type SAckMsg struct {
-	From string
-	Id string
 }

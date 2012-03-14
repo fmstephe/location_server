@@ -19,5 +19,6 @@ func NewCIdMsg() *ClientMsg {
 const SIdOp = ServerOp("sId")
 
 type SIdMsg struct {
+	Op ServerOp
 	Id string
 }

@@ -163,9 +163,9 @@ func nearbyView(mNS, mEW float64) *quadtree.View {
 }
 
 func broadcastSend(tId uint, op msgdef.ServerOp, usr *user, oUsr *user) {
-	locMsg := msgdef.SLocMsg{Id: usr.id, Lat: usr.lat, Lng: usr.lng}
-	msg := msgdef.NewServerMsg(op, locMsg)
-	oUsr.msgWriter.WriteMsg(msg)
+	locMsg := msgdef.SLocMsg{Op: op, Id: usr.id, Lat: usr.lat, Lng: usr.lng}
+	sMsg := &msgdef.ServerMsg{Msg: locMsg, TId: tId, UId: usr.id}
+	oUsr.msgWriter.WriteMsg(sMsg)
 }
 
 func locLog(tId uint, uId, msgType string, mNS, mEW float64) {

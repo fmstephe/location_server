@@ -28,7 +28,7 @@ func (msgWriter *W) WriteMsg(msg *msgdef.ServerMsg) {
 
 func (msgWriter *W) ErrorAndClose(tId uint, uId, errMsg string) {
 	logutil.Log(tId, uId, "Connection Terminated: "+errMsg)
-	msgWriter.WriteMsg(msgdef.NewServerError(errMsg))
+	msgWriter.WriteMsg(msgdef.NewServerError(tId, uId, errMsg))
 	<-msgWriter.closeChan
 	logutil.Log(tId, uId, "Close Confirmation Received")
 }
@@ -36,14 +36,15 @@ func (msgWriter *W) ErrorAndClose(tId uint, uId, errMsg string) {
 func (msgWriter *W) listenAndWrite() {
 	defer msgWriter.sendClose()
 	for {
-		msg := <-msgWriter.msgChan
-		logutil.Log(msg.TransactionId(), msg.UserId(), fmt.Sprintf("%v", msg))
+		sMsg := <-msgWriter.msgChan
+		msg := sMsg.Msg
+		logutil.Log(sMsg.TId, sMsg.UId, fmt.Sprintf("%v", msg))
 		err := jsonutil.JSONCodec.Send(msgWriter.ws, msg)
 		if err != nil {
-			logutil.Log(msg.TransactionId(), msg.UserId(), err.Error())
+			logutil.Log(sMsg.TId, sMsg.UId, err.Error())
 			return
 		}
-		if msg.Op == msgdef.SErrorOp {
+		if _, ok := msg.(msgdef.SErrorMsg); ok {
 			return
 		}
 	}

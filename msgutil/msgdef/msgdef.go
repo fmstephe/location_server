@@ -1,9 +1,5 @@
 package msgdef
 
-import (
-	"location_server/perfprofile"
-)
-
 // User request operations
 type ClientOp string
 
@@ -21,38 +17,20 @@ type ServerOp string
 
 // A server message which contains only a serverOp and a user.CU
 type ServerMsg struct {
-	Op  ServerOp
 	Msg interface{}
-	tId uint
-	uId string
+	TId uint
+	UId string
 }
 
-func NewServerMsg(op ServerOp, msg interface{}) *ServerMsg {
-	return &ServerMsg{Op: op, Msg: msg}
+// Indicates that an error has occurred on the server
+const SErrorOp = ServerOp("sError")
+
+type SErrorMsg struct {
+	Op ServerOp
+	ErrMsg string
 }
 
-func NewServerError(msg interface{}) *ServerMsg {
-	return &ServerMsg{Op: SErrorOp, Msg: msg}
-}
-
-func (msg *ServerMsg) TransactionId() uint {
-	return msg.tId
-}
-
-func (msg *ServerMsg) UserId() string {
-	return msg.uId
-}
-
-type PServerMsg struct {
-	Msg     ServerMsg
-	Profile *perfprofile.P
-}
-
-func NewPServerMsg(op ServerOp, msg interface{}, profile *perfprofile.P) *PServerMsg {
-	sm := NewServerMsg(op, msg)
-	return &PServerMsg{Msg: *sm, Profile: profile}
-}
-
-func NewPServerError(msg interface{}, profile *perfprofile.P) *PServerMsg {
-	return NewPServerMsg(SErrorOp, msg, profile)
+func NewServerError(tId uint, uId string, errMsg string) *ServerMsg {
+	msg := &SErrorMsg{Op: SErrorOp, ErrMsg: errMsg}
+	return &ServerMsg{Msg: msg, TId: tId, UId: uId}
 }

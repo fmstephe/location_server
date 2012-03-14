@@ -14,7 +14,7 @@ var idMaker = simpleid.NewIdMaker()
 
 func idProvider(w http.ResponseWriter, r *http.Request) {
 	id := idMaker.NewId()
-	idMsg := msgdef.NewServerMsg(msgdef.SIdOp, msgdef.SIdMsg{Id: id})
+	idMsg := msgdef.SIdMsg{Op: msgdef.SIdOp, Id: id}
 	if buf, err := json.MarshalForHTML(idMsg); err != nil {
 		println(err.Error())
 	} else {

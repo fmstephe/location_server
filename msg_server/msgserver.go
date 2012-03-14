@@ -48,12 +48,14 @@ func readWS(ws *websocket.Conn) {
 		msg := cMsg.Msg.(*msgdef.CMsgMsg)
 		if idMap.Contains(msg.To) {
 			forUser := idMap.Get(msg.To).(*user)
-			msgMsg := &msgdef.SMsgMsg{From: usr.id, Id: msg.Id, sends: msg.sends, Content: msg.Content}
-			forUser.msgWriter.WriteMsg(msgdef.NewServerMsg(msgdef.SMsgOp, msgMsg))
+			msgMsg := &msgdef.SMsgMsg{Op: msgdef.SMsgOp, From: usr.id, Content: msg.Content}
+			sMsg := &msgdef.ServerMsg{Msg: msgMsg, TId: tId, UId: usr.id}
+			forUser.msgWriter.WriteMsg(sMsg)
 			logutil.Log(tId, usr.id, fmt.Sprintf("Content: '%s' sent to: '%s'", msg.Content, msg.To))
 		} else {
-			nuMsg := &msgdef.SMsgMsg{From: msg.To, Content: fmt.Sprintf("User: %s was not found", msg.To)}
-			usr.msgWriter.WriteMsg(msgdef.NewServerMsg(msgdef.SNotUserOp, nuMsg))
+			nuMsg := &msgdef.SMsgMsg{Op: msgdef.SNotUserOp, From: msg.To, Content: fmt.Sprintf("User: %s was not found", msg.To)}
+			sMsg := &msgdef.ServerMsg{Msg: nuMsg, TId: tId, UId: usr.id}
+			usr.msgWriter.WriteMsg(sMsg)
 		}
 	}
 }
