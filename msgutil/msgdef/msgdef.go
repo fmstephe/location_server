@@ -26,7 +26,7 @@ type ServerMsg struct {
 const SErrorOp = ServerOp("sError")
 
 type SErrorMsg struct {
-	Op ServerOp
+	Op     ServerOp
 	ErrMsg string
 }
 

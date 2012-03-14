@@ -38,7 +38,7 @@ const SNearbyOp = ServerOp("sNearby")
 const SMovedOp = ServerOp("sMoved")
 
 type SLocMsg struct {
-	Op ServerOp
+	Op       ServerOp
 	Id       string
 	Lat, Lng float64
 }

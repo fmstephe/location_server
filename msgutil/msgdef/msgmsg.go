@@ -16,7 +16,7 @@ func NewCMsgMsg() *ClientMsg {
 const SMsgOp = ServerOp("sMsg")
 
 type SMsgMsg struct {
-	Op ServerOp
+	Op      ServerOp
 	From    string
 	Content string
 }
@@ -25,6 +25,6 @@ type SMsgMsg struct {
 const SNotUserOp = ServerOp("sNotUser")
 
 type SNotUser struct {
-	Op ServerOp
+	Op     ServerOp
 	UserId string
 }
