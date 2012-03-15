@@ -47,7 +47,7 @@ func WebsocketUser(ws *websocket.Conn) {
 	var tId uint
 	var err error
 	usr := newUser(ws)
-	idMsg := msgdef.NewCIdMsg()
+	idMsg := &msgdef.CIdMsg{}
 	if err = jsonutil.JSONCodec.Receive(ws, idMsg); err != nil {
 		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
@@ -63,7 +63,7 @@ func WebsocketUser(ws *websocket.Conn) {
 	logutil.Registered(tId, usr.id)
 	defer removeId(&tId, usr)
 	tId++
-	initLocMsg := msgdef.NewCLocMsg()
+	initLocMsg := &msgdef.CLocMsg{}
 	if err = jsonutil.JSONCodec.Receive(ws, initLocMsg); err != nil {
 		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
@@ -75,7 +75,7 @@ func WebsocketUser(ws *websocket.Conn) {
 	defer removeFromTree(&tId, usr)
 	for {
 		tId++
-		locMsg := msgdef.NewCLocMsg()
+		locMsg := &msgdef.CLocMsg{}
 		if err = jsonutil.JSONCodec.Receive(ws, locMsg); err != nil {
 			usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 			return
@@ -101,9 +101,8 @@ func removeFromTree(tId *uint, usr *user) {
 
 // Handle registration message
 // Success will leave usr with initialised Id field
-func processReg(clientMsg *msgdef.ClientMsg, usr *user) error {
-	idMsg := clientMsg.Msg.(*msgdef.CIdMsg)
-	switch clientMsg.Op {
+func processReg(idMsg *msgdef.CIdMsg, usr *user) error {
+	switch idMsg.Op {
 	case msgdef.CAddOp:
 		usr.id = idMsg.Id
 		return nil
@@ -112,9 +111,8 @@ func processReg(clientMsg *msgdef.ClientMsg, usr *user) error {
 }
 
 // Handle initial location message
-func processInitLoc(tId uint, clientMsg *msgdef.ClientMsg, usr *user) error {
-	initMsg := clientMsg.Msg.(*msgdef.CLocMsg)
-	switch clientMsg.Op {
+func processInitLoc(tId uint, initMsg *msgdef.CLocMsg, usr *user) error {
+	switch initMsg.Op {
 	case msgdef.CInitLocOp:
 		usr.olat = initMsg.Lat
 		usr.olng = initMsg.Lng
@@ -128,9 +126,8 @@ func processInitLoc(tId uint, clientMsg *msgdef.ClientMsg, usr *user) error {
 }
 
 // Handle request messages - cMove, cNearby
-func processRequest(tId uint, clientMsg *msgdef.ClientMsg, usr *user) error {
-	locMsg := clientMsg.Msg.(*msgdef.CLocMsg)
-	switch clientMsg.Op {
+func processRequest(tId uint, locMsg *msgdef.CLocMsg, usr *user) error {
+	switch locMsg.Op {
 	case msgdef.CNearbyOp:
 		msg := newTask(tId, msgdef.CNearbyOp, *usr)
 		forwardMsg(msg)

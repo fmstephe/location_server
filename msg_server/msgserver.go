@@ -26,7 +26,7 @@ func newUser(ws *websocket.Conn) *user {
 func readWS(ws *websocket.Conn) {
 	var tId uint
 	usr := newUser(ws)
-	idMsg := msgdef.NewCIdMsg()
+	idMsg := &msgdef.CIdMsg{}
 	if err := jsonutil.JSONCodec.Receive(ws, idMsg); err != nil {
 		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
@@ -40,12 +40,11 @@ func readWS(ws *websocket.Conn) {
 	defer removeUser(&tId, usr.id)
 	for {
 		tId++
-		cMsg := msgdef.NewCMsgMsg()
-		if err := jsonutil.JSONCodec.Receive(ws, cMsg); err != nil {
+		msg := &msgdef.CMsgMsg{}
+		if err := jsonutil.JSONCodec.Receive(ws, msg); err != nil {
 			usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 			return
 		}
-		msg := cMsg.Msg.(*msgdef.CMsgMsg)
 		if idMap.Contains(msg.To) {
 			forUser := idMap.Get(msg.To).(*user)
 			msgMsg := &msgdef.SMsgMsg{Op: msgdef.SMsgOp, From: usr.id, Content: msg.Content}
@@ -60,14 +59,13 @@ func readWS(ws *websocket.Conn) {
 	}
 }
 
-func processReg(clientMsg *msgdef.ClientMsg, usr *user) error {
-	idMsg := clientMsg.Msg.(*msgdef.CIdMsg)
-	switch clientMsg.Op {
+func processReg(idMsg *msgdef.CIdMsg, usr *user) error {
+	switch idMsg.Op {
 	case msgdef.CAddOp:
 		usr.id = idMsg.Id
 		return nil
 	}
-	return errors.New("Incorrect op-code for id registration: " + string(clientMsg.Op))
+	return errors.New("Incorrect op-code for id registration: " + string(idMsg.Op))
 }
 
 func removeUser(tId *uint, uId string) {

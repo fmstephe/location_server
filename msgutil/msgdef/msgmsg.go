@@ -4,12 +4,9 @@ package msgdef
 const CMsgOp = ClientOp("cMsg")
 
 type CMsgMsg struct {
+	Op	ClientOp
 	To      string
 	Content string
-}
-
-func NewCMsgMsg() *ClientMsg {
-	return &ClientMsg{Msg: &CMsgMsg{}}
 }
 
 // Delivers a message to a user

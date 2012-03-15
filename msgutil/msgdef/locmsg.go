@@ -11,12 +11,9 @@ const CNearbyOp = ClientOp("cNearby")
 
 // A structure for unmarshalling lat/lng messages
 type CLocMsg struct {
+	Op       ClientOp
 	Id       string
 	Lat, Lng float64
-}
-
-func NewCLocMsg() *ClientMsg {
-	return &ClientMsg{Msg: &CLocMsg{}}
 }
 
 // Indicates that a user has just been added (and is visible to the receiver)
@@ -41,8 +38,4 @@ type SLocMsg struct {
 	Op       ServerOp
 	Id       string
 	Lat, Lng float64
-}
-
-func NewSLocMsg(op ServerOp, id string, lat, lng float64) *SLocMsg {
-	return &SLocMsg{Op: op, Id: id, Lat: lat, Lng: lng}
 }

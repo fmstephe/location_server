@@ -8,11 +8,8 @@ const CRemoveOp = ClientOp("cRemove")
 
 // A structure for unmarshalling id based messages
 type CIdMsg struct {
+	Op ClientOp
 	Id string
-}
-
-func NewCIdMsg() *ClientMsg {
-	return &ClientMsg{Msg: &CIdMsg{}}
 }
 
 // Provides a new Id provided by the server
