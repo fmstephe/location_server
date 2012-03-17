@@ -45,42 +45,53 @@ func newTask(tId uint, op msgdef.ClientOp, usr user) *task {
 //  Unmarshall json objects from ws and write to readChan
 func WebsocketUser(ws *websocket.Conn) {
 	var tId uint
-	var err error
 	usr := newUser(ws)
 	idMsg := &msgdef.CIdMsg{}
-	if err = jsonutil.JSONCodec.Receive(ws, idMsg); err != nil {
+	if err := jsonutil.JSONCodec.Receive(ws, idMsg); err != nil {
 		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
 	}
-	if err = processReg(idMsg, usr); err != nil {
+	if err := idMsg.Validate(); err != nil {
 		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
 	}
-	if err = idSet.Add(usr.id, usr); err != nil {
+	if err := processReg(idMsg, usr); err != nil {
+		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
+		return
+	}
+	if err := idSet.Add(usr.id, usr); err != nil {
 		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
 	}
 	logutil.Registered(tId, usr.id)
 	defer removeId(&tId, usr)
 	tId++
-	initLocMsg := &msgdef.CLocMsg{}
-	if err = jsonutil.JSONCodec.Receive(ws, initLocMsg); err != nil {
+	initLocMsg := msgdef.EmptyCLocMsg()
+	if err := jsonutil.JSONCodec.Receive(ws, initLocMsg); err != nil {
 		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
 	}
-	if err = processInitLoc(tId, initLocMsg, usr); err != nil {
+	if err := initLocMsg.Validate(); err != nil {
+		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
+		return
+	}
+	if err := processInitLoc(tId, initLocMsg, usr); err != nil {
 		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
 	}
 	defer removeFromTree(&tId, usr)
 	for {
 		tId++
-		locMsg := &msgdef.CLocMsg{}
-		if err = jsonutil.JSONCodec.Receive(ws, locMsg); err != nil {
+		locMsg := msgdef.EmptyCLocMsg()
+		if err := jsonutil.JSONCodec.Receive(ws, locMsg); err != nil {
 			usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 			return
 		}
-		if err = processRequest(tId, locMsg, usr); err != nil {
+		if err := locMsg.Validate(); err != nil {
+			usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
+			return
+		}
+		if err := processRequest(tId, locMsg, usr); err != nil {
 			usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 			return
 		}

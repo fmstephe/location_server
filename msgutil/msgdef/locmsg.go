@@ -1,5 +1,10 @@
 package msgdef
 
+import (
+	"errors"
+	"math"
+)
+
 // Set the initial location of a user
 const CInitLocOp = ClientOp("cInitLoc")
 
@@ -12,8 +17,24 @@ const CNearbyOp = ClientOp("cNearby")
 // A structure for unmarshalling lat/lng messages
 type CLocMsg struct {
 	Op       ClientOp
-	Id       string
 	Lat, Lng float64
+}
+
+func EmptyCLocMsg() *CLocMsg {
+	return &CLocMsg{Lat: math.NaN(), Lng: math.NaN()}
+}
+
+func (msg *CLocMsg) Validate() error {
+	if (msg.Op == "") {
+		return errors.New("Missing Op in location message")
+	}
+	if (msg.Op != CInitLocOp && msg.Op != CMoveOp && msg.Op != CNearbyOp) {
+		return errors.New("Invalid Op in location message")
+	}
+	if (msg.Lat == math.NaN() || msg.Lng == math.NaN()) {
+		return errors.New("Lat/Lng position not provided in location message")
+	}
+	return nil
 }
 
 // Indicates that a user has just been added (and is visible to the receiver)

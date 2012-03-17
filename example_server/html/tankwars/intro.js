@@ -13,43 +13,43 @@ var bgCtxt;
 
 var svcHandler = {
 	handleLoc: function(loc) {
-		var op = loc.Op;
-		var usrInfo = loc.Msg;
-		if (op == "sAdd" || op == "sNearby" || op == "sVisible") {
-			selectionUsers.append(usrInfo);
-		} else if (op == "sRemove" || op == "sNotVisible") {
-			selectionUsers.filter(function(u) {return usrInfo.Id == u.Id});
-		}
-		users = "";
-		selectionUsers.forEach(function(u) {users += userLiLink(u)});
-		document.getElementById("player-list").innerHTML = users;
-	},
+			   var op = loc.Op;
+			   var usrInfo = loc;
+			   if (op == "sAdd" || op == "sNearby" || op == "sVisible") {
+				   selectionUsers.append(usrInfo);
+			   } else if (op == "sRemove" || op == "sNotVisible") {
+				   selectionUsers.filter(function(u) {return usrInfo.Id == u.Id});
+			   }
+			   users = "";
+			   selectionUsers.forEach(function(u) {users += userLiLink(u)});
+			   document.getElementById("player-list").innerHTML = users;
+		   },
 	handleMsg: function(msg) {
-		var from = msg.Msg.From;
-		var content = msg.Msg.Content;
-		if (content.op == "start") {
-			if (gameStarted) {
-				connect.sendMsg(new Msg(from, {op: "engaged"}));
-			} else {
-				connect.sendMsg(new Msg(from, {op: "accepted"}));
-				idYou = from;
-				xPosMe = content.defs.pos[1];
-				xPosYou = content.defs.pos[0];
-				divs = content.defs.divs;
-				gameStarted = true;
-				initGame(xPosMe, xPosYou, divs);
-			}
-		}
-		if (content.op == "engaged") {
-			gameStarted = false;
-		}
-		if (content.op == "accepted") {
-			initGame(xPosMe, xPosYou, divs);
-		}
-		if (content.op == "fire") {
-			launchList.append({from: from, params: content.params});
-		}
-	}
+			   var from = msg.From;
+			   var content = msg.Content;
+			   if (content.op == "start") {
+				   if (gameStarted) {
+					   connect.sendMsg(from, {op: "engaged"});
+				   } else {
+					   connect.sendMsg(from, {op: "accepted"});
+					   idYou = from;
+					   xPosMe = content.defs.pos[1];
+					   xPosYou = content.defs.pos[0];
+					   divs = content.defs.divs;
+					   gameStarted = true;
+					   initGame(xPosMe, xPosYou, divs);
+				   }
+			   }
+			   if (content.op == "engaged") {
+				   gameStarted = false;
+			   }
+			   if (content.op == "accepted") {
+				   initGame(xPosMe, xPosYou, divs);
+			   }
+			   if (content.op == "fire") {
+				   launchList.append({from: from, params: content.params});
+			   }
+		   }
 }
 
 function main() {
@@ -64,7 +64,7 @@ function main() {
 	var handlers = new LinkedList();
 	handlers.append(svcHandler);
 	connect = new Connect(handlers, handlers);
-	idMe = connect.id;
+	idMe = connect.usrId;
 }
 
 function userLiLink(user) {
@@ -73,11 +73,12 @@ function userLiLink(user) {
 
 function startGame(otherId) {
 	idYou = otherId;
+	console.log(idMe);
+	console.log(idYou);
 	var pair = positionPair(canvasWidth);
 	xPosMe = pair[0];
 	xPosYou = pair[1];
 	divs = genDivisors();
-	var msg = new Msg(idYou, {op: "start", defs: {divs: divs, pos: pair}});
-	connect.sendMsg(msg);
+	connect.sendMsg(idYou, {op:"start", defs: {divs: divs, pos: pair}});
 	gameStarted = true;
 }

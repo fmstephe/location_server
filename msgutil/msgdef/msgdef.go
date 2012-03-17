@@ -3,15 +3,6 @@ package msgdef
 // User request operations
 type ClientOp string
 
-type ClientMsg struct {
-	Op  ClientOp
-	Msg interface{}
-}
-
-func NewClientMsg(op ClientOp, msg interface{}) *ClientMsg {
-	return &ClientMsg{Op: op, Msg: msg}
-}
-
 // Server reply operations
 type ServerOp string
 

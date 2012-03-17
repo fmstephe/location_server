@@ -31,6 +31,10 @@ func readWS(ws *websocket.Conn) {
 		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
 	}
+	if err := idMsg.Validate(); err != nil {
+		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
+		return
+	}
 	processReg(idMsg, usr)
 	if err := idMap.Add(usr.id, usr); err != nil {
 		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
@@ -42,6 +46,10 @@ func readWS(ws *websocket.Conn) {
 		tId++
 		msg := &msgdef.CMsgMsg{}
 		if err := jsonutil.JSONCodec.Receive(ws, msg); err != nil {
+			usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
+			return
+		}
+		if err := msg.Validate(); err != nil {
 			usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 			return
 		}

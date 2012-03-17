@@ -86,7 +86,6 @@ function genDivisors() {
 function positionPair(width) {
 	var one = Math.floor((Math.random()*width)/3);
 	var two = Math.floor((Math.random()*width)/3 + 2*width/3);
-	console.log(one+two);
 	return [one,two];
 }
 

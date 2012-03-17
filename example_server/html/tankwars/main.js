@@ -1,10 +1,10 @@
 // Global Constants
 var host = "178.79.176.206";
-var maxPower = 200;
+var maxPower = 100;
 var minPower = 0;
-var initPower = 100;
-var powerInc = 2;
-var gravity = 12;
+var initPower = 50;
+var powerInc = 1;
+var gravity = 4;
 var turretLength = 20;
 var rotationSpeed = Math.PI/50;
 var frameRate = 30;
@@ -33,6 +33,8 @@ var thisCycle;
 var devMode = false;
 
 function initGame(xPosMe, xPosYou, divs) {
+	console.log(idMe);
+	console.log(idYou);
 	document.onkeydown = captureKeydown;
 	document.onkeyup = captureKeyup;
 	lastCycle = new Date().getTime();
@@ -65,8 +67,8 @@ function initConnection() {
 }
 
 function playerMsgListener(msg) {
-	var from = msg.Msg.From;
-	var content = msg.Msg.Content;
+	var from = msg.From;
+	var content = msg.Content;
 	if (from == idYou && content.isPlayerMsg) {
 		launchList.append(content);
 	}
@@ -127,7 +129,7 @@ function loop() {
 function updatePlayer(player) {
 	hr = terrain.heightArray;
 	player.y = hr[player.x];
-	if (player === playerMe) {
+	if (player === playerMe && missileList.length() == 0 && launchList.satAll(function(e){return player.id != e.id})) {
 		if (keybindings.left) {
 			player.arc -= rotationSpeed;
 		}
@@ -140,11 +142,10 @@ function updatePlayer(player) {
 		if (keybindings.down) {
 			player.decPower();
 		}
-		if (missileList.length() == 0 && launchList.satAll(function(e){return player.id != e.id}) && keybindings.firing) {
+		if (keybindings.firing) {
 			var playerMsg = new PlayerMsg(player);
 			launchList.append(playerMsg);
-			var msg = new Msg(idYou, playerMsg);
-			connect.sendMsg(msg);
+			connect.sendMsg(idYou, playerMsg);
 		}
 	}
 }
@@ -240,7 +241,7 @@ function logInfo() {
 		elapsed = thisCycle - lastCycle;
 		frameRate = 1000/elapsed;
 		//console.log("Frame Rate: " + Math.floor(frameRate), "\tPlayers: " + playerList.length(), "\tMissiles: " + missileList.length(), "\tExplosions: " + explosionList.length());
-		console.log(missileList.length());
+		console.log(launchList.length());
 	}
 }
 

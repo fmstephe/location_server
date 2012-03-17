@@ -3,5 +3,5 @@ function getId() {
 	idReq.open("GET", "http://178.79.176.206:8001/id", false);
 	idReq.send();
 	idMsg = JSON.parse(idReq.responseText);
-	return idMsg.Msg.Id;
+	return idMsg.Id;
 }

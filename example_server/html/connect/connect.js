@@ -1,9 +1,10 @@
 function Connect(msgListeners, locListeners) {
+	var thisConn = this;
 	var handleLoc = function(loc) {
 		locListeners.forEach(function(listener) {listener.handleLoc(loc)});
 	}
 	var handleMsg = function(msg) {
-		msg.Msg.Content = JSON.parse(msg.Msg.Content);
+		msg.Content = JSON.parse(msg.Content);
 		msgListeners.forEach(function(listener) {listener.handleMsg(msg)});
 	}
 	this.msgListeners = msgListeners;
@@ -12,8 +13,9 @@ function Connect(msgListeners, locListeners) {
 	this.locService = new WSClient("Location", "ws://178.79.176.206:8002/loc", handleLoc, function(){}, function() {});
 	this.msgService.connect();
 	this.locService.connect();
-	this.id = getId();
-	var addMsg = new Add(this.id);
+	this.unackedMsgs = new LinkedList();
+	this.usrId = getId();
+	var addMsg = new Add(this.usrId);
 	this.msgService.jsonsend(addMsg);
 	this.locService.jsonsend(addMsg);
 	var lsvc = this.locService;
@@ -26,8 +28,8 @@ function Connect(msgListeners, locListeners) {
 	setInitCoords(initLoc);
 }
 
-Connect.prototype.sendMsg = function(msg) {
-	msg.Msg.Content = JSON.stringify(msg.Msg.Content);
+Connect.prototype.sendMsg = function(to, content) {
+	var msg = new Msg(to, JSON.stringify(content));
 	this.msgService.jsonsend(msg);
 }
 
@@ -54,28 +56,29 @@ Connect.prototype.rmvLocListener = function(listener) {
 var requestCode = "sync-request";
 var responseCode = "sync-response";
 
-function SyncRequest(to, syncName) {
-	return new Msg(to, {sync: requestCode, name: syncName});
+function SyncRequest(syncName) {
+	return {sync: requestCode, name: syncName};
 }
 
-function SyncResponse(to, syncName) {
-	return new Msg(to, {sync: responseCode, name: syncName});
+function SyncResponse(syncName) {
+	return {sync: responseCode, name: syncName};
 }
 
 Connect.prototype.sync = function(idMe, idYou, syncName, fun) {
 	var synced = false;
-	var cnct = this;
+	var thisConn = this;
 	// NB: The correctness of this approach relies on the interval function being unable to run even once before this function has completed
-	var intervalId = setInterval(function() {cnct.sendMsg(SyncRequest(idYou, syncName));}, 300);
+	// Otherwise the SyncRequest might be sent, and responded to, before the syncListener is registered (just echos of threading paranoia)
+	var intervalId = setInterval(function() {thisConn.sendMsg(idYou, SyncRequest(syncName));}, 300);
 	var syncListener = function(msg) {
-		var from = msg.Msg.From;
-		var content = msg.Msg.Content;
+		var from = msg.From;
+		var content = msg.Content;
 		if (content.sync == requestCode) {
 			var name = content.name;
 			if (name == syncName && from == idYou) {
 				clearInterval(intervalId);
-				cnct.rmvMsgListener(syncListener);
-				cnct.sendMsg(SyncResponse(idYou, syncName));
+				thisConn.rmvMsgListener(syncListener);
+				thisConn.sendMsg(idYou, SyncResponse(syncName));
 				fun();
 			} else {
 				console.log("Received 2sync request with unexpected id " + id + " from " + from);
@@ -84,7 +87,7 @@ Connect.prototype.sync = function(idMe, idYou, syncName, fun) {
 			var name = content.name;
 			if (name == syncName && from == idYou) {
 				clearInterval(intervalId);
-				cnct.rmvMsgListener(syncListener);
+				thisConn.rmvMsgListener(syncListener);
 				fun();
 			} else {
 				console.log("Received 2sync response with unexpected id " + id + " from " + from);
