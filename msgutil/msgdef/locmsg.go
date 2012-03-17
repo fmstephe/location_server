@@ -25,13 +25,13 @@ func EmptyCLocMsg() *CLocMsg {
 }
 
 func (msg *CLocMsg) Validate() error {
-	if (msg.Op == "") {
+	if msg.Op == "" {
 		return errors.New("Missing Op in location message")
 	}
-	if (msg.Op != CInitLocOp && msg.Op != CMoveOp && msg.Op != CNearbyOp) {
+	if msg.Op != CInitLocOp && msg.Op != CMoveOp && msg.Op != CNearbyOp {
 		return errors.New("Invalid Op in location message")
 	}
-	if (msg.Lat == math.NaN() || msg.Lng == math.NaN()) {
+	if msg.Lat == math.NaN() || msg.Lng == math.NaN() {
 		return errors.New("Lat/Lng position not provided in location message")
 	}
 	return nil

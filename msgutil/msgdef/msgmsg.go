@@ -8,19 +8,19 @@ import (
 const CMsgOp = ClientOp("cMsg")
 
 type CMsgMsg struct {
-	Op	ClientOp
+	Op      ClientOp
 	To      string
 	Content string
 }
 
 func (msg *CMsgMsg) Validate() error {
-	if (msg.Op == "") {
+	if msg.Op == "" {
 		return errors.New("Missing Op in message message")
 	}
-	if (msg.Op != CMsgOp) {
+	if msg.Op != CMsgOp {
 		return errors.New("Invalid Op in message message")
 	}
-	if (msg.Content == "") {
+	if msg.Content == "" {
 		return errors.New("Missing Content in message message")
 	}
 	return nil

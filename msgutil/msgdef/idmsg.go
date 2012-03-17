@@ -17,13 +17,13 @@ type CIdMsg struct {
 }
 
 func (msg *CIdMsg) Validate() error {
-	if (msg.Op == "") {
+	if msg.Op == "" {
 		return errors.New("Missing Op in id message")
 	}
-	if (msg.Op != CAddOp && msg.Op != CRemoveOp) {
+	if msg.Op != CAddOp && msg.Op != CRemoveOp {
 		return errors.New("Invalid Op in id message")
 	}
-	if (msg.Id == "") {
+	if msg.Id == "" {
 		return errors.New("Missing Id in id message")
 	}
 	return nil
