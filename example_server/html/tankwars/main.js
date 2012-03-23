@@ -4,13 +4,22 @@ var maxPower = 100;
 var minPower = 0;
 var initPower = 50;
 var powerInc = 1;
+var health = 100;
 var gravity = 4;
 var turretLength = 20;
-var rotationSpeed = Math.PI/50;
+var rotateInc = Math.PI/50;
 var frameRate = 30;
 var framePause = Math.floor(1000/frameRate);
-var expLife = 0.1*frameRate;
+var expDuration = 0.1*frameRate;
 var expRadius = 50;
+
+// Canvas elements
+var canvasHeight;
+var canvasWidth;
+var tankCtxt;
+var missileCtxt;
+var terrainCtxt;
+var bgCtxt;
 
 // Location
 var lat;
@@ -24,7 +33,9 @@ var launchList;
 var playerList;
 var missileList;
 var explosionList;
-// Current player whose turn it is
+//
+var turnQ;
+// 
 var gameOver = false;
 // Frame rate tracking 
 var lastCycle;
@@ -32,25 +43,28 @@ var thisCycle;
 // Display toggle for nerdy info
 var devMode = false;
 
-function initGame(xPosMe, xPosYou, divs) {
+function initGame(idMe, idYou, xPosMe, xPosYou, divs, turnQHandler) {
 	console.log(idMe);
 	console.log(idYou);
 	document.onkeydown = captureKeydown;
 	document.onkeyup = captureKeyup;
+	turnQ = turnQHandler.q;
 	lastCycle = new Date().getTime();
 	thisCycle = new Date().getTime();
-	var fgCanvas = document.getElementById("foreground");
+	var tankCanvas = document.getElementById("tank");
+	var missileCanvas = document.getElementById("missile");
 	var terrainCanvas = document.getElementById("terrain");
 	var bgCanvas = document.getElementById("background");
-	fgCtxt = fgCanvas.getContext("2d");
+	tankCtxt = tankCanvas.getContext("2d");
+	missileCtxt = missileCanvas.getContext("2d");
 	terrainCtxt = terrainCanvas.getContext("2d");
 	bgCtxt = bgCanvas.getContext("2d");
 	canvasHeight = fgCanvas.height;
 	canvasWidth = fgCanvas.width;
 	terrain = new Terrain(canvasWidth, canvasHeight, divs);
 	keybindings = new KeyBindings(87,83,65,68,70);
-	playerMe = new Player(idMe, xPosMe, "Player1", turretLength, initPower, minPower, maxPower, powerInc, expRadius, keybindings);
-	playerYou = new Player(idYou, xPosYou, "Player2", turretLength, initPower, minPower, maxPower, powerInc, expRadius, null);
+	playerMe = new Player(idMe, xPosMe, "Player1", turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health);
+	playerYou = new Player(idYou, xPosYou, "Player2", turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health);
 	explosionList = new LinkedList();
 	missileList = new LinkedList();
 	launchList = new LinkedList();
@@ -58,26 +72,16 @@ function initGame(xPosMe, xPosYou, divs) {
 	playerList.append(playerMe);
 	playerList.append(playerYou);
 	initRender();
-	initConnection();
-}
-
-function initConnection() {
-	connect.addMsgListener({handleMsg : playerMsgListener});
-	connect.sync(idMe, idYou, "start-game", function() {setInterval(loop, framePause)});
-}
-
-function playerMsgListener(msg) {
-	var from = msg.From;
-	var content = msg.Content;
-	if (from == idYou && content.isPlayerMsg) {
-		launchList.append(content);
-	}
+	setInterval(loop, framePause);
 }
 
 function initRender() {
-	fgCtxt.fillStyle = "rgba(255,30,40,1.0)";
-	fgCtxt.strokeStyle = "rgba(255,255,255,1.0)";
-	fgCtxt.lineWidth = 5;
+	tankCtxt.fillStyle = "rgba(255,30,40,1.0)";
+	tankCtxt.strokeStyle = "rgba(255,255,255,1.0)";
+	tankCtxt.lineWidth = 5;
+	missileCtxt.strokeStyle = "rgba(255,255,255,1.0)";
+	missileCtxt.fillStyle = "rgba(255,0,0,0.8)";
+	missileCtxt.lineWidth = 5;
 	terrainCtxt.fillStyle = "rgba(100,100,100,1.0)";
 	bgCtxt.fillStyle = "rgba(0,0,0,1.0)";
 	bgCtxt.fillRect(0,0,canvasWidth,canvasHeight);
@@ -90,9 +94,9 @@ function loop() {
 	logInfo();
 	if (!gameOver) {
 		// Clear out each of the last frame's positions
-		playerList.forEach(function(p) {p.setClear(fgCtxt, canvasHeight);});
-		missileList.forEach(function(m) {m.setClear(fgCtxt, canvasHeight);});
-		explosionList.forEach(function(e) {e.setClear(fgCtxt, canvasHeight);});
+		playerList.forEach(function(p) {p.setClear(tankCtxt, canvasHeight);});
+		missileList.forEach(function(m) {m.setClear(missileCtxt, canvasHeight);});
+		explosionList.forEach(function(e) {e.setClear(missileCtxt, canvasHeight);});
 		// Filter removable elements from entity lists
 		playerList.filter(function(p) {return p.shouldRemove();});
 		missileList.filter(function(m) {return m.shouldRemove();});
@@ -101,6 +105,9 @@ function loop() {
 		playerList.forEach(function(p) {updatePlayer(p);});
 		missileList.forEach(function(m) {updateMissile(m);});
 		explosionList.forEach(function(e) {updateExplosion(e);});
+		// Check the turnQ to see if new turn messages have arrived
+		turnQ.forEach(function(msg) {launchList.append(msg.Content.player);});
+		turnQ.clear();
 		if (launchList.length() == playerList.size) {
 			launchList.forEach(function(p) {launchMissile(p);});
 			launchList.clear();
@@ -109,9 +116,9 @@ function loop() {
 		terrain.setClear(terrainCtxt, canvasHeight);
 		// Render game entities
 		terrain.render(terrainCtxt, canvasHeight);
-		playerList.forEach(function(p){p.render(fgCtxt, canvasHeight)});
-		missileList.forEach(function(m){m.render(fgCtxt, canvasHeight)});
-		explosionList.forEach(function(e){e.render(fgCtxt, canvasHeight)});
+		playerList.forEach(function(p){p.render(tankCtxt, canvasHeight)});
+		missileList.forEach(function(m){m.render(missileCtxt, canvasHeight)});
+		explosionList.forEach(function(e){e.render(missileCtxt, canvasHeight)});
 		terrain.clearMods();
 		if (playerList.length() < 1) {
 			gameOver = true;
@@ -121,8 +128,8 @@ function loop() {
 		explosionList.clear();
 		bgCtxt.font = "100pt Calibri-bold";
 		var name = playerList.getFirst().name;
-		fgCtxt.clearRect(0,0,canvasWidth,canvasHeight);
-		fgCtxt.fillText(name + " wins!", canvasWidth/2, canvasHeight/2);
+		tankCtxt.clearRect(0,0,canvasWidth,canvasHeight);
+		tankCtxt.fillText(name + " wins!", canvasWidth/2, canvasHeight/2);
 	}
 }
 
@@ -131,10 +138,10 @@ function updatePlayer(player) {
 	player.y = hr[player.x];
 	if (player === playerMe && missileList.length() == 0 && launchList.satAll(function(e){return player.id != e.id})) {
 		if (keybindings.left) {
-			player.arc -= rotationSpeed;
+			player.rotateLeft();
 		}
 		if (keybindings.right) {
-			player.arc += rotationSpeed;
+			player.rotateRight();
 		}
 		if (keybindings.up) {
 			player.incPower();
@@ -143,9 +150,8 @@ function updatePlayer(player) {
 			player.decPower();
 		}
 		if (keybindings.firing) {
-			var playerMsg = new PlayerMsg(player);
-			launchList.append(playerMsg);
-			connect.sendMsg(idYou, playerMsg);
+			launchList.append(player);
+			connect.sendMsg(idYou, new PlayerMsg(player));
 		}
 	}
 }
@@ -193,7 +199,7 @@ function updateMissile(missile) {
 }
 
 function explodeMissile(missile, x, y) {
-	exp = new Explosion(x, y, expLife, expRadius);
+	exp = new Explosion(x, y, expDuration, expRadius);
 	explode(exp);
 	explosionList.append(exp); 
 	missile.remove();

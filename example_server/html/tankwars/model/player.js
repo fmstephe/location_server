@@ -1,29 +1,16 @@
-function Player(id, x, name, turretLength, initPower, minPower, maxPower, powerInc, health, keyBindings) {
+function Player(id, x, name, turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health) {
 	this.id = id;
 	this.x = x;
-	this.y = 0; // This gets set automatically by the gmae loop
-	this.hasLaunched;
+	this.y = 0; // This gets set automatically by the game loop
 	this.name = name;
 	this.arc = 0;
 	this.power = initPower;
 	this.minPower = minPower;
 	this.maxPower = maxPower;
 	this.powerInc = powerInc;
+	this.rotateInc = rotateInc;
 	this.health = health;
 	this.turretLength = turretLength;
-	this.keyBindings = keyBindings;
-}
-
-function PlayerMsg(player) {
-	this.isPlayerMsg = true;
-	this.id = player.id;
-	this.x = player.x;
-	this.y = player.y;
-	this.turretLength = player.turretLength;
-	this.name = player.name;
-	this.arc = player.arc;
-	this.power = player.power;
-	this.health = player.health;
 }
 
 Player.prototype.incPower = function() {
@@ -35,6 +22,13 @@ Player.prototype.decPower = function() {
 	this.power -= this.powerInc;
 	this.power = Math.max(this.power, this.minPower);
 }
+
+Player.prototype.rotateLeft = function() {
+	this.arc += this.rotateInc;
+}
+
+Player.prototype.rotateRight = function() {
+	this.arc -= this.rotateInc;
 
 Player.prototype.setClear = function(ctxt, hgt) {
 	var x = this.x-this.turretLength;

@@ -1,69 +1,64 @@
 var selectionUsers = new LinkedList();
-var connect;
 var gameStarted = false;
-var idMe, idYou;
 var xPosMe, xPosYou;
 var divs;
-// Constant Globals
-var canvasHeight;
-var canvasWidth;
-var fgCtxt;
-var terrainCtxt;
-var bgCtxt;
 
-var svcHandler = {
+var locHandler = {
 	handleLoc: function(loc) {
-			   var op = loc.Op;
-			   var usrInfo = loc;
-			   if (op == "sAdd" || op == "sNearby" || op == "sVisible") {
-				   selectionUsers.append(usrInfo);
-			   } else if (op == "sRemove" || op == "sNotVisible") {
-				   selectionUsers.filter(function(u) {return usrInfo.Id == u.Id});
-			   }
-			   users = "";
-			   selectionUsers.forEach(function(u) {users += userLiLink(u)});
-			   document.getElementById("player-list").innerHTML = users;
-		   },
-	handleMsg: function(msg) {
-			   var from = msg.From;
-			   var content = msg.Content;
-			   if (content.op == "start") {
-				   if (gameStarted) {
-					   connect.sendMsg(from, {op: "engaged"});
-				   } else {
-					   connect.sendMsg(from, {op: "accepted"});
-					   idYou = from;
-					   xPosMe = content.defs.pos[1];
-					   xPosYou = content.defs.pos[0];
-					   divs = content.defs.divs;
-					   gameStarted = true;
-					   initGame(xPosMe, xPosYou, divs);
-				   }
-			   }
-			   if (content.op == "engaged") {
-				   gameStarted = false;
-			   }
-			   if (content.op == "accepted") {
-				   initGame(xPosMe, xPosYou, divs);
-			   }
-			   if (content.op == "fire") {
-				   launchList.append({from: from, params: content.params});
-			   }
-		   }
+		var op = loc.Op;
+		var usrInfo = loc;
+		if (op == "sAdd" || op == "sNearby" || op == "sVisible") {
+			selectionUsers.append(usrInfo);
+		} else if (op == "sRemove" || op == "sNotVisible") {
+			selectionUsers.filter(function(u) {return usrInfo.Id == u.Id});
+		}
+		users = "";
+		selectionUsers.forEach(function(u) {users += userLiLink(u)});
+		document.getElementById("player-list").innerHTML = users;
+	}
+};
+
+var turnQHandler = new QHandler(function(msg) {return msg.Content.isPlayerMsg;});
+
+function mkStartHandler(connect) {
+	return {
+		handleMsg: function(msg) {
+			if (msg.Content.isStart) {
+				var from = msg.From;
+				var startOp = msg.Content.startOp;
+				if (startOp == "start") {
+					if (gameStarted) {
+						// If the start msg is from the same person we are currently inviting this will cause deadlock
+						// Need to break the deadlock by ordering user-ids and breaking the tie
+						connect.sendMsg(from, startEnaged());
+					} else {
+						connect.sendMsg(from, startAccept());
+						idYou = from;
+						xPosMe = content.defs.pos[1];
+						xPosYou = content.defs.pos[0];
+						divs = content.defs.divs;
+						gameStarted = true;
+						initGame(idMe, from, xPosMe, xPosYou, divs, turnQHandler);
+					}
+				}
+				if (startOp == "engaged") {
+					gameStarted = false;
+				}
+				if (startOp == "accept") {
+					initGame(idMe, from, xPosMe, xPosYou, divs, turnQHandler);
+				}
+			}
+		}
+	}
 }
 
 function main() {
-	var fgCanvas = document.getElementById("foreground");
-	var terrainCanvas = document.getElementById("terrain");
-	var bgCanvas = document.getElementById("background");
-	fgCtxt = fgCanvas.getContext("2d");
-	terrainCtxt = terrainCanvas.getContext("2d");
-	bgCtxt = bgCanvas.getContext("2d");
-	canvasHeight = fgCanvas.height;
-	canvasWidth = fgCanvas.width;
-	var handlers = new LinkedList();
-	handlers.append(svcHandler);
-	connect = new Connect(handlers, handlers);
+	var connect = new Connect(handlers, handlers);
+	var locHandlers = new LinkedList();
+	locandlers.append(locHandler);
+	var msgHandlers = new LinkedList();
+	msgHandlers.append(turnQHandler);
+	msgHandlers.append(mkStartHandler(connect));
 	idMe = connect.usrId;
 }
 
@@ -73,8 +68,6 @@ function userLiLink(user) {
 
 function startGame(otherId) {
 	idYou = otherId;
-	console.log(idMe);
-	console.log(idYou);
 	var pair = positionPair(canvasWidth);
 	xPosMe = pair[0];
 	xPosYou = pair[1];
