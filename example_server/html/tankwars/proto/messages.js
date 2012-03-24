@@ -5,15 +5,15 @@ function StartMsg(startOp, defs) {
 	this.defs = defs;
 }
 
-function startReq(defs) {
+function mkStartReq(defs) {
 	return new StartMsg("start", defs);
 }
 
-function startAccept() {
+function mkStartAccept() {
 	return new StartMsg("accept");
 }
 
-function startEngaged() {
+function mkStartEngaged() {
 	return new StartMsg("engaged");
 }
 
@@ -21,4 +21,13 @@ function startEngaged() {
 function PlayerMsg(player) {
 	this.isPlayerMsg = true;
 	this.player = player;
+}
+
+function NameReq() {
+	this.isNameReq = true;
+}
+
+function NameResp(nick) {
+	this.isNameResp = true;
+	this.nick = nick;
 }

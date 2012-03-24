@@ -7,24 +7,28 @@
 	  <script type="text/javascript" src="../connect/connect.js"></script>
 	  <script type="text/javascript" src="proto/messages.js"></script>
 	  <script type="text/javascript" src="handlers/qhandler.js"></script>
+	  <script type="text/javascript" src="findplayers.js"></script>
 	  <script type="text/javascript" src="main.js"></script>
 	  <script type="text/javascript" src="terrain.js"></script>
-	  <script type="text/javascript" src="intro.js"></script>
 	  <script type="text/javascript" src="model/explosion.js"></script>
 	  <script type="text/javascript" src="model/keybindings.js"></script>
 	  <script type="text/javascript" src="model/missile.js"></script>
 	  <script type="text/javascript" src="model/player.js"></script>
 	  <script type="text/javascript" src="model/terrain.js"></script>
   </head>
-  <div>
+  <div id="nick-div">
+	  <input type="text" name="nick" id="nickname"/>
+	  <input type ="submit" value="submit" onclick="findPlayers.setName(document.getElementById('nickname').value); findPlayers.main()"/>
+  </div>
+  <div id="player-div">
 	  <ol id="player-list"></ol>
   </div>
-  <body onload="findPlayers.main()">
-	<div>
-	  <canvas id="background" width="1600" height="800" style="position: absolute; z-index: 0"></canvas>
-	  <canvas id="terrain"    width="1600" height="800" style="position: absolute; z-index: 1"></canvas>
-	  <canvas id="tank" width="1600" height="800" style="position: absolute; z-index: 2"></canvas>
-	  <canvas id="missile" width="1600" height="800" style="position: absolute; z-index: 3"></canvas>
-	</div>
+  <body>
+	  <div>
+		  <canvas id="background" width="1600" height="800" style="position: absolute; z-index: 0"></canvas>
+		  <canvas id="terrain"    width="1600" height="800" style="position: absolute; z-index: 1"></canvas>
+		  <canvas id="tank" width="1600" height="800" style="position: absolute; z-index: 2"></canvas>
+		  <canvas id="missile" width="1600" height="800" style="position: absolute; z-index: 3"></canvas>
+	  </div>
   </body>
 </html>

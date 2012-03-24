@@ -5,20 +5,19 @@ var findPlayers = (function() {
 	var gameStarted = false;
 	var xPosMe, xPosYou;
 	var divs;
-	var nickname;
+	var nickname = "anonymous";
 
 	var locHandler = {
 		handleLoc: function(loc) {
 				   var op = loc.Op;
 				   var usrInfo = loc;
 				   if (op == "sAdd" || op == "sNearby" || op == "sVisible") {
+					   usrInfo.nick = "anonymous";
 					   selectionUsers.append(usrInfo);
+					   connect.sendMsg(usrInfo.Id, new NameReq());
 				   } else if (op == "sRemove" || op == "sNotVisible") {
 					   selectionUsers.filter(function(u) {return usrInfo.Id == u.Id});
 				   }
-				   users = "";
-				   selectionUsers.forEach(function(u) {users += userLiLink(u)});
-				   document.getElementById("player-list").innerHTML = users;
 			   }
 	}
 
@@ -33,9 +32,9 @@ var findPlayers = (function() {
 						   if (gameStarted) {
 							   // If the start msg is from the same person we are currently inviting this will cause deadlock
 							   // Need to break the deadlock by ordering user-ids and breaking the tie
-							   connect.sendMsg(from, startEnaged());
+							   connect.sendMsg(from, mkStartEnaged());
 						   } else {
-							   connect.sendMsg(from, startAccept());
+							   connect.sendMsg(from, mkStartAccept());
 							   idYou = from;
 							   xPosMe = msg.Content.defs.xPosYou;
 							   xPosYou = msg.Content.defs.xPosMe;
@@ -54,16 +53,31 @@ var findPlayers = (function() {
 			   }
 	}
 
-	var userLiLink = function(user) {
-		return "<li><a href=\"javascript:void(0)\" onclick=\"findPlayers.startGame('"+user.Id+"')\">"+JSON.stringify(user)+"</a></li>";
+	var nameHandler = {
+		handleMsg: function(msg) {
+				   var from = msg.From;
+				   if (msg.Content.isNameReq) {
+					   connect.sendMsg(from, new NameResp(nickname));
+				   } else if (msg.Content.isNameResp) {
+					   selectionUsers.forEach(function(u) {if (u.Id == from) {u.nick = msg.Content.nick;}});
+					   users = "";
+					   selectionUsers.forEach(function(u) {users += userLiLink(u)});
+					   document.getElementById("player-list").innerHTML = users;
+				   }
+			   }
 	}
 
-	// Public main function
+	var userLiLink = function(usr) {
+		return "<li><a href=\"javascript:void(0)\" onclick=\"findPlayers.startGame('"+usr.Id+"')\">"+usr.nick+"</a></li>";
+	}
+
+	// Public functions
 	return {
 		main: function() {
 			      var locHandlers = new LinkedList();
 			      var msgHandlers = new LinkedList();
 			      locHandlers.append(locHandler);
+			      msgHandlers.append(nameHandler);
 			      msgHandlers.append(turnQHandler);
 			      msgHandlers.append(startHandler);
 			      connect = new Connect(msgHandlers, locHandlers);
@@ -78,6 +92,9 @@ var findPlayers = (function() {
 				   divs = genDivisors();
 				   connect.sendMsg(idYou, new StartMsg("start", {divs: divs, xPosMe: xPosMe, xPosYou: xPosYou}));
 				   gameStarted = true;
-			   }
+			   },
+		setName: function(nick) {
+				 nickname = nick;
+			 }
 	}
 })();
