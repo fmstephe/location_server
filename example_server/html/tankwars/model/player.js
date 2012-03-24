@@ -24,11 +24,11 @@ Player.prototype.decPower = function() {
 }
 
 Player.prototype.rotateLeft = function() {
-	this.arc += this.rotateInc;
+	this.arc -= this.rotateInc;
 }
 
 Player.prototype.rotateRight = function() {
-	this.arc -= this.rotateInc;
+	this.arc += this.rotateInc;
 }
 
 Player.prototype.setClear = function(ctxt, hgt) {
@@ -56,7 +56,7 @@ Player.prototype.render = function(ctxt, hgt) {
 		ctxt.lineTo(turretX,turretY);
 		ctxt.closePath();
 		ctxt.stroke();
-		var powerP = Math.round((this.power/maxPower)*100);
+		var powerP = Math.round((this.power/this.maxPower)*100);
 		ctxt.font = "20pt Calibri-bold";
 		ctxt.fillText(powerP+"%",this.x+this.turretLength, hgt-this.y);
 	}

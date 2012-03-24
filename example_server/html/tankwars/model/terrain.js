@@ -1,9 +1,9 @@
-function Terrain(w, h, divs) {
-	this.heightArray = generateTerrain(w, h, divs);
-	this.w = w;
-	this.h = h;
+function Terrain(width, height, divs) {
+	this.heightArray = generateTerrain(width, height, divs);
+	this.width = width;
+	this.height = height;
 	this.regionList = new LinkedList();
-	this.notifyMod(0,w);
+	this.notifyMod(0,width);
 }
 
 Terrain.prototype.notifyMod = function(from, to) {
@@ -14,29 +14,31 @@ Terrain.prototype.clearMods = function() {
 	this.regionList.clear();
 }
 
-Terrain.prototype.setClear = function(ctxt, hgt) {
-	this.regionList.forEach(function(r) {doClearTerrain(ctxt,r,hgt);});
+Terrain.prototype.setClear = function(ctxt) {
+	var height = this.height;
+	this.regionList.forEach(function(region) {doClearTerrain(ctxt, region, height);});
 }
 
-function doClearTerrain(ctxt, region, hgt) {
+function doClearTerrain(ctxt, region, height) {
 	var x = region.from;
 	var y = 0;
 	var w = region.to - region.from;
-	var h = hgt;
+	var h = height;
 	ctxt.clearRect(x,y,w,h);
 }
 
-Terrain.prototype.render = function(ctxt, hgt) {
-	this.regionList.forEach(function(r) {doRenderTerrain(ctxt,r,hgt);});
+Terrain.prototype.render = function(ctxt) {
+	var trn = this;
+	this.regionList.forEach(function(region) {trn.renderRegion(ctxt, region);});
 }
 
-function doRenderTerrain(ctxt, region, hgt) {
+Terrain.prototype.renderRegion = function(ctxt, region) {
 	ctxt.beginPath();
-	ctxt.moveTo(region.from,hgt);
+	ctxt.moveTo(region.from, this.height);
 	for (x = region.from; x <= region.to; x++) {
-		ctxt.lineTo(x, hgt - terrain.heightArray[x]);
+		ctxt.lineTo(x, this.height - this.heightArray[x]);
 	}
-	ctxt.lineTo(region.to,hgt);
+	ctxt.lineTo(region.to, this.height);
 	ctxt.closePath();
 	ctxt.fill();
 }
