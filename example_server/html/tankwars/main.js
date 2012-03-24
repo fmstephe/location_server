@@ -59,8 +59,8 @@ function initGame(idMe, idYou, xPosMe, xPosYou, divs, turnQHandler) {
 	missileCtxt = missileCanvas.getContext("2d");
 	terrainCtxt = terrainCanvas.getContext("2d");
 	bgCtxt = bgCanvas.getContext("2d");
-	canvasHeight = fgCanvas.height;
-	canvasWidth = fgCanvas.width;
+	canvasHeight = tankCanvas.height;
+	canvasWidth = tankCanvas.width;
 	terrain = new Terrain(canvasWidth, canvasHeight, divs);
 	keybindings = new KeyBindings(87,83,65,68,70);
 	playerMe = new Player(idMe, xPosMe, "Player1", turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health);

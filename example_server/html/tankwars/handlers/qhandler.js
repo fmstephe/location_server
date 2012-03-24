@@ -3,7 +3,7 @@ function QHandler(filterFun) {
 	this.q = new LinkedList();
 }
 
-function handleMsg(msg) {
+QHandler.prototype.handleMsg = function(msg) {
 	if (this.filterFun(msg)) {
 	       this.q.append(msg);
 	}

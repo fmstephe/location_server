@@ -1,11 +1,12 @@
 // Message used to negotiate the start of a game
-function StartMsg(startOp) {
+function StartMsg(startOp, defs) {
 	this.isStart = true;
 	this.startOp = startOp;
+	this.defs = defs;
 }
 
-function startReq() {
-	return new StartMsg("start");
+function startReq(defs) {
+	return new StartMsg("start", defs);
 }
 
 function startAccept() {

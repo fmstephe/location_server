@@ -29,6 +29,7 @@ Player.prototype.rotateLeft = function() {
 
 Player.prototype.rotateRight = function() {
 	this.arc -= this.rotateInc;
+}
 
 Player.prototype.setClear = function(ctxt, hgt) {
 	var x = this.x-this.turretLength;
