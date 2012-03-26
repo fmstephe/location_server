@@ -1,6 +1,6 @@
 // Message used to negotiate the start of a game
 function StartMsg(startOp, defs) {
-	this.isStart = true;
+	this.isStartMsg = true;
 	this.startOp = startOp;
 	this.defs = defs;
 }
@@ -30,4 +30,9 @@ function NameReq() {
 function NameResp(nick) {
 	this.isNameResp = true;
 	this.nick = nick;
+}
+
+function BusyMsg(isBusy) {
+	this.isBusyMsg = true;
+	this.isBusy = isBusy;
 }

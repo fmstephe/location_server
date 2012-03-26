@@ -1,5 +1,6 @@
 var findPlayers = (function() {
 
+	var phrases = ["Destroy", "Annihilate", "Devastate", "Massacre", "Defeat", "Bludgen", "Explode", "Defile", "Humiliate", "Crush", "Murder", "Smash", "Assassinate"];
 	var selectionUsers = new LinkedList();
 	var connect;
 	var gameStarted = false;
@@ -13,10 +14,12 @@ var findPlayers = (function() {
 				   var usrInfo = loc;
 				   if (op == "sAdd" || op == "sNearby" || op == "sVisible") {
 					   usrInfo.nick = "anonymous";
+					   usrInfo.buttonClass = "activebutton";
 					   selectionUsers.append(usrInfo);
 					   connect.sendMsg(usrInfo.Id, new NameReq());
 				   } else if (op == "sRemove" || op == "sNotVisible") {
 					   selectionUsers.filter(function(u) {return usrInfo.Id == u.Id});
+					   refreshUsers();
 				   }
 			   }
 	}
@@ -25,7 +28,7 @@ var findPlayers = (function() {
 
 	var startHandler = {
 		handleMsg: function(msg) {
-				   if (msg.Content.isStart) {
+				   if (msg.Content.isStartMsg) {
 					   var from = msg.From;
 					   var startOp = msg.Content.startOp;
 					   if (startOp == "start") {
@@ -40,6 +43,7 @@ var findPlayers = (function() {
 							   xPosYou = msg.Content.defs.xPosMe;
 							   divs = msg.Content.defs.divs;
 							   gameStarted = true;
+							   selectionUsers.forEach(function(u) {if (u.Id != from){connect.sendMsg(u.Id, new BusyMsg(true));}});
 							   tankGame().initGame(idMe, from, xPosMe, xPosYou, connect, divs, turnQHandler);
 						   }
 					   }
@@ -47,8 +51,23 @@ var findPlayers = (function() {
 						   gameStarted = false;
 					   }
 					   if (startOp == "accept") {
+						   selectionUsers.forEach(function(u) {if (u.Id != from){connect.sendMsg(u.Id, new BusyMsg(true));}});
 						   tankGame().initGame(idMe, from, xPosMe, xPosYou, connect, divs, turnQHandler);
 					   }
+				   }
+			   }
+	}
+
+	var busyHandler = {
+		handleMsg: function(msg) {
+				   if (msg.Content.isBusyMsg) {
+					var from = msg.From;
+					if (msg.Content.isBusy) {
+						selectionUsers.forEach(function(u) {if (u.Id == from) {u.buttonClass = "busybutton"}});
+					} else {
+						selectionUsers.forEach(function(u) {if (u.Id == from) {u.buttonClass = "activebutton"}});
+					}
+					refreshUsers();
 				   }
 			   }
 	}
@@ -59,16 +78,20 @@ var findPlayers = (function() {
 				   if (msg.Content.isNameReq) {
 					   connect.sendMsg(from, new NameResp(nickname));
 				   } else if (msg.Content.isNameResp) {
-					   selectionUsers.forEach(function(u) {if (u.Id == from) {u.nick = msg.Content.nick;}});
-					   users = "";
-					   selectionUsers.forEach(function(u) {users += userLiLink(u)});
-					   document.getElementById("player-list").innerHTML = users;
+					   selectionUsers.forEach(function(u) {if (u.Id == from) {u.nick = msg.Content.nick; u.phrase = phrases[r(phrases.length-1)];}});
 				   }
+				   refreshUsers();
 			   }
 	}
 
+	var refreshUsers = function() {
+		users = "";
+		selectionUsers.forEach(function(u) {users += userLiLink(u)});
+		document.getElementById("player-list").innerHTML = users;
+	}
+
 	var userLiLink = function(usr) {
-		return "<li><a href=\"javascript:void(0)\" onclick=\"findPlayers.startGame('"+usr.Id+"')\">"+usr.nick+"</a></li>";
+		return "<button class='"+usr.buttonClass+"' type='button' onclick=\"findPlayers.startGame('"+usr.Id+"')\">"+usr.phrase+" "+usr.nick+"("+usr.Id+")"+"</button>";
 	}
 
 	// Public functions
@@ -80,7 +103,9 @@ var findPlayers = (function() {
 			      msgHandlers.append(nameHandler);
 			      msgHandlers.append(turnQHandler);
 			      msgHandlers.append(startHandler);
+			      msgHandlers.append(busyHandler);
 			      connect = new Connect(msgHandlers, locHandlers);
+			      console.log("User Id: "+connect.usrId);
 			      idMe = connect.usrId;
 		      },
 		startGame: function(otherId) {
