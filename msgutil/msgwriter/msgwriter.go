@@ -38,13 +38,14 @@ func (msgWriter *W) listenAndWrite() {
 	for {
 		sMsg := <-msgWriter.msgChan
 		msg := sMsg.Msg
-		logutil.Log(sMsg.TId, sMsg.UId, fmt.Sprintf("%v", msg))
+		logutil.Log(sMsg.TId, sMsg.UId, fmt.Sprintf("Server Sent: %v", msg))
 		err := jsonutil.JSONCodec.Send(msgWriter.ws, msg)
 		if err != nil {
 			logutil.Log(sMsg.TId, sMsg.UId, err.Error())
 			return
 		}
-		if _, ok := msg.(msgdef.SErrorMsg); ok {
+		if _, ok := msg.(*msgdef.SErrorMsg); ok {
+			logutil.Log(sMsg.TId, sMsg.UId, "Error message received - Shutting Down")
 			return
 		}
 	}
