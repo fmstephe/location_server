@@ -53,6 +53,11 @@ Connect.prototype.rmvLocListener = function(listener) {
 	this.locListeners.filter(function(l) {return listener == l;});
 }
 
+Connect.prototype.close = function() {
+	this.msgService.close();
+	this.locService.close();
+}
+
 var requestCode = "sync-request";
 var responseCode = "sync-response";
 
