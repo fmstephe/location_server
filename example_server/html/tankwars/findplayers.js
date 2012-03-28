@@ -1,6 +1,6 @@
 var findPlayers = (function() {
 
-	var phrases = ["Destroy", "Annihilate", "Devastate", "Massacre", "Defeat", "Bludgen", "Explode", "Defile", "Humiliate", "Crush", "Murder", "Smash", "Assassinate"];
+	var phrases = ["Kill", "Destroy", "Annihilate", "Devastate", "Massacre", "Defeat", "Bludgen", "Explode", "Defile", "Humiliate", "Crush", "Murder", "Smash", "Assassinate"];
 	var selectionUsers = new LinkedList();
 	var connect;
 	var gameStarted = false;
@@ -17,6 +17,7 @@ var findPlayers = (function() {
 					   usrInfo.buttonClass = "activebutton";
 					   selectionUsers.append(usrInfo);
 					   connect.sendMsg(usrInfo.Id, new NameReq());
+					   connect.sendMsg(usrInfo.Id, new BusyReq());
 				   } else if (op == "sRemove" || op == "sNotVisible") {
 					   selectionUsers.filter(function(u) {return usrInfo.Id == u.Id});
 					   refreshUsers();
@@ -43,14 +44,18 @@ var findPlayers = (function() {
 							   xPosYou = msg.Content.defs.xPosMe;
 							   divs = msg.Content.defs.divs;
 							   gameStarted = true;
+							   playGameState();
 							   selectionUsers.forEach(function(u) {if (u.Id != from){connect.sendMsg(u.Id, new BusyMsg(true));}});
 							   tankGame().initGame(idMe, from, xPosMe, xPosYou, connect, divs, turnQHandler);
 						   }
 					   }
 					   if (startOp == "engaged") {
 						   gameStarted = false;
+						   selectionUsers.forEach(function(u) {if (u.Id == from) {u.buttonClass = 'busyButton'}});
+						   refreshPlayers();
 					   }
 					   if (startOp == "accept") {
+						   playGameState();
 						   selectionUsers.forEach(function(u) {if (u.Id != from){connect.sendMsg(u.Id, new BusyMsg(true));}});
 						   tankGame().initGame(idMe, from, xPosMe, xPosYou, connect, divs, turnQHandler);
 					   }
@@ -61,13 +66,22 @@ var findPlayers = (function() {
 	var busyHandler = {
 		handleMsg: function(msg) {
 				   if (msg.Content.isBusyMsg) {
-					var from = msg.From;
-					if (msg.Content.isBusy) {
-						selectionUsers.forEach(function(u) {if (u.Id == from) {u.buttonClass = "busybutton"}});
-					} else {
-						selectionUsers.forEach(function(u) {if (u.Id == from) {u.buttonClass = "activebutton"}});
-					}
-					refreshUsers();
+					   var from = msg.From;
+					   if (msg.Content.isBusy) {
+						   selectionUsers.forEach(function(u) {if (u.Id == from) {u.buttonClass = "busybutton"}});
+					   } else {
+						   selectionUsers.forEach(function(u) {if (u.Id == from) {u.buttonClass = "activebutton"}});
+					   }
+					   refreshUsers();
+				   }
+			   }
+	}
+
+	var busyReqHandler = {
+		handleMsg: function(msg) {
+				   if (msg.Content.isBusyReq) {
+					   var from = msg.From;
+					   connect.sendMsg(from, new BusyMsg(gameStarted));
 				   }
 			   }
 	}
@@ -91,12 +105,22 @@ var findPlayers = (function() {
 	}
 
 	var userLiLink = function(usr) {
-		return "<button class='"+usr.buttonClass+"' type='button' onclick=\"findPlayers.startGame('"+usr.Id+"')\">"+usr.phrase+" "+usr.nick+"("+usr.Id+")"+"</button>";
+		return "<li><button class='"+usr.buttonClass+" left-text-button' width='50px' type='button' onclick=\"findPlayers.startGame('"+usr.Id+"')\">"+formatNick(usr.nick)+"</button></li>";
+	}
+
+	function formatNick(nick) {
+		var lim = 13;
+		if (nick.length > lim) {
+			return nick.substring(0,lim-3) + "..."
+		} else {
+			return nick;
+		}
 	}
 
 	// Public functions
 	return {
 		main: function() {
+			      nickname = document.getElementById('nickname').value;
 			      var locHandlers = new LinkedList();
 			      var msgHandlers = new LinkedList();
 			      locHandlers.append(locHandler);
@@ -104,6 +128,7 @@ var findPlayers = (function() {
 			      msgHandlers.append(turnQHandler);
 			      msgHandlers.append(startHandler);
 			      msgHandlers.append(busyHandler);
+			      msgHandlers.append(busyReqHandler);
 			      connect = new Connect(msgHandlers, locHandlers);
 			      console.log("User Id: "+connect.usrId);
 			      idMe = connect.usrId;
@@ -118,8 +143,5 @@ var findPlayers = (function() {
 				   connect.sendMsg(idYou, new StartMsg("start", {divs: divs, xPosMe: xPosMe, xPosYou: xPosYou}));
 				   gameStarted = true;
 			   },
-		setName: function(nick) {
-				 nickname = nick;
-			 }
 	}
 })();

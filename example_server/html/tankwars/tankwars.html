@@ -6,6 +6,7 @@
 		<script type="text/javascript" src="../common/linkedlist.js"></script>
 		<script type="text/javascript" src="../common/connect.js"></script>
 		<script type="text/javascript" src="proto/messages.js"></script>
+		<script type="text/javascript" src="transitions.js"></script>
 		<script type="text/javascript" src="handlers/qhandler.js"></script>
 		<script type="text/javascript" src="findplayers.js"></script>
 		<script type="text/javascript" src="main.js"></script>
@@ -20,6 +21,10 @@
 		<style type="text/css">
 
 			.busybutton {
+				width: 150px;
+				white-space: nowrap
+				overflow: hidden;
+				text-overflow: ellipsis;
 				-moz-box-shadow:inset 0px 1px 0px 0px #e0e0e0;
 				-webkit-box-shadow:inset 0px 1px 0px 0px #e0e0e0;
 				box-shadow:inset 0px 1px 0px 0px #e0e0e0;
@@ -33,7 +38,7 @@
 				border:1px solid #e0e0e0;
 				display:inline-block;
 				color:#8f8f8f;
-				font-family:arial;
+				font-family:courier new;
 				font-size:15px;
 				font-weight:bold;
 				padding:6px 24px;
@@ -41,65 +46,79 @@
 				text-shadow:1px 1px 0px #c7c7c7;
 				}
 
-			.activebutton {
-				-moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
-				-webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
-				box-shadow:inset 0px 1px 0px 0px #ffffff;
-				background:-webkit-gradient(linear,left top,left bottom,color-stop(0.05, #ffffff), color-stop(1,#ebebeb));
-				background:-moz-linear-gradient( center top, #ffffff 5%, #ebebeb 100% );
-				filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#ebebeb');
-				background-color:#ffffff;
-				-moz-border-radius:6px;
-				-webkit-border-radius:6px;
-				border-radius:6px;
-				border:1px solid #e6e3e6;
-				display:inline-block;
-				color:#5c5a5c;
-				font-family:arial;
-				font-size:15px;
-				font-weight:bold;
-				padding:6px 24px;
-				text-decoration:none;
-				text-shadow:1px 1px 0px #f2f2f2;
-			}
-			.activebutton:hover {
-				background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #ebebeb), color-stop(1, #ffffff) );
-				background:-moz-linear-gradient( center top, #ebebeb 5%, #ffffff 100% );
-				filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ebebeb', endColorstr='#ffffff');
-				background-color:#ebebeb;
-			}
-			.activebutton:active {
-				position:relative;
-				top:1px;
-			}
-		</style>
-	</head>
-	<div style="height: 200px"></div>
-	<div id="nick-div"> 
-		<table style="margin-left: auto; margin-right: auto; vertical-align: middle">
-			<tbody>
-				<tr>
-					<td align="center">
-						<h1>Enter A Nickname</h1>
-					</tr>
-					<tr>
-						<td align="center">
-							<input type="text" name="nick" id="nickname"/>
-							<button class="activebutton" type="button" onclick="findPlayers.setName(document.getElementById('nickname').value); findPlayers.main(); document.getElementById('nick-div').style.display='none'">Start!</button>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-		<div id="player-div" align="center">
-			<ol id="player-list"></ol>
-		</div>
-		<body>
-			<div>
+				.left-text-button {
+					text-align: left;
+				}
+				.activebutton {
+					width: 150px;
+					white-space: nowrap;
+					overflow: hidden;
+					text-overflow: ellipsis;
+					-moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
+					-webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
+					box-shadow:inset 0px 1px 0px 0px #ffffff;
+					background:-webkit-gradient(linear,left top,left bottom,color-stop(0.05, #ffffff), color-stop(1,#ebebeb));
+					background:-moz-linear-gradient( center top, #ffffff 5%, #ebebeb 100% );
+					filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#ebebeb');
+					background-color:#ffffff;
+					-moz-border-radius:6px;
+					-webkit-border-radius:6px;
+					border-radius:6px;
+					border:1px solid #e6e3e6;
+					display:inline-block;
+					color:#5c5a5c;
+					font-family:courier new;
+					font-size:15px;
+					font-weight:bold;
+					padding:6px 24px;
+					text-decoration:none;
+					text-shadow:1px 1px 0px #f2f2f2;
+				}
+				.activebutton:hover {
+					background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #ebebeb), color-stop(1, #ffffff) );
+					background:-moz-linear-gradient( center top, #ebebeb 5%, #ffffff 100% );
+					filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ebebeb', endColorstr='#ffffff');
+					background-color:#ebebeb;
+				}
+				.activebutton:active {
+					position:relative;
+					top:1px;
+				}
+			</style>
+		</head>
+		<body onload="enterNickState();">
+			<div id ="intro-div">
+				<div id="spacer-div" style="height: 200px"></div>
+
+				<div id="nick-div"> 
+					<table style="margin-left: auto; margin-right: auto; vertical-align: middle">
+						<tbody>
+							<tr>
+								<td align="center">
+									<h1>Enter A Nickname</h1>
+								</td>
+							</tr>
+							<tr>
+								<td align="center">
+									<input type="text" name="nick" id="nickname"/>
+									<button class="activebutton" type="button" onclick="findPlayersState();findPlayers.main();">Start!</button>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<div id="player-div" align="center">
+					<ol id="player-list" style="list-style-type:none"></ol>
+				</div>
+			</div>
+
+			<div id="game-div">
 				<canvas id="background" width="1600" height="800" style="position: absolute; z-index: 0"></canvas>
 				<canvas id="terrain"    width="1600" height="800" style="position: absolute; z-index: 1"></canvas>
 				<canvas id="tank" width="1600" height="800" style="position: absolute; z-index: 2"></canvas>
 				<canvas id="missile" width="1600" height="800" style="position: absolute; z-index: 3"></canvas>
 			</div>
+
 		</body>
 	</html>
