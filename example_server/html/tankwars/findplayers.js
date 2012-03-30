@@ -3,7 +3,7 @@ var findPlayers = (function() {
 	var phrases = ["Kill", "Destroy", "Annihilate", "Devastate", "Massacre", "Defeat", "Bludgen", "Explode", "Defile", "Humiliate", "Crush", "Murder", "Smash", "Assassinate"];
 	var selectionUsers = new LinkedList();
 	var connect;
-	var gameStarted = false;
+	var inviteSentGlobal = false;
 	var xPosMe, xPosYou;
 	var divs;
 	var nickname = "anonymous";
@@ -20,6 +20,11 @@ var findPlayers = (function() {
 					   connect.sendMsg(usrInfo.Id, new NameReq());
 					   connect.sendMsg(usrInfo.Id, new BusyReq());
 				   } else if (op == "sRemove" || op == "sNotVisible") {
+					   if (tankGame && idYou == usrInfo.Id) {
+						   tankGame.kill();
+						   inviteSentGlobal = false;
+						   findPlayersState();
+					   }
 					   selectionUsers.filter(function(u) {return usrInfo.Id == u.Id});
 					   refreshUsers();
 				   }
@@ -34,7 +39,7 @@ var findPlayers = (function() {
 					   var from = msg.From;
 					   var startOp = msg.Content.startOp;
 					   if (startOp == "start") {
-						   if (gameStarted) {
+						   if (inviteSentGlobal) {
 							   // If the start msg is from the same person we are currently inviting this will cause deadlock
 							   // Need to break the deadlock by ordering user-ids and breaking the tie
 							   connect.sendMsg(from, mkEnaged());
@@ -42,23 +47,26 @@ var findPlayers = (function() {
 							   xPosMe = msg.Content.defs.xPosYou;
 							   xPosYou = msg.Content.defs.xPosMe;
 							   divs = msg.Content.defs.divs;
-							   selectionUsers.forEach(function(u) {if (u.Id == from) u.hasInvited = true});
+							   selectionUsers.forEach(function(u) {if (u.Id == from) u.inviteRcv = true});
 							   refreshUsers();
 						   }
 					   }
 					   if (startOp == "engaged") {
-						   gameStarted = false;
-						   selectionUsers.forEach(function(u) {if (u.Id == from) u.isBusy = true;});
+						   inviteSentGlobal = false;
+						   selectionUsers.forEach(function(u) {if (u.Id == from) u.isBusy = true; u.inviteSent = false;});
 						   refreshUsers();
 					   }
-					   if (startOp == "declined") {
-						   gameStarted = false;
+					   if (startOp == "decline") {
+						   inviteSentGlobal = false;
+						   selectionUsers.forEach(function(u) {if (u.Id == from) {u.inviteSent = false; u.declined = true;}});
+						   setTimeout(function(){selectionUsers.forEach(function(u) {if (u.Id == from) {u.declined = false}}); refreshUsers();}, 2000);
+						   refreshUsers();
 					   }
 					   if (startOp == "accept") {
 						   playGameState();
 						   selectionUsers.forEach(function(u) {if (u.Id != from)connect.sendMsg(u.Id, new BusyMsg(true));});
 						   tankGame = mkTankGame();
-						   tankGame.initGame(idMe, from, xPosMe, xPosYou, connect, divs, turnQHandler);
+						   tankGame.init(idMe, from, xPosMe, xPosYou, connect, divs, turnQHandler);
 					   }
 				   }
 			   }
@@ -78,7 +86,7 @@ var findPlayers = (function() {
 		handleMsg: function(msg) {
 				   if (msg.Content.isBusyReq) {
 					   var from = msg.From;
-					   connect.sendMsg(from, new BusyMsg(gameStarted));
+					   connect.sendMsg(from, new BusyMsg(inviteSentGlobal));
 				   }
 			   }
 	}
@@ -106,11 +114,17 @@ var findPlayers = (function() {
 	}
 
 	var userLiLink = function(usr) {
-		var inviteClass = usr.isBusy ? "busybutton" : "activebutton";
-		var responseVis = usr.hasInvited ? "visible" : "hidden";
-		var firstLine = "<button class='"+inviteClass+"' onclick=\"findPlayers.invite('"+usr.Id+"')\">Play!</button>"+usr.nick;
-		var secondLine = "<button class='activebutton' onclick=\"findPlayers.accept('"+usr.Id+"')\">Accept</button> <button class='activebutton' onclick=\"findPlayers.decline('"+usr.Id+"')\">Decline</button>";
-		return "<div class='player-column'><div>"+firstLine+"</div><div style='visibility: "+responseVis+"'>"+secondLine+"</div></div>";
+		var inviteClass = usr.isBusy || usr.declined || inviteSentGlobal ? "busybutton" : "activebutton";
+		var waitVis = usr.inviteSent ? "visible" : "hidden";
+		var responseVis = usr.inviteRcv || usr.declined ? "visible" : "hidden";
+		var waitGif =  "<img height='10' width='30' src='img/wait.gif' style='visibility: " + waitVis + "; margin-right:5px'>";
+		var inviteButton = "<button class='" + inviteClass + "' onclick=\"findPlayers.invite('" + usr.Id + "')\">Invite</button>";
+		var leftPad = "<span style='margin-left:35'>";
+		var acceptButton = "<button class='activebutton' onclick=\"findPlayers.accept('" + usr.Id + "')\">Accept</button>";
+		var declineButton = "<button class='activebutton' onclick=\"findPlayers.decline('" + usr.Id + "')\">Decline</button>";
+		var declineMsg = "Invitation Declined :(<button class='activeButton' style='visibility: hidden'></button>";
+		var secondLine = usr.declined ? leftPad + declineMsg : leftPad + acceptButton + declineButton;
+		return "<div class='player-column'><div>" + waitGif + inviteButton + usr.nick + "</div><div style='visibility: " + responseVis + "'>" + secondLine + "</div></div>";
 	}
 
 	// Public functions
@@ -131,6 +145,9 @@ var findPlayers = (function() {
 			      refreshUsers();
 		      },
 		invite: function(otherId) {
+				if (inviteSentGlobal) {
+					return;
+				}
 				// Flush game q
 				turnQHandler.q.clear();
 				idYou = otherId;
@@ -139,23 +156,25 @@ var findPlayers = (function() {
 				xPosMe = pair[0];
 				xPosYou = pair[1];
 				divs = genDivisors();
+				inviteSentGlobal = true;
+				selectionUsers.forEach(function(u) {if (u.Id == idYou) u.inviteSent = true;});
+				refreshUsers();
 				connect.sendMsg(idYou, mkInvite({divs: divs, xPosMe: xPosMe, xPosYou: xPosYou}));
-				gameStarted = true;
 			},
 		accept: function(otherId) {
 				// Flush game q
 				turnQHandler.q.clear();
 				idYou = otherId;
-				gameStarted = true;
+				inviteSentGlobal = true;
 				connect.sendMsg(otherId, mkAccept());
 				playGameState();
 				selectionUsers.forEach(function(u) {if (u.Id != idYou) connect.sendMsg(u.Id, new BusyMsg(true));});
 				tankGame = mkTankGame();
-				tankGame.initGame(idMe, idYou, xPosMe, xPosYou, connect, divs, turnQHandler);
+				tankGame.init(idMe, idYou, xPosMe, xPosYou, connect, divs, turnQHandler);
 			},
 		decline: function(otherId) {
 				 connect.sendMsg(otherId, mkDecline());
-				 selectionUsers.forEach(function(u) {if (u.Id == otherId) u.hasInvited = false;});
+				 selectionUsers.forEach(function(u) {if (u.Id == otherId) u.inviteRcv = false;});
 				 refreshUsers();
 			 }
 	}

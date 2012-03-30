@@ -44,42 +44,47 @@ function mkTankGame() {
 	// Frame rate tracking 
 	var lastCycle;
 	var thisCycle;
+	var loopId;
 	// Display toggle for nerdy info
 	var devMode = false;
 
 	return {
-		initGame : function(idMe, idYou, xPosMe, xPosYou, cnct, divs, turnQHandler) {
-				   console.log(idMe);
-				   console.log(idYou);
-				   document.onkeydown = captureKeydown;
-				   document.onkeyup = captureKeyup;
-				   turnQ = turnQHandler.q;
-				   lastCycle = new Date().getTime();
-				   thisCycle = new Date().getTime();
-				   var tankCanvas = document.getElementById("tank");
-				   var missileCanvas = document.getElementById("missile");
-				   var terrainCanvas = document.getElementById("terrain");
-				   var bgCanvas = document.getElementById("background");
-				   tankCtxt = tankCanvas.getContext("2d");
-				   missileCtxt = missileCanvas.getContext("2d");
-				   terrainCtxt = terrainCanvas.getContext("2d");
-				   bgCtxt = bgCanvas.getContext("2d");
-				   canvasHeight = tankCanvas.height;
-				   canvasWidth = tankCanvas.width;
-				   connect = cnct;
-				   terrain = new Terrain(canvasWidth, canvasHeight, divs);
-				   keybindings = new KeyBindings(87,83,65,68,70);
-				   playerMe = new Player(idMe, xPosMe, "Player1", turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health);
-				   playerYou = new Player(idYou, xPosYou, "Player2", turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health);
-				   explosionList = new LinkedList();
-				   missileList = new LinkedList();
-				   launchList = new LinkedList();
-				   playerList = new LinkedList();
-				   playerList.append(playerMe);
-				   playerList.append(playerYou);
-				   initRender();
-				   setInterval(loop, framePause);
-			   }
+		init : function(idMe, idYou, xPosMe, xPosYou, cnct, divs, turnQHandler) {
+			       console.log(idMe);
+			       console.log(idYou);
+			       document.onkeydown = captureKeydown;
+			       document.onkeyup = captureKeyup;
+			       turnQ = turnQHandler.q;
+			       lastCycle = new Date().getTime();
+			       thisCycle = new Date().getTime();
+			       var tankCanvas = document.getElementById("tank");
+			       var missileCanvas = document.getElementById("missile");
+			       var terrainCanvas = document.getElementById("terrain");
+			       var bgCanvas = document.getElementById("background");
+			       tankCtxt = tankCanvas.getContext("2d");
+			       missileCtxt = missileCanvas.getContext("2d");
+			       terrainCtxt = terrainCanvas.getContext("2d");
+			       bgCtxt = bgCanvas.getContext("2d");
+			       canvasHeight = tankCanvas.height;
+			       canvasWidth = tankCanvas.width;
+			       connect = cnct;
+			       terrain = new Terrain(canvasWidth, canvasHeight, divs);
+			       keybindings = new KeyBindings(87,83,65,68,70);
+			       playerMe = new Player(idMe, xPosMe, "Player1", turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health);
+			       playerYou = new Player(idYou, xPosYou, "Player2", turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health);
+			       explosionList = new LinkedList();
+			       missileList = new LinkedList();
+			       launchList = new LinkedList();
+			       playerList = new LinkedList();
+			       playerList.append(playerMe);
+			       playerList.append(playerYou);
+			       initRender();
+			       loopId = setInterval(loop, framePause);
+		       },
+		     kill : function() {
+				    clearInterval(loopId);
+			    }
+
 	}
 
 	function initRender() {
