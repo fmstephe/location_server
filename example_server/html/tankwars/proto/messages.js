@@ -5,16 +5,20 @@ function StartMsg(startOp, defs) {
 	this.defs = defs;
 }
 
-function mkStartReq(defs) {
+function mkInvite(defs) {
 	return new StartMsg("start", defs);
 }
 
-function mkStartAccept() {
+function mkAccept() {
 	return new StartMsg("accept");
 }
 
-function mkStartEngaged() {
+function mkEngaged() {
 	return new StartMsg("engaged");
+}
+
+function mkDecline() {
+	return new StartMsg("decline");
 }
 
 // Message used to communicate a player's move each turn

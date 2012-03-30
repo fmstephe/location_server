@@ -1,4 +1,4 @@
-function tankGame() {
+function mkTankGame() {
 	// Global Constants
 	var host = "178.79.176.206";
 	var maxPower = 100;
@@ -113,7 +113,7 @@ function tankGame() {
 			missileList.forEach(function(m) {updateMissile(m);});
 			explosionList.forEach(function(e) {updateExplosion(e);});
 			// Check the turnQ to see if new turn messages have arrived
-			turnQ.forEach(function(msg) {launchList.append(msg.Content.player);});
+			turnQ.forEach(function(msg) {if (msg.From == playerYou) launchList.append(msg.Content.player);});
 			turnQ.clear();
 			if (launchList.length() == playerList.size) {
 				launchList.forEach(function(p) {launchMissile(p);});

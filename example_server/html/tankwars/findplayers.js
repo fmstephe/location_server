@@ -7,6 +7,7 @@ var findPlayers = (function() {
 	var xPosMe, xPosYou;
 	var divs;
 	var nickname = "anonymous";
+	var tankGame;
 
 	var locHandler = {
 		handleLoc: function(loc) {
@@ -14,7 +15,7 @@ var findPlayers = (function() {
 				   var usrInfo = loc;
 				   if (op == "sAdd" || op == "sNearby" || op == "sVisible") {
 					   usrInfo.nick = "anonymous";
-					   usrInfo.buttonClass = "activebutton";
+					   usrInfo.isBusy = false;
 					   selectionUsers.append(usrInfo);
 					   connect.sendMsg(usrInfo.Id, new NameReq());
 					   connect.sendMsg(usrInfo.Id, new BusyReq());
@@ -36,28 +37,28 @@ var findPlayers = (function() {
 						   if (gameStarted) {
 							   // If the start msg is from the same person we are currently inviting this will cause deadlock
 							   // Need to break the deadlock by ordering user-ids and breaking the tie
-							   connect.sendMsg(from, mkStartEnaged());
+							   connect.sendMsg(from, mkEnaged());
 						   } else {
-							   connect.sendMsg(from, mkStartAccept());
-							   idYou = from;
 							   xPosMe = msg.Content.defs.xPosYou;
 							   xPosYou = msg.Content.defs.xPosMe;
 							   divs = msg.Content.defs.divs;
-							   gameStarted = true;
-							   playGameState();
-							   selectionUsers.forEach(function(u) {if (u.Id != from){connect.sendMsg(u.Id, new BusyMsg(true));}});
-							   tankGame().initGame(idMe, from, xPosMe, xPosYou, connect, divs, turnQHandler);
+							   selectionUsers.forEach(function(u) {if (u.Id == from) u.hasInvited = true});
+							   refreshUsers();
 						   }
 					   }
 					   if (startOp == "engaged") {
 						   gameStarted = false;
-						   selectionUsers.forEach(function(u) {if (u.Id == from) {u.buttonClass = 'busyButton'}});
-						   refreshPlayers();
+						   selectionUsers.forEach(function(u) {if (u.Id == from) u.isBusy = true;});
+						   refreshUsers();
+					   }
+					   if (startOp == "declined") {
+						   gameStarted = false;
 					   }
 					   if (startOp == "accept") {
 						   playGameState();
-						   selectionUsers.forEach(function(u) {if (u.Id != from){connect.sendMsg(u.Id, new BusyMsg(true));}});
-						   tankGame().initGame(idMe, from, xPosMe, xPosYou, connect, divs, turnQHandler);
+						   selectionUsers.forEach(function(u) {if (u.Id != from)connect.sendMsg(u.Id, new BusyMsg(true));});
+						   tankGame = mkTankGame();
+						   tankGame.initGame(idMe, from, xPosMe, xPosYou, connect, divs, turnQHandler);
 					   }
 				   }
 			   }
@@ -67,11 +68,7 @@ var findPlayers = (function() {
 		handleMsg: function(msg) {
 				   if (msg.Content.isBusyMsg) {
 					   var from = msg.From;
-					   if (msg.Content.isBusy) {
-						   selectionUsers.forEach(function(u) {if (u.Id == from) {u.buttonClass = "busybutton"}});
-					   } else {
-						   selectionUsers.forEach(function(u) {if (u.Id == from) {u.buttonClass = "activebutton"}});
-					   }
+					   selectionUsers.forEach(function(u) {if (u.Id == from) u.isBusy = msg.Content.isBusy});
 					   refreshUsers();
 				   }
 			   }
@@ -92,29 +89,28 @@ var findPlayers = (function() {
 				   if (msg.Content.isNameReq) {
 					   connect.sendMsg(from, new NameResp(nickname));
 				   } else if (msg.Content.isNameResp) {
-					   selectionUsers.forEach(function(u) {if (u.Id == from) {u.nick = msg.Content.nick; u.phrase = phrases[r(phrases.length-1)];}});
+					   selectionUsers.forEach(function(u) {if (u.Id == from) u.nick = msg.Content.nick; u.phrase = phrases[r(phrases.length-1)];});
 				   }
 				   refreshUsers();
 			   }
 	}
 
 	var refreshUsers = function() {
-		users = "";
-		selectionUsers.forEach(function(u) {users += userLiLink(u)});
-		document.getElementById("player-list").innerHTML = users;
+		var users = "";
+		if (selectionUsers.length() > 0) {
+			selectionUsers.forEach(function(u) {users += userLiLink(u)});
+		} else {
+			users = "<div class='player-column'>There's no one nearby to play with :(</div>";
+		}
+		document.getElementById("player-div").innerHTML = users;
 	}
 
 	var userLiLink = function(usr) {
-		return "<li><button class='"+usr.buttonClass+" left-text-button' width='50px' type='button' onclick=\"findPlayers.startGame('"+usr.Id+"')\">"+formatNick(usr.nick)+"</button></li>";
-	}
-
-	function formatNick(nick) {
-		var lim = 13;
-		if (nick.length > lim) {
-			return nick.substring(0,lim-3) + "..."
-		} else {
-			return nick;
-		}
+		var inviteClass = usr.isBusy ? "busybutton" : "activebutton";
+		var responseVis = usr.hasInvited ? "visible" : "hidden";
+		var firstLine = "<button class='"+inviteClass+"' onclick=\"findPlayers.invite('"+usr.Id+"')\">Play!</button>"+usr.nick;
+		var secondLine = "<button class='activebutton' onclick=\"findPlayers.accept('"+usr.Id+"')\">Accept</button> <button class='activebutton' onclick=\"findPlayers.decline('"+usr.Id+"')\">Decline</button>";
+		return "<div class='player-column'><div>"+firstLine+"</div><div style='visibility: "+responseVis+"'>"+secondLine+"</div></div>";
 	}
 
 	// Public functions
@@ -132,16 +128,35 @@ var findPlayers = (function() {
 			      connect = new Connect(msgHandlers, locHandlers);
 			      console.log("User Id: "+connect.usrId);
 			      idMe = connect.usrId;
+			      refreshUsers();
 		      },
-		startGame: function(otherId) {
-				   idYou = otherId;
-				   var terrainCanvas = document.getElementById("terrain");
-				   var pair = positionPair(terrainCanvas.width);
-				   xPosMe = pair[0];
-				   xPosYou = pair[1];
-				   divs = genDivisors();
-				   connect.sendMsg(idYou, new StartMsg("start", {divs: divs, xPosMe: xPosMe, xPosYou: xPosYou}));
-				   gameStarted = true;
-			   },
+		invite: function(otherId) {
+				// Flush game q
+				turnQHandler.q.clear();
+				idYou = otherId;
+				var terrainCanvas = document.getElementById("terrain");
+				var pair = positionPair(terrainCanvas.width);
+				xPosMe = pair[0];
+				xPosYou = pair[1];
+				divs = genDivisors();
+				connect.sendMsg(idYou, mkInvite({divs: divs, xPosMe: xPosMe, xPosYou: xPosYou}));
+				gameStarted = true;
+			},
+		accept: function(otherId) {
+				// Flush game q
+				turnQHandler.q.clear();
+				idYou = otherId;
+				gameStarted = true;
+				connect.sendMsg(otherId, mkAccept());
+				playGameState();
+				selectionUsers.forEach(function(u) {if (u.Id != idYou) connect.sendMsg(u.Id, new BusyMsg(true));});
+				tankGame = mkTankGame();
+				tankGame.initGame(idMe, idYou, xPosMe, xPosYou, connect, divs, turnQHandler);
+			},
+		decline: function(otherId) {
+				 connect.sendMsg(otherId, mkDecline());
+				 selectionUsers.forEach(function(u) {if (u.Id == otherId) u.hasInvited = false;});
+				 refreshUsers();
+			 }
 	}
 })();

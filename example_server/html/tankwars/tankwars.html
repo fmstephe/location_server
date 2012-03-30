@@ -20,8 +20,15 @@
 
 		<style type="text/css">
 
+			.player-column {
+				margin-left: 40%;
+				margin-right: 40%;
+			       	overflow: hidden;
+			       	text-overflow: ellipsis; 
+				white-space: nowrap;
+			}
+
 			.busybutton {
-				width: 150px;
 				white-space: nowrap
 				overflow: hidden;
 				text-overflow: ellipsis;
@@ -38,7 +45,6 @@
 				border:1px solid #e0e0e0;
 				display:inline-block;
 				color:#8f8f8f;
-				font-family:courier new;
 				font-size:15px;
 				font-weight:bold;
 				padding:6px 24px;
@@ -46,11 +52,7 @@
 				text-shadow:1px 1px 0px #c7c7c7;
 				}
 
-				.left-text-button {
-					text-align: left;
-				}
 				.activebutton {
-					width: 150px;
 					white-space: nowrap;
 					overflow: hidden;
 					text-overflow: ellipsis;
@@ -67,7 +69,6 @@
 					border:1px solid #e6e3e6;
 					display:inline-block;
 					color:#5c5a5c;
-					font-family:courier new;
 					font-size:15px;
 					font-weight:bold;
 					padding:6px 24px;
@@ -86,30 +87,17 @@
 				}
 			</style>
 		</head>
+
 		<body onload="enterNickState();">
 			<div id ="intro-div">
 				<div id="spacer-div" style="height: 200px"></div>
 
 				<div id="nick-div"> 
-					<table style="margin-left: auto; margin-right: auto; vertical-align: middle">
-						<tbody>
-							<tr>
-								<td align="center">
-									<h1>Enter A Nickname</h1>
-								</td>
-							</tr>
-							<tr>
-								<td align="center">
-									<input type="text" name="nick" id="nickname"/>
-									<button class="activebutton" type="button" onclick="findPlayersState();findPlayers.main();">Start!</button>
-								</td>
-							</tr>
-						</tbody>
-					</table>
+					<div class="player-column"><h1>Enter A Nickname</h1></div>
+					<div class="player-column"><input type="text" name="nick" id="nickname"/><button class="activebutton" type="button" onclick="findPlayersState();findPlayers.main();">Start!</button></div>
 				</div>
 
-				<div id="player-div" align="center">
-					<ol id="player-list" style="list-style-type:none"></ol>
+				<div id="player-div">
 				</div>
 			</div>
 
