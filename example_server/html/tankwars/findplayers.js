@@ -108,7 +108,7 @@ var findPlayers = (function() {
 		if (selectionUsers.length() > 0) {
 			selectionUsers.forEach(function(u) {users += userLiLink(u)});
 		} else {
-			users = "<div class='player-column'>There's no one nearby to play with :(</div>";
+			users = "<div class='player-column' style='text-align: center'>There's nobody nearby :(</div>";
 		}
 		document.getElementById("player-div").innerHTML = users;
 	}
@@ -130,7 +130,7 @@ var findPlayers = (function() {
 	// Public functions
 	return {
 		main: function() {
-			      nickname = document.getElementById('nickname').value;
+			      nickname = document.getElementById('nick-input').value;
 			      var locHandlers = new LinkedList();
 			      var msgHandlers = new LinkedList();
 			      locHandlers.append(locHandler);
@@ -144,6 +144,7 @@ var findPlayers = (function() {
 			      idMe = connect.usrId;
 			      refreshUsers();
 		      },
+		
 		invite: function(otherId) {
 				if (inviteSentGlobal) {
 					return;
@@ -151,8 +152,7 @@ var findPlayers = (function() {
 				// Flush game q
 				turnQHandler.q.clear();
 				idYou = otherId;
-				var terrainCanvas = document.getElementById("terrain");
-				var pair = positionPair(terrainCanvas.width);
+				var pair = positionPair(terrainWidth);
 				xPosMe = pair[0];
 				xPosYou = pair[1];
 				divs = genDivisors();
@@ -161,6 +161,7 @@ var findPlayers = (function() {
 				refreshUsers();
 				connect.sendMsg(idYou, mkInvite({divs: divs, xPosMe: xPosMe, xPosYou: xPosYou}));
 			},
+
 		accept: function(otherId) {
 				// Flush game q
 				turnQHandler.q.clear();
@@ -172,6 +173,7 @@ var findPlayers = (function() {
 				tankGame = mkTankGame();
 				tankGame.init(idMe, idYou, xPosMe, xPosYou, connect, divs, turnQHandler);
 			},
+
 		decline: function(otherId) {
 				 connect.sendMsg(otherId, mkDecline());
 				 selectionUsers.forEach(function(u) {if (u.Id == otherId) u.inviteRcv = false;});
