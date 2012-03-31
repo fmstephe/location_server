@@ -23,6 +23,16 @@ function mkTankGame() {
 	var terrainCtxt;
 	var bgCtxt;
 
+	var tankCanvas;
+	var missileCanvas;
+	var terrainCanvas;
+	var bgCanvas;
+
+	var height;
+	var width;
+	var oldHeight;
+	var oldWidth;
+
 	// Network services
 	var connect;
 
@@ -50,7 +60,7 @@ function mkTankGame() {
 	var devMode = false;
 
 	return {
-		init : function(idMe, idYou, xPosMe, xPosYou, cnct, divs, turnQHandler) {
+		init : function(idMe, idYou, xPosMe, xPosYou, cnct, divs, turnQHandler, parentId) {
 			       console.log(idMe);
 			       console.log(idYou);
 			       document.onkeydown = captureKeydown;
@@ -59,10 +69,10 @@ function mkTankGame() {
 			       turnQ = turnQHandler.q;
 			       lastCycle = new Date().getTime();
 			       thisCycle = new Date().getTime();
-			       var tankCanvas = document.getElementById("tank");
-			       var missileCanvas = document.getElementById("missile");
-			       var terrainCanvas = document.getElementById("terrain");
-			       var bgCanvas = document.getElementById("background");
+			       tankCanvas = document.getElementById("tank");
+			       missileCanvas = document.getElementById("missile");
+			       terrainCanvas = document.getElementById("terrain");
+			       bgCanvas = document.getElementById("background");
 			       tankCtxt = tankCanvas.getContext("2d");
 			       missileCtxt = missileCanvas.getContext("2d");
 			       terrainCtxt = terrainCanvas.getContext("2d");
@@ -93,6 +103,7 @@ function mkTankGame() {
 	}
 
 	function initRender() {
+		scaleCanvas();
 		tankCtxt.fillStyle = "rgba(255,30,40,1.0)";
 		tankCtxt.strokeStyle = "rgba(255,255,255,1.0)";
 		tankCtxt.lineWidth = 5;
@@ -319,6 +330,16 @@ function mkTankGame() {
 	}
 
 	function scaleCanvas() {
+		var viewWidth = window.innerWidth - 10;
+		var viewHeight = window.innerHeight - 10;
 
+		tankCanvas.style.width = viewWidth;
+		tankCanvas.style.height = viewHeight;
+		missileCanvas.style.width = viewWidth;
+		missileCanvas.style.height = viewHeight;
+		terrainCanvas.style.width = viewWidth;
+		terrainCanvas.style.height = viewHeight;
+		bgCanvas.style.width = viewWidth;
+		bgCanvas.style.height = viewHeight;
 	}
 }
