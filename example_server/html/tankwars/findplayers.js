@@ -3,7 +3,7 @@ var findPlayers = (function() {
 	var phrases = ["Kill", "Destroy", "Annihilate", "Devastate", "Massacre", "Defeat", "Bludgen", "Explode", "Defile", "Humiliate", "Crush", "Murder", "Smash", "Assassinate"];
 	var selectionUsers = new LinkedList();
 	var connect;
-	var inviteSentGlobal = false;
+	var committedToGame = false;
 	var xPosMe, xPosYou;
 	var divs;
 	var nickname = "anonymous";
@@ -22,8 +22,7 @@ var findPlayers = (function() {
 				   } else if (op == "sRemove" || op == "sNotVisible") {
 					   if (tankGame && idYou == usrInfo.Id) {
 						   tankGame.kill();
-						   inviteSentGlobal = false;
-						   findPlayersState();
+						   escapeGame();
 					   }
 					   selectionUsers.filter(function(u) {return usrInfo.Id == u.Id});
 					   refreshUsers();
@@ -39,7 +38,7 @@ var findPlayers = (function() {
 					   var from = msg.From;
 					   var startOp = msg.Content.startOp;
 					   if (startOp == "start") {
-						   if (inviteSentGlobal) {
+						   if (committedToGame) {
 							   // If the start msg is from the same person we are currently inviting this will cause deadlock
 							   // Need to break the deadlock by ordering user-ids and breaking the tie
 							   connect.sendMsg(from, mkEnaged());
@@ -52,21 +51,25 @@ var findPlayers = (function() {
 						   }
 					   }
 					   if (startOp == "engaged") {
-						   inviteSentGlobal = false;
+						   committedToGame = false;
 						   selectionUsers.forEach(function(u) {if (u.Id == from) u.isBusy = true; u.inviteSent = false;});
+						   selectionUsers.forEach(function(u) {connect.sendMsg(u.Id, new BusyMsg(false));});
 						   refreshUsers();
 					   }
 					   if (startOp == "decline") {
-						   inviteSentGlobal = false;
+						   committedToGame = false;
 						   selectionUsers.forEach(function(u) {if (u.Id == from) {u.inviteSent = false; u.declined = true;}});
+						   selectionUsers.forEach(function(u) {connect.sendMsg(u.Id, new BusyMsg(false));});
 						   setTimeout(function(){selectionUsers.forEach(function(u) {if (u.Id == from) {u.declined = false}}); refreshUsers();}, 2000);
 						   refreshUsers();
 					   }
 					   if (startOp == "accept") {
 						   playGameState();
-						   selectionUsers.forEach(function(u) {if (u.Id != from)connect.sendMsg(u.Id, new BusyMsg(true));});
+						   var nickYou;
+						   selectionUsers.forEach(function(u) {if (u.Id == from) u.inviteSent = false;});
+						   selectionUsers.forEach(function(u) {if (u.Id == from) {nickYou = u.nick;}});
 						   tankGame = mkTankGame();
-						   tankGame.init(idMe, from, xPosMe, xPosYou, connect, divs, turnQHandler);
+						   tankGame.init(idMe, from, nickname, nickYou, xPosMe, xPosYou, connect, divs, turnQHandler, escapeGame);
 					   }
 				   }
 			   }
@@ -86,7 +89,7 @@ var findPlayers = (function() {
 		handleMsg: function(msg) {
 				   if (msg.Content.isBusyReq) {
 					   var from = msg.From;
-					   connect.sendMsg(from, new BusyMsg(inviteSentGlobal));
+					   connect.sendMsg(from, new BusyMsg(committedToGame));
 				   }
 			   }
 	}
@@ -103,7 +106,7 @@ var findPlayers = (function() {
 			   }
 	}
 
-	var refreshUsers = function() {
+	function refreshUsers() {
 		var users = "";
 		if (selectionUsers.length() > 0) {
 			selectionUsers.forEach(function(u) {users += userLiLink(u)});
@@ -113,8 +116,8 @@ var findPlayers = (function() {
 		document.getElementById("player-div").innerHTML = users;
 	}
 
-	var userLiLink = function(usr) {
-		var inviteClass = usr.isBusy || usr.declined || inviteSentGlobal ? "busybutton" : "activebutton";
+	function userLiLink(usr) {
+		var inviteClass = usr.isBusy || committedToGame ? "busybutton" : "activebutton";
 		var waitVis = usr.inviteSent ? "visible" : "hidden";
 		var responseVis = usr.inviteRcv || usr.declined ? "visible" : "hidden";
 		var waitGif =  "<img height='10' width='30' src='img/wait.gif' style='visibility: " + waitVis + "; margin-right:5px'>";
@@ -125,6 +128,13 @@ var findPlayers = (function() {
 		var declineMsg = "Invitation Declined :(<button class='activeButton' style='visibility: hidden'></button>";
 		var secondLine = usr.declined ? leftPad + declineMsg : leftPad + acceptButton + declineButton;
 		return "<div class='player-column'><div>" + waitGif + inviteButton + usr.nick + "</div><div style='visibility: " + responseVis + "'>" + secondLine + "</div></div>";
+	}
+
+	function escapeGame() {
+		committedToGame = false;
+		selectionUsers.forEach(function(u) {connect.sendMsg(u.Id, new BusyMsg(false));});
+		findPlayersState();
+		refreshUsers();
 	}
 
 	// Public functions
@@ -144,9 +154,9 @@ var findPlayers = (function() {
 			      idMe = connect.usrId;
 			      refreshUsers();
 		      },
-		
+
 		invite: function(otherId) {
-				if (inviteSentGlobal) {
+				if (committedToGame) {
 					return;
 				}
 				// Flush game q
@@ -156,8 +166,9 @@ var findPlayers = (function() {
 				xPosMe = pair[0];
 				xPosYou = pair[1];
 				divs = genDivisors();
-				inviteSentGlobal = true;
+				committedToGame = true;
 				selectionUsers.forEach(function(u) {if (u.Id == idYou) u.inviteSent = true;});
+				selectionUsers.forEach(function(u) {connect.sendMsg(u.Id, new BusyMsg(true));});
 				refreshUsers();
 				connect.sendMsg(idYou, mkInvite({divs: divs, xPosMe: xPosMe, xPosYou: xPosYou}));
 			},
@@ -166,12 +177,15 @@ var findPlayers = (function() {
 				// Flush game q
 				turnQHandler.q.clear();
 				idYou = otherId;
-				inviteSentGlobal = true;
+				committedToGame = true;
 				connect.sendMsg(otherId, mkAccept());
 				playGameState();
-				selectionUsers.forEach(function(u) {if (u.Id != idYou) connect.sendMsg(u.Id, new BusyMsg(true));});
+				selectionUsers.forEach(function(u) {connect.sendMsg(u.Id, new BusyMsg(true));});
+				var nickYou;
+				selectionUsers.forEach(function(u) {if (u.Id == idYou) {nickYou = u.nick}});
+				selectionUsers.forEach(function(u) {if (u.Id == otherId) u.inviteRcv = false;});
 				tankGame = mkTankGame();
-				tankGame.init(idMe, idYou, xPosMe, xPosYou, connect, divs, turnQHandler);
+				tankGame.init(idMe, idYou, nickname, nickYou, xPosMe, xPosYou, connect, divs, turnQHandler, escapeGame);
 			},
 
 		decline: function(otherId) {

@@ -40,7 +40,7 @@ Player.prototype.setClear = function(ctxt, hgt) {
 }
 
 Player.prototype.shouldRemove = function() {
-	return false;
+	return this.health <= 0;
 }
 
 Player.prototype.render = function(ctxt, hgt) {
