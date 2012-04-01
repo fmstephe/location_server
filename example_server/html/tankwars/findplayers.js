@@ -35,7 +35,7 @@ var findPlayers = (function() {
 				   if (msg.Content.isStartMsg) {
 					   var from = msg.From;
 					   var startOp = msg.Content.startOp;
-					   if (startOp == "start") {
+					   if (startOp == "invite") {
 						   if (committedToGame) {
 							   // If the start msg is from the same person we are currently inviting this will cause deadlock
 							   // Need to break the deadlock by ordering user-ids and breaking the tie
@@ -64,6 +64,7 @@ var findPlayers = (function() {
 						   var nickYou;
 						   nearbyUsers.forEach(function(u) {if (u.Id == from) u.inviteSent = false;});
 						   nearbyUsers.forEach(function(u) {if (u.Id == from) {nickYou = u.nick;}});
+						   clearRequests();
 						   tankGame = mkTankGame();
 						   tankGame.init(idMe, from, nickname, nickYou, xPosMe, xPosYou, connect, divs, turnQHandler, escapeGame);
 					   }
@@ -152,6 +153,10 @@ var findPlayers = (function() {
 		nearbyUsers.forEach(function(u) {connect.sendMsg(u.Id, new BusyMsg(false));});
 	}
 
+	function clearRequests() {
+		nearbyUsers.forEach(function(u) {if (u.inviteRcv) connect.sendMsg(u.Id, mkDecline());});
+	}
+
 	// Public functions
 	return {
 		main: function() {
@@ -198,6 +203,7 @@ var findPlayers = (function() {
 				var nickYou;
 				nearbyUsers.forEach(function(u) {if (u.Id == idYou) {nickYou = u.nick}});
 				nearbyUsers.forEach(function(u) {if (u.Id == otherId) u.inviteRcv = false;});
+				clearRequests();
 				tankGame = mkTankGame();
 				tankGame.init(idMe, idYou, nickname, nickYou, xPosMe, xPosYou, connect, divs, turnQHandler, escapeGame);
 			},

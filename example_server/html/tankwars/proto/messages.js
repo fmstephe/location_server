@@ -6,7 +6,7 @@ function StartMsg(startOp, defs) {
 }
 
 function mkInvite(defs) {
-	return new StartMsg("start", defs);
+	return new StartMsg("invite", defs);
 }
 
 function mkAccept() {
