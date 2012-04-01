@@ -1,6 +1,5 @@
 var findPlayers = (function() {
 
-	var phrases = ["Kill", "Destroy", "Annihilate", "Devastate", "Massacre", "Defeat", "Bludgen", "Explode", "Defile", "Humiliate", "Crush", "Murder", "Smash", "Assassinate"];
 	var selectionUsers = new LinkedList();
 	var connect;
 	var committedToGame = false;
@@ -100,7 +99,7 @@ var findPlayers = (function() {
 				   if (msg.Content.isNameReq) {
 					   connect.sendMsg(from, new NameResp(nickname));
 				   } else if (msg.Content.isNameResp) {
-					   selectionUsers.forEach(function(u) {if (u.Id == from) u.nick = msg.Content.nick; u.phrase = phrases[r(phrases.length-1)];});
+					   selectionUsers.forEach(function(u) {if (u.Id == from) u.nick = msg.Content.nick;});
 				   }
 				   refreshUsers();
 			   }
