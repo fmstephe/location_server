@@ -87,8 +87,8 @@ function mkTankGame() {
 			       gameOverFun = goFun;
 			       terrain = new Terrain(terrainWidth, terrainHeight, divs);
 			       keybindings = new KeyBindings(87,83,65,68,70);
-			       playerMe = new Player(idMe, xPosMe, nickMe, turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health);
-			       playerYou = new Player(idYou, xPosYou, nickYou, turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health);
+			       playerMe = new Player(idMe, xPosMe, nickMe, turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health, false);
+			       playerYou = new Player(idYou, xPosYou, nickYou, turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health, true);
 			       explosionList = new LinkedList();
 			       missileList = new LinkedList();
 			       launchList = new LinkedList();
