@@ -1,6 +1,6 @@
 var findPlayers = (function() {
 
-	var selectionUsers = new LinkedList();
+	var nearbyUsers = new LinkedList();
 	var connect;
 	var committedToGame = false;
 	var xPosMe, xPosYou;
@@ -13,9 +13,8 @@ var findPlayers = (function() {
 				   var op = loc.Op;
 				   var usrInfo = loc;
 				   if (op == "sAdd" || op == "sNearby" || op == "sVisible") {
-					   usrInfo.nick = "anonymous";
 					   usrInfo.isBusy = false;
-					   selectionUsers.append(usrInfo);
+					   nearbyUsers.append(usrInfo);
 					   connect.sendMsg(usrInfo.Id, new NameReq());
 					   connect.sendMsg(usrInfo.Id, new BusyReq());
 				   } else if (op == "sRemove" || op == "sNotVisible") {
@@ -23,7 +22,7 @@ var findPlayers = (function() {
 						   tankGame.kill();
 						   escapeGame();
 					   }
-					   selectionUsers.filter(function(u) {return usrInfo.Id == u.Id});
+					   nearbyUsers.filter(function(u) {return usrInfo.Id == u.Id});
 					   refreshUsers();
 				   }
 			   }
@@ -45,26 +44,26 @@ var findPlayers = (function() {
 							   xPosMe = msg.Content.defs.xPosYou;
 							   xPosYou = msg.Content.defs.xPosMe;
 							   divs = msg.Content.defs.divs;
-							   selectionUsers.forEach(function(u) {if (u.Id == from) u.inviteRcv = true});
+							   nearbyUsers.forEach(function(u) {if (u.Id == from) u.inviteRcv = true});
 							   refreshUsers();
 						   }
 					   }
 					   if (startOp == "engaged") {
 						   uncommitFromGame();
-						   selectionUsers.forEach(function(u) {if (u.Id == from) u.isBusy = true; u.inviteSent = false;});
+						   nearbyUsers.forEach(function(u) {if (u.Id == from) u.isBusy = true; u.inviteSent = false;});
 						   refreshUsers();
 					   }
 					   if (startOp == "decline") {
 						   uncommitFromGame();
-						   selectionUsers.forEach(function(u) {if (u.Id == from) {u.inviteSent = false; u.declined = true;}});
-						   setTimeout(function(){selectionUsers.forEach(function(u) {if (u.Id == from) {u.declined = false}}); refreshUsers();}, 2000);
+						   nearbyUsers.forEach(function(u) {if (u.Id == from) {u.inviteSent = false; u.declined = true;}});
+						   setTimeout(function(){nearbyUsers.forEach(function(u) {if (u.Id == from) {u.declined = false}}); refreshUsers();}, 2000);
 						   refreshUsers();
 					   }
 					   if (startOp == "accept") {
 						   playGameState();
 						   var nickYou;
-						   selectionUsers.forEach(function(u) {if (u.Id == from) u.inviteSent = false;});
-						   selectionUsers.forEach(function(u) {if (u.Id == from) {nickYou = u.nick;}});
+						   nearbyUsers.forEach(function(u) {if (u.Id == from) u.inviteSent = false;});
+						   nearbyUsers.forEach(function(u) {if (u.Id == from) {nickYou = u.nick;}});
 						   tankGame = mkTankGame();
 						   tankGame.init(idMe, from, nickname, nickYou, xPosMe, xPosYou, connect, divs, turnQHandler, escapeGame);
 					   }
@@ -76,7 +75,7 @@ var findPlayers = (function() {
 		handleMsg: function(msg) {
 				   if (msg.Content.isBusyMsg) {
 					   var from = msg.From;
-					   selectionUsers.forEach(function(u) {if (u.Id == from) u.isBusy = msg.Content.isBusy});
+					   nearbyUsers.forEach(function(u) {if (u.Id == from) u.isBusy = msg.Content.isBusy});
 					   refreshUsers();
 				   }
 			   }
@@ -95,9 +94,9 @@ var findPlayers = (function() {
 		handleMsg: function(msg) {
 				   var from = msg.From;
 				   if (msg.Content.isNameResp) {
-					   selectionUsers.forEach(function(u) {if (u.Id == from) u.nick = msg.Content.nick;});
+					   nearbyUsers.forEach(function(u) {if (u.Id == from) u.nick = msg.Content.nick;});
+					   refreshUsers();
 				   }
-				   refreshUsers();
 			   }
 	}
 
@@ -111,9 +110,12 @@ var findPlayers = (function() {
 	}
 
 	function refreshUsers() {
+		console.log("refresh users");
 		var users = "";
-		if (selectionUsers.length() > 0) {
-			selectionUsers.forEach(function(u) {users += userLiLink(u)});
+		var count = 0;
+		nearbyUsers.forEach(function(u) {if (u.nick) count++;});
+		if (count > 0) {
+			nearbyUsers.forEach(function(u) {if (u.nick) users += userLiLink(u);});
 		} else {
 			users = "<div class='player-column' style='text-align: center'>There's nobody nearby :(</div>";
 		}
@@ -142,12 +144,12 @@ var findPlayers = (function() {
 
 	function commitToGame() {
 		committedToGame = true;
-		selectionUsers.forEach(function(u) {connect.sendMsg(u.Id, new BusyMsg(true));});
+		nearbyUsers.forEach(function(u) {connect.sendMsg(u.Id, new BusyMsg(true));});
 	}
 
 	function uncommitFromGame() {
 		committedToGame = false;
-		selectionUsers.forEach(function(u) {connect.sendMsg(u.Id, new BusyMsg(false));});
+		nearbyUsers.forEach(function(u) {connect.sendMsg(u.Id, new BusyMsg(false));});
 	}
 
 	// Public functions
@@ -181,7 +183,7 @@ var findPlayers = (function() {
 				xPosYou = pair[1];
 				divs = genDivisors();
 				commitToGame();
-				selectionUsers.forEach(function(u) {if (u.Id == idYou) u.inviteSent = true;});
+				nearbyUsers.forEach(function(u) {if (u.Id == idYou) u.inviteSent = true;});
 				refreshUsers();
 				connect.sendMsg(idYou, mkInvite({divs: divs, xPosMe: xPosMe, xPosYou: xPosYou}));
 			},
@@ -194,15 +196,15 @@ var findPlayers = (function() {
 				commitToGame();
 				playGameState();
 				var nickYou;
-				selectionUsers.forEach(function(u) {if (u.Id == idYou) {nickYou = u.nick}});
-				selectionUsers.forEach(function(u) {if (u.Id == otherId) u.inviteRcv = false;});
+				nearbyUsers.forEach(function(u) {if (u.Id == idYou) {nickYou = u.nick}});
+				nearbyUsers.forEach(function(u) {if (u.Id == otherId) u.inviteRcv = false;});
 				tankGame = mkTankGame();
 				tankGame.init(idMe, idYou, nickname, nickYou, xPosMe, xPosYou, connect, divs, turnQHandler, escapeGame);
 			},
 
 		decline: function(otherId) {
 				 connect.sendMsg(otherId, mkDecline());
-				 selectionUsers.forEach(function(u) {if (u.Id == otherId) u.inviteRcv = false;});
+				 nearbyUsers.forEach(function(u) {if (u.Id == otherId) u.inviteRcv = false;});
 				 refreshUsers();
 			 }
 	}
