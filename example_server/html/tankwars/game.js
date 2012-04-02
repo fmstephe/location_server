@@ -1,5 +1,5 @@
-var terrainHeight = 640;
-var terrainWidth = 960;
+var terrainHeight = 640 * 2;
+var terrainWidth = 960 * 2;
 
 function mkTankGame() {
 	// Global Constants
@@ -81,8 +81,6 @@ function mkTankGame() {
 			       missileCtxt = missileCanvas.getContext("2d");
 			       terrainCtxt = terrainCanvas.getContext("2d");
 			       bgCtxt = bgCanvas.getContext("2d");
-			       terrainHeight = tankCanvas.height;
-			       terrainWidth = tankCanvas.width;
 			       connect = cnct;
 			       gameOverFun = goFun;
 			       terrain = new Terrain(terrainWidth, terrainHeight, divs);
@@ -184,7 +182,11 @@ function mkTankGame() {
 	function updatePlayer(player) {
 		hr = terrain.heightArray;
 		player.y = hr[player.x];
+		if (player.y <= 0) {
+			player.health = 0;
+		}
 		if (player === playerMe && missileList.length() == 0 && launchList.satAll(function(e){return player.id != e.id})) {
+			player.animate = true;
 			if (keybindings.left) {
 				player.rotateLeft();
 			}
@@ -199,6 +201,7 @@ function mkTankGame() {
 			}
 			if (keybindings.firing) {
 				launchList.append(player);
+				player.animate = false;
 				connect.sendMsg(idYou, new PlayerMsg(player));
 			}
 		}
@@ -241,8 +244,11 @@ function mkTankGame() {
 				return;
 			}
 		}
-		if (missile.x > terrainWidth || missile.x < 0 || missile.y < 0) {
+		if (missile.x > terrainWidth || missile.x < 0) {
 			missile.remove();
+		}
+		if (missile.y <= 0) {
+			explodeMissile(missile,endX,0);
 		}
 	}
 
