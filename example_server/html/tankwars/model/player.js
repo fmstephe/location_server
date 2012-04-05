@@ -49,33 +49,38 @@ Player.prototype.shouldRemove = function() {
 
 Player.prototype.render = function(ctxt, hgt) {
 	if (this.health > 0) {
-		var r, g, b;
+		var r, g, b, d;
 		if (this.remote) {
 			r = 255*this.health/this.maxHealth;
 			g = 50*this.health/this.maxHealth;
 		       	b = 50*this.health/this.maxHealth;
+		       	d = 255;//*this.health/this.maxHealth;
 		} else {
 			r = 50*this.health/this.maxHealth;
 			g = 50*this.health/this.maxHealth;
 		       	b = 255*this.health/this.maxHealth;
+		       	d = 255*this.health/this.maxHealth;
 			if (this.animate) {
 				var mult = (Math.cos(this.cycle)+1.5)/ 2;
 				this.cycle = this.cycle+0.2;
 				r = r*mult;
 				g = g*mult;
 				b = b*mult;
+				d = d*mult;
 			}
 		}
 		r = rgbLim(r);
 		g = rgbLim(g);
 		b = rgbLim(b);
+		d = rgbLim(d);
+		// Do tank body
 		ctxt.fillStyle = "rgba("+r+","+g+","+b+",1.0)";
-		var d = Math.floor(255*this.health/this.maxHealth);
-		ctxt.strokeStyle = "rgba("+d+","+d+","+d+",1.0)";
 		ctxt.beginPath();
 		ctxt.arc(this.x, hgt-this.y, 10, 0, 2*Math.PI, true);
 		ctxt.closePath();
 		ctxt.fill();
+		// Do turret
+		ctxt.strokeStyle = "rgba("+d+","+d+","+d+",1.0)";
 		turretX = this.x+this.turretLength*Math.sin(this.arc);
 		turretY = hgt-(this.y+(this.turretLength*Math.cos(this.arc)));
 		ctxt.beginPath();
@@ -84,6 +89,7 @@ Player.prototype.render = function(ctxt, hgt) {
 		ctxt.closePath();
 		ctxt.stroke();
 		var powerP = Math.round((this.power/this.maxPower)*100);
+		// Do text
 		ctxt.font = "16pt Calibri-bold";
 		ctxt.fillStyle = "rgba(255,255,255,1.0)";
 		if (!this.remote) ctxt.fillText(powerP+"%", this.x+this.turretLength, hgt-this.y);
