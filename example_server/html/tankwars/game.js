@@ -153,6 +153,7 @@ function mkTankGame() {
 			turnQ.forEach(function(msg) {if (msg.From == playerYou.id) launchList.append(msg.Content.player);});
 			turnQ.clear();
 			if (launchList.length() == playerList.size) {
+				launchList.forEach(function(p) {if (p.id == playerYou.id) playerYou.arc = p.arc});
 				launchList.forEach(function(p) {launchMissile(p);});
 				launchList.clear();
 			}
