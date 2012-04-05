@@ -36,7 +36,7 @@ Player.prototype.rotateRight = function() {
 }
 
 Player.prototype.setClear = function(ctxt, hgt) {
-	var x = this.x - this.turretLength;
+	var x = this.x - (this.turretLength+5);
 	var y = hgt - (this.y + this.turretLength + 5);
 	var w = this.turretLength * 6; // This is a cludge value to allow for clearing power % text
 	var h = this.turretLength * 6;
@@ -85,6 +85,7 @@ Player.prototype.render = function(ctxt, hgt) {
 		ctxt.stroke();
 		var powerP = Math.round((this.power/this.maxPower)*100);
 		ctxt.font = "16pt Calibri-bold";
+		ctxt.fillStyle = "rgba(255,255,255,1.0)";
 		if (!this.remote) ctxt.fillText(powerP+"%", this.x+this.turretLength, hgt-this.y);
 		ctxt.fillText(formatPlayerName(this.name), this.x-this.turretLength, hgt-this.y+this.turretLength+10, 80);
 	}
