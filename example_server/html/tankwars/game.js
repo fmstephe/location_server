@@ -1,15 +1,15 @@
-var terrainHeight = 640 * 2;
-var terrainWidth = 960 * 2;
+var terrainHeight = 640;
+var terrainWidth = 960;
 
 function mkTankGame() {
 	// Global Constants
 	var host = "178.79.176.206";
-	var maxPower = 100;
+	var maxPower = 200;
 	var minPower = 0;
 	var initPower = 50;
-	var powerInc = 1;
+	var powerInc = 2;
 	var health = 100;
-	var gravity = 4;
+	var gravity = 8;
 	var turretLength = 20;
 	var rotateInc = Math.PI/50;
 	var frameRate = 30;
@@ -27,11 +27,6 @@ function mkTankGame() {
 	var missileCanvas;
 	var terrainCanvas;
 	var bgCanvas;
-
-	var height;
-	var width;
-	var oldHeight;
-	var oldWidth;
 
 	// Network services
 	var connect;
@@ -123,8 +118,8 @@ function mkTankGame() {
 		tankCtxt.fillStyle = "rgba(255,30,40,1.0)";
 		tankCtxt.strokeStyle = "rgba(255,255,255,1.0)";
 		tankCtxt.lineWidth = 5;
-		missileCtxt.strokeStyle = "rgba(255,255,255,1.0)";
-		missileCtxt.fillStyle = "rgba(255,0,0,0.8)";
+		missileCtxt.strokeStyle = "rgba(255,255,255,0.3)";
+		missileCtxt.fillStyle = "rgba(255,0,0,1.0)";
 		missileCtxt.lineWidth = 5;
 		terrainCtxt.fillStyle = "rgba(100,100,100,1.0)";
 		bgCtxt.fillStyle = "rgba(0,0,0,1.0)";
@@ -144,7 +139,7 @@ function mkTankGame() {
 			// Filter removable elements from entity lists
 			playerList.filter(function(p) {return p.shouldRemove();});
 			missileList.filter(function(m) {return m.shouldRemove();});
-			explosionList.filter(function(e) {return e.shouldRemove();});
+			var filtered = explosionList.filter(function(e) {return e.shouldRemove();});
 			// Manage game entities
 			playerList.forEach(function(p) {updatePlayer(p);});
 			missileList.forEach(function(m) {updateMissile(m);});
@@ -162,7 +157,11 @@ function mkTankGame() {
 			// Render game entities
 			terrain.render(terrainCtxt);
 			playerList.forEach(function(p){p.render(tankCtxt, terrainHeight)});
-			missileList.forEach(function(m){m.render(missileCtxt, terrainHeight)});
+			if (filtered > 0 && explosionList.size == 0 && missileList.size == 0) {
+				missileCtxt.clearRect(0,0,missileCanvas.width,missileCanvas.height);
+			} else {
+				missileList.forEach(function(m){m.render(missileCtxt, terrainHeight)});
+			}
 			explosionList.forEach(function(e){e.render(missileCtxt, terrainHeight)});
 			terrain.clearMods();
 			if (playerList.length() < 2) {
@@ -217,6 +216,10 @@ function mkTankGame() {
 	}
 
 	function updateMissile(missile) {
+		if (missile.finalFrame) {
+			missile.removed = true;
+			return;
+		}
 		hr = terrain.heightArray;
 		missile.advance();
 		var startX = Math.floor(missile.pX);
@@ -246,7 +249,7 @@ function mkTankGame() {
 			}
 		}
 		if (missile.x > terrainWidth || missile.x < 0) {
-			missile.remove();
+			missile.finalFrame = true;
 		}
 		if (missile.y <= 0) {
 			explodeMissile(missile,endX,0);
@@ -257,7 +260,9 @@ function mkTankGame() {
 		exp = new Explosion(x, y, expDuration, expRadius);
 		explode(exp);
 		explosionList.append(exp); 
-		missile.remove();
+		missile.x = x;
+		missile.y = y;
+		missile.finalFrame = true;
 		return;
 	}
 
@@ -301,8 +306,7 @@ function mkTankGame() {
 		if (devMode) {
 			elapsed = thisCycle - lastCycle;
 			frameRate = 1000/elapsed;
-			//console.log("Frame Rate: " + Math.floor(frameRate), "\tPlayers: " + playerList.length(), "\tMissiles: " + missileList.length(), "\tExplosions: " + explosionList.length());
-			console.log(launchList.length());
+			console.log("Frame Rate: " + Math.floor(frameRate), "\tPlayers: " + playerList.length(), "\tMissiles: " + missileList.length(), "\tExplosions: " + explosionList.length());
 		}
 	}
 
