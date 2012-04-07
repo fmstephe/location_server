@@ -66,7 +66,7 @@ function generateTerrain(width, height, divs) {
 			addWave(wave, oWave);
 		}
 	}
-	normaliseWave(wave, height*0.7, height*0.2);
+	normaliseWave(wave, height*0.9, height*0.05);
 	return wave
 }
 
@@ -76,10 +76,12 @@ function makeGameDef(width) {
 
 function genDivisors() {
 	var divs = new Array();
-	for (var i = 0; i < 10; i++) {
+	divs[0] = [r(10),r(2),r(5)];
+	var widthConst = r(9)
+	for (var i = 1; i < 10; i++) {
 		var mult = r(i);
 		var offset = r(10);
-		var waveWidth = r(mult * 2);
+		var waveWidth = r(mult * widthConst);
 		var waveHeight = r(mult * 5);
 		divs[i] = [offset, waveWidth, waveHeight];
 	}
