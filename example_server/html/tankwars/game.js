@@ -7,15 +7,15 @@ function mkTankGame() {
 	var maxPower = 200;
 	var minPower = 0;
 	var initPower = 50;
-	var powerInc = 2;
-	var health = 100;
+	var powerInc = 1;
+	var health = 50;
 	var gravity = 8;
 	var turretLength = 20;
 	var rotateInc = Math.PI/50;
 	var frameRate = 60;
 	var framePause = Math.floor(1000/frameRate);
 	var expDuration = 0.1*frameRate;
-	var expRadius = 50;
+	var expRadius = 60;
 
 	// Canvas elements
 	var tankCtxt;
@@ -138,8 +138,8 @@ function mkTankGame() {
 			explosionList.forEach(function(e) {e.setClear(missileCtxt, terrainHeight);});
 			// Filter removable elements from entity lists
 			playerList.filter(function(p) {return p.shouldRemove();});
-			missileList.filter(function(m) {return m.shouldRemove();});
-			var filtered = explosionList.filter(function(e) {return e.shouldRemove();});
+			var filtered = missileList.filter(function(m) {return m.shouldRemove();});
+			explosionList.filter(function(e) {return e.shouldRemove();});
 			// Manage game entities
 			playerList.forEach(function(p) {updatePlayer(p);});
 			missileList.forEach(function(m) {updateMissile(m);});
@@ -157,7 +157,7 @@ function mkTankGame() {
 			// Render game entities
 			terrain.render(terrainCtxt);
 			playerList.forEach(function(p){p.render(tankCtxt, terrainHeight)});
-			if (filtered > 0 && explosionList.size == 0 && missileList.size == 0) {
+			if (filtered > 0 && missileList.size == 0) {
 				missileCtxt.clearRect(0,0,missileCanvas.width,missileCanvas.height);
 			} else {
 				missileList.forEach(function(m){m.render(missileCtxt, terrainHeight)});
