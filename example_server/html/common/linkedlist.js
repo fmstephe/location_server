@@ -51,15 +51,18 @@ LinkedList.prototype.forEach = function(fun) {
 }
 
 LinkedList.prototype.filter = function(pred) {
+	var cnt = 0;
 	var item = this.first;
 	while (item != null) {
 		if (pred(item.val)) {
 			this.size--;
+			cnt++;
 			item = remove(this, item);
 		} else {
 			item = item.next;
 		}
 	}
+	return cnt;
 }
 
 LinkedList.prototype.satOne = function(pred) {
