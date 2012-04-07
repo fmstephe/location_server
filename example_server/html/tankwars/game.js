@@ -12,7 +12,7 @@ function mkTankGame() {
 	var gravity = 8;
 	var turretLength = 20;
 	var rotateInc = Math.PI/50;
-	var frameRate = 30;
+	var frameRate = 60;
 	var framePause = Math.floor(1000/frameRate);
 	var expDuration = 0.1*frameRate;
 	var expRadius = 50;
