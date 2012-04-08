@@ -15,16 +15,15 @@ Terrain.prototype.clearMods = function() {
 }
 
 Terrain.prototype.setClear = function(ctxt) {
-	var height = this.height;
-	this.regionList.forEach(function(region) {doClearTerrain(ctxt, region, height);});
+	var terrain = this;
+	this.regionList.forEach(function(region) {terrain.setClearRegion(ctxt, region);});
 }
 
-function doClearTerrain(ctxt, region, height) {
+Terrain.prototype.setClearRegion = function(ctxt, region) {
 	var x = region.from;
 	var y = 0;
-	var w = region.to - region.from;
-	var h = height;
-	ctxt.clearRect(x,y,w,h);
+	var width = region.to - region.from;
+	ctxt.clearRect(x,y,width,this.height);
 }
 
 Terrain.prototype.render = function(ctxt) {
@@ -46,11 +45,6 @@ Terrain.prototype.renderRegion = function(ctxt, region) {
 function Region(from, to) {
 	this.from = from;
 	this.to = to;
-}
-
-function generateTerrain(width, height) {
-	var divs = genDivisors();
-	return generateTerrain(width, height, divs);
 }
 
 function generateTerrain(width, height, divs) {

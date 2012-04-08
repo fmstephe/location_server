@@ -1,12 +1,15 @@
 // Message used to negotiate the start of a game
-function StartMsg(startOp, defs) {
+function StartMsg(startOp, divs, xPosMe, xPosYou, initWind) {
 	this.isStartMsg = true;
 	this.startOp = startOp;
-	this.defs = defs;
+	this.divs = divs;
+	this.xPosMe = xPosMe;
+	this.xPosYou = xPosYou;
+	this.initWind = initWind;
 }
 
-function mkInvite(defs) {
-	return new StartMsg("invite", defs);
+function mkInvite(divs, xPosMe, xPosYou, initWind) {
+	return new StartMsg("invite", divs, xPosMe, xPosYou, initWind);
 }
 
 function mkAccept() {
@@ -22,9 +25,10 @@ function mkDecline() {
 }
 
 // Message used to communicate a player's move each turn
-function PlayerMsg(player) {
+function PlayerMsg(player, newWind) {
 	this.isPlayerMsg = true;
 	this.player = player;
+	this.newWind = newWind;
 }
 
 function NameReq() {

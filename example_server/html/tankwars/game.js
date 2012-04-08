@@ -12,7 +12,7 @@ function mkTankGame() {
 	var gravity = 8;
 	var turretLength = 20;
 	var rotateInc = Math.PI/50;
-	var frameRate = 60;
+	var frameRate = 30;
 	var framePause = Math.floor(1000/frameRate);
 	var expDuration = 0.1*frameRate;
 	var expRadius = 60;
@@ -36,13 +36,15 @@ function mkTankGame() {
 	var lng;
 	// terrain
 	var terrain;
-	// Game entity lists
+	// Game entities
 	var playerMe, playerYou;
 	var keybindings;
 	var launchList;
 	var playerList;
 	var missileList;
 	var explosionList;
+	var wind;
+	var nextWind;
 	//
 	var turnQ;
 	// 
@@ -57,7 +59,7 @@ function mkTankGame() {
 	var devMode = false;
 
 	return {
-		init : function(idMe, idYou, nickMe, nickYou, xPosMe, xPosYou, cnct, divs, turnQHandler, goFun) {
+		init : function(idMe, idYou, nickMe, nickYou, xPosMe, xPosYou, initWind, cnct, divs, turnQHandler, goFun) {
 			       console.log(idMe);
 			       console.log(nickMe);
 			       console.log(idYou);
@@ -88,6 +90,8 @@ function mkTankGame() {
 			       playerList = new LinkedList();
 			       playerList.append(playerMe);
 			       playerList.append(playerYou);
+			       wind = new Wind(terrainWidth, terrainHeight, 20);
+			       wind.wind = initWind;
 			       initRender();
 			       loopId = setInterval(loop, framePause);
 		       },
@@ -118,12 +122,15 @@ function mkTankGame() {
 		tankCtxt.fillStyle = "rgba(255,30,40,1.0)";
 		tankCtxt.strokeStyle = "rgba(255,255,255,1.0)";
 		tankCtxt.lineWidth = 5;
-		missileCtxt.strokeStyle = "rgba(255,255,255,0.3)";
+		missileCtxt.strokeStyle = "rgba(255,255,255,0.1)";
 		missileCtxt.fillStyle = "rgba(255,0,0,1.0)";
-		missileCtxt.lineWidth = 5;
+		missileCtxt.lineWidth = 3;
 		terrainCtxt.fillStyle = "rgba(100,100,100,1.0)";
 		bgCtxt.fillStyle = "rgba(0,0,0,1.0)";
 		bgCtxt.fillRect(0, 0, terrainWidth, terrainHeight);
+		bgCtxt.strokeStyle = "rgba(255,255,255,1.0)";
+		bgCtxt.lineWidth = 3;
+		bgCtxt.globalAlpha = 0.3;
 		terrain.render(terrainCtxt);
 		terrain.clearMods();
 	}
@@ -136,6 +143,7 @@ function mkTankGame() {
 			playerList.forEach(function(p) {p.setClear(tankCtxt, terrainHeight);});
 			missileList.forEach(function(m) {m.setClear(missileCtxt, terrainHeight);});
 			explosionList.forEach(function(e) {e.setClear(missileCtxt, terrainHeight);});
+			wind.setClear(bgCtxt);
 			// Filter removable elements from entity lists
 			playerList.filter(function(p) {return p.shouldRemove();});
 			var filtered = missileList.filter(function(m) {return m.shouldRemove();});
@@ -145,7 +153,13 @@ function mkTankGame() {
 			missileList.forEach(function(m) {updateMissile(m);});
 			explosionList.forEach(function(e) {updateExplosion(e);});
 			// Check the turnQ to see if new turn messages have arrived
-			turnQ.forEach(function(msg) {if (msg.From == playerYou.id) launchList.append(msg.Content.player);});
+			turnQ.forEach(function(msg) {if (msg.From == playerYou.id) {
+				launchList.append(msg.Content.player);
+				if (msg.Content.newWind) {
+					nextWind = msg.Content.newWind;
+				}
+			}
+			});
 			turnQ.clear();
 			if (launchList.length() == playerList.size) {
 				launchList.forEach(function(p) {if (p.id == playerYou.id) playerYou.arc = p.arc});
@@ -159,9 +173,12 @@ function mkTankGame() {
 			playerList.forEach(function(p){p.render(tankCtxt, terrainHeight)});
 			if (filtered > 0 && missileList.size == 0) {
 				missileCtxt.clearRect(0,0,missileCanvas.width,missileCanvas.height);
+				wind.wind = nextWind;
 			} else {
 				missileList.forEach(function(m){m.render(missileCtxt, terrainHeight)});
 			}
+			wind.advance();
+			wind.render(bgCtxt);
 			explosionList.forEach(function(e){e.render(missileCtxt, terrainHeight)});
 			terrain.clearMods();
 			if (playerList.length() < 2) {
@@ -172,7 +189,7 @@ function mkTankGame() {
 		} else {
 			missileList.clear();
 			explosionList.clear();
-			bgCtxt.font = "100pt Calibri-bold";
+			tankCtxt.font = "50px Calibri-bold";
 			var name = playerList.getFirst().name;
 			tankCtxt.clearRect(0,0,terrainWidth,terrainHeight);
 			tankCtxt.fillText(name + " wins!", terrainWidth/2, terrainHeight/2);
@@ -200,9 +217,15 @@ function mkTankGame() {
 				player.decPower();
 			}
 			if (keybindings.firing) {
+				var newWind = 0;
+				if (playerMe.id > playerYou.id) {
+					newWind = windChange();
+					nextWind = newWind;
+				}
+				var playerMsg = new PlayerMsg(player, newWind);
 				launchList.append(player);
 				player.animate = false;
-				connect.sendMsg(idYou, new PlayerMsg(player));
+				connect.sendMsg(idYou, playerMsg);
 			}
 		}
 	}
@@ -221,7 +244,7 @@ function mkTankGame() {
 			return;
 		}
 		hr = terrain.heightArray;
-		missile.advance();
+		missile.advance(wind.wind);
 		var startX = Math.floor(missile.pX);
 		var endX = Math.floor(missile.x);
 		var yD = missile.y - missile.pY;

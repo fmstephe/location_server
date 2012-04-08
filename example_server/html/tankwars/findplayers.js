@@ -4,6 +4,7 @@ var findPlayers = (function() {
 	var connect;
 	var committedToGame = false;
 	var xPosMe, xPosYou;
+	var initWind;
 	var divs;
 	var nickname = "anonymous";
 	var tankGame;
@@ -41,9 +42,10 @@ var findPlayers = (function() {
 							   // Need to break the deadlock by ordering user-ids and breaking the tie
 							   connect.sendMsg(from, mkEnaged());
 						   } else {
-							   xPosMe = msg.Content.defs.xPosYou;
-							   xPosYou = msg.Content.defs.xPosMe;
-							   divs = msg.Content.defs.divs;
+							   xPosMe = msg.Content.xPosYou;
+							   xPosYou = msg.Content.xPosMe;
+							   divs = msg.Content.divs;
+							   initWind = msg.Content.initWind;
 							   nearbyUsers.forEach(function(u) {if (u.Id == from) u.inviteRcv = true});
 							   refreshUsers();
 						   }
@@ -66,7 +68,7 @@ var findPlayers = (function() {
 						   nearbyUsers.forEach(function(u) {if (u.Id == from) {nickYou = u.nick;}});
 						   clearRequests();
 						   tankGame = mkTankGame();
-						   tankGame.init(idMe, from, nickname, nickYou, xPosMe, xPosYou, connect, divs, turnQHandler, escapeGame);
+						   tankGame.init(idMe, from, nickname, nickYou, xPosMe, xPosYou, initWind, connect, divs, turnQHandler, escapeGame);
 					   }
 				   }
 			   }
@@ -187,10 +189,11 @@ var findPlayers = (function() {
 				xPosMe = pair[0];
 				xPosYou = pair[1];
 				divs = genDivisors();
+				initWind = windChange();
 				commitToGame();
 				nearbyUsers.forEach(function(u) {if (u.Id == idYou) u.inviteSent = true;});
 				refreshUsers();
-				connect.sendMsg(idYou, mkInvite({divs: divs, xPosMe: xPosMe, xPosYou: xPosYou}));
+				connect.sendMsg(idYou, mkInvite(divs, xPosMe, xPosYou, initWind));
 			},
 
 		accept: function(otherId) {
@@ -205,7 +208,7 @@ var findPlayers = (function() {
 				nearbyUsers.forEach(function(u) {if (u.Id == otherId) u.inviteRcv = false;});
 				clearRequests();
 				tankGame = mkTankGame();
-				tankGame.init(idMe, idYou, nickname, nickYou, xPosMe, xPosYou, connect, divs, turnQHandler, escapeGame);
+				tankGame.init(idMe, idYou, nickname, nickYou, xPosMe, xPosYou, initWind, connect, divs, turnQHandler, escapeGame);
 			},
 
 		decline: function(otherId) {

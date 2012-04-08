@@ -15,7 +15,7 @@ Missile.prototype.setClear = function(ctxt, hgt) {
 	var y = hgt - (Math.max(this.pY,this.y)+10);
 	var width = Math.abs(this.pX-this.x)+20;
 	var h = Math.abs(this.pY-this.y)+20;
-//	ctxt.clearRect(x,y,width,h);
+	ctxt.clearRect(x,y,width,h);
 }
 
 Missile.prototype.shouldRemove = function() {
@@ -28,9 +28,9 @@ Missile.prototype.render = function(ctxt, hgt) {
 		var pY = hgt - this.pY;
 		var x = this.x;
 		var y = hgt - this.y;
-		//ctxt.strokeStyle = ctxt.createLinearGradient(Math.floor(pX),Math.floor(pY),Math.floor(x),Math.floor(y));
-		//ctxt.strokeStyle.addColorStop(0,"rgba(255,255,255,0.1)");
-		//ctxt.strokeStyle.addColorStop(1,"rgba(255,255,255,1)");
+		ctxt.strokeStyle = ctxt.createLinearGradient(Math.floor(pX),Math.floor(pY),Math.floor(x),Math.floor(y));
+		ctxt.strokeStyle.addColorStop(0,"rgba(255,255,255,0.1)");
+		ctxt.strokeStyle.addColorStop(1,"rgba(255,255,255,1)");
 		ctxt.beginPath();
 		ctxt.moveTo(pX,pY);
 		ctxt.lineTo(x,y);
@@ -39,10 +39,10 @@ Missile.prototype.render = function(ctxt, hgt) {
 	}
 }
 
-Missile.prototype.advance = function() {
+Missile.prototype.advance = function(wind) {
 	this.pX = this.x;
 	this.pY = this.y;
-	this.x += this.pushX;
+	this.x += this.pushX + wind;
 	this.pushY -= this.gravity;
 	this.y += this.pushY;
 }
