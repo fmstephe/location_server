@@ -23,7 +23,14 @@ var findPlayers = (function() {
 						   tankGame.kill();
 						   escapeGame();
 					   }
-					   nearbyUsers.filter(function(u) {return usrInfo.Id == u.Id});
+					   var filtered = nearbyUsers.filter(function(u) {return usrInfo.Id == u.Id});
+					   console.log("filtered " + filtered.size);
+					   if (filtered.satOne(function(u) {return u.inviteSent;})) {
+						   uncommitFromGame();
+					   }
+					   if (filtered.satOne(function(u) {return u.inviteRcv;})) {
+						   uncommitFromGame();
+					   }
 					   refreshUsers();
 				   }
 			   }
