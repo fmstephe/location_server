@@ -1,9 +1,20 @@
-function Terrain(width, height, divs) {
+function Terrain(width, height, divs, tanks) {
 	this.heightArray = generateTerrain(width, height, divs);
 	this.width = width;
 	this.height = height;
 	this.regionList = new LinkedList();
 	this.notifyMod(0,width);
+	var terrain = this;
+	if (tanks) tanks.forEach(function(x) {terrain.flatten(x,10)});
+}
+
+Terrain.prototype.flatten = function(x,size) {
+	var height = this.heightArray[x];
+	var min = Math.max(0,x-size);
+	var max = Math.min(this.width,x+size);
+	for (var i = min; i <= max; i++) {
+		this.heightArray[i] = height;
+	}
 }
 
 Terrain.prototype.notifyMod = function(from, to) {
@@ -64,21 +75,17 @@ function generateTerrain(width, height, divs) {
 	return wave
 }
 
-function makeGameDef(width) {
-	return {div: genDivisors(), pos: positionPair(width)};
-}
-
 function genDivisors() {
 	var divs = new Array();
 	divs[0] = [r(10),r(2),r(5)];
 	var widthConst = r(9)
-	for (var i = 1; i < 10; i++) {
-		var mult = r(i);
-		var offset = r(10);
-		var waveWidth = r(mult * widthConst);
-		var waveHeight = r(mult * 5);
-		divs[i] = [offset, waveWidth, waveHeight];
-	}
+		for (var i = 1; i < 10; i++) {
+			var mult = r(i);
+			var offset = r(10);
+			var waveWidth = r(mult * widthConst);
+			var waveHeight = r(mult * 5);
+			divs[i] = [offset, waveWidth, waveHeight];
+		}
 	return divs;
 }
 
