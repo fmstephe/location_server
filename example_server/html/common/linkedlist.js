@@ -51,18 +51,18 @@ LinkedList.prototype.forEach = function(fun) {
 }
 
 LinkedList.prototype.filter = function(pred) {
-	var cnt = 0;
+	var filtered = new LinkedList();
 	var item = this.first;
 	while (item != null) {
 		if (pred(item.val)) {
 			this.size--;
-			cnt++;
+			filtered.append(item.val);
 			item = remove(this, item);
 		} else {
 			item = item.next;
 		}
 	}
-	return cnt;
+	return filtered;
 }
 
 LinkedList.prototype.satOne = function(pred) {
@@ -70,7 +70,7 @@ LinkedList.prototype.satOne = function(pred) {
 		return false;
 	}
 	var sat = false;
-	this.forEach(function(e){sat || pred(e)});
+	this.forEach(function(e){sat = (sat || pred(e));});
 	return sat;
 }
 
@@ -92,21 +92,6 @@ remove = function(list, item) {
 		list.last = item.prev;
 	}
 	return item.next;
-}
-
-LinkedList.prototype.circularNext = function(val) {
-	var item = this.first;
-	while (item != null) {
-		if (item.val === val) {
-			if (item.next == null) {
-				return this.first.val;
-			} else {
-				return item.next.val;
-			}
-		}
-		item = item.next;
-	}
-	return null;
 }
 
 LinkedList.prototype.contains = function(val) {
