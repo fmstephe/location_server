@@ -134,10 +134,11 @@ var findPlayers = (function() {
 
 	function userLiLink(usr) {
 		var inviteClass = usr.isBusy || committedToGame ? "busybutton" : "activebutton";
+		var inviteFunc = usr.isBusy || committedToGame ? "function() {return 0;}" : "findPlayers.invite('"+usr.Id+"');";
 		var waitVis = usr.inviteSent ? "visible" : "hidden";
 		var responseVis = usr.inviteRcv || usr.declined ? "visible" : "hidden";
 		var waitGif =  "<img height='10' width='30' src='img/wait.gif' style='visibility: " + waitVis + "; margin-right:5px'>";
-		var inviteButton = "<button class='" + inviteClass + "' onclick=\"findPlayers.invite('" + usr.Id + "')\">Invite</button>";
+		var inviteButton = "<button class='" + inviteClass + "'onclick=\""+inviteFunc+"\">Invite</button>";
 		var leftPad = "<span style='margin-left:35'>";
 		var acceptButton = "<button class='activebutton' onclick=\"findPlayers.accept('" + usr.Id + "')\">Accept</button>";
 		var declineButton = "<button class='activebutton' onclick=\"findPlayers.decline('" + usr.Id + "')\">Decline</button>";
