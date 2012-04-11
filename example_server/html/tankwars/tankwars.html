@@ -18,26 +18,27 @@
 		<script type="text/javascript" src="model/wind.js"></script>
 
 		<link rel="stylesheet" type="text/css" href="css/standard.css"></link>
+	</head>
 
-		<body onload="enterNickState();">
-			<div id ="intro-div">
-				<div id="spacer-div" style="height: 200px"></div>
+	<body onload="enterNickState();">
+		<div id ="intro-div">
+			<div id="spacer-div" style="height: 200px"></div>
 
-				<div id="nick-div"> 
-					<div class="player-column"><h1>Enter A Nickname</h1></div>
-					<div class="player-column"><input id="nick-input" type="text" name="nick" id="nickname"/><button class="activebutton" type="button" onclick="findPlayersState();findPlayers.main();">Start!</button></div>
-				</div>
-
-				<div id="player-div">
-				</div>
+			<div id="nick-div"> 
+				<div class="player-column"><h1>Enter A Nickname</h1></div>
+				<div class="player-column"><input id="nick-input" type="text" name="nick" id="nickname"/><button class="activebutton" type="button" onclick="findPlayersState();findPlayers.main();">Start!</button></div>
 			</div>
 
-			<div id="game-div">
-				<canvas id="background" style="position: absolute; z-index: 0"></canvas>
-				<canvas id="terrain" style="position: absolute; z-index: 1"></canvas>
-				<canvas id="tank" style="position: absolute; z-index: 2"></canvas>
-				<canvas id="missile" style="position: absolute; z-index: 3"></canvas>
+			<div id="player-div">
 			</div>
+		</div>
 
-		</body>
-	</html>
+		<div id="game-div">
+			<canvas id="background" style="position: absolute; z-index: 0"></canvas>
+			<canvas id="terrain" style="position: absolute; z-index: 1"></canvas>
+			<canvas id="tank" style="position: absolute; z-index: 2"></canvas>
+			<canvas id="missile" style="position: absolute; z-index: 3"></canvas>
+		</div>
+
+	</body>
+</html>
