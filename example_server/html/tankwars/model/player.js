@@ -1,4 +1,5 @@
 function Player(id, x, name, turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health, remote) {
+	this.isPlayer = true;
 	this.id = id;
 	this.x = x;
 	this.y = 0; // This gets set automatically by the game loop
@@ -13,7 +14,7 @@ function Player(id, x, name, turretLength, initPower, minPower, maxPower, powerI
 	this.health = health;
 	this.maxHealth = health;
 	this.remote = remote;
-	this.animate = !remote;
+	this.active = !remote;
 	this.cycle = 0.0;
 }
 
@@ -60,7 +61,7 @@ Player.prototype.render = function(ctxt, hgt) {
 			g = 50*this.health/this.maxHealth;
 		       	b = 255*this.health/this.maxHealth;
 		       	d = 255*this.health/this.maxHealth;
-			if (this.animate) {
+			if (this.active) {
 				var mult = (Math.cos(this.cycle)+1.5)/ 2;
 				this.cycle = this.cycle+0.2;
 				r = r*mult;

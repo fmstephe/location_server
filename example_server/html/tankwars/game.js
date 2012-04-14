@@ -1,6 +1,3 @@
-var terrainHeight = 640;
-var terrainWidth = 960;
-
 function mkTankGame() {
 	// Global Constants
 	var host = "178.79.176.206";
@@ -28,6 +25,9 @@ function mkTankGame() {
 	var terrainCanvas;
 	var bgCanvas;
 
+	var gameHeight;
+	var gameWidth;
+
 	// Network services
 	var connect;
 
@@ -39,15 +39,14 @@ function mkTankGame() {
 	// Game entities
 	var playerMe, playerYou;
 	var keybindings;
-	var launchList;
 	var playerList;
 	var missileList;
 	var explosionList;
 	var wind;
 	var nextWind;
 	//
-	var turnQ;
-	// 
+	var turnHandler;
+	//
 	var gameOver = false;
 	//
 	var gameOverFun;
@@ -58,8 +57,14 @@ function mkTankGame() {
 	// Display toggle for nerdy info
 	var devMode = false;
 
+	var completeFun = function(turnMsgs) {
+		var wind = turnMsgs.filter(function(m) {return (typeof m.Content.data) == "number"});
+		var players = turnMsgs.filter(function(m) {return m.Content.data.isPlayer;});
+		return wind.size == 1 && players.size == 2;
+	}
+
 	return {
-		init : function(idMe, idYou, nickMe, nickYou, xPosMe, xPosYou, initWind, cnct, divs, turnQHandler, goFun) {
+		init : function(height, width, idMe, idYou, nickMe, nickYou, xPosMe, xPosYou, initWind, cnct, divs, goFun) {
 			       console.log(idMe);
 			       console.log(nickMe);
 			       console.log(idYou);
@@ -67,33 +72,41 @@ function mkTankGame() {
 			       document.onkeydown = captureKeydown;
 			       document.onkeyup = captureKeyup;
 			       window.onresize = scaleCanvas;
-			       turnQ = turnQHandler.q;
-			       lastCycle = new Date().getTime();
-			       thisCycle = new Date().getTime();
-			       tankCanvas = document.getElementById("tank");
-			       missileCanvas = document.getElementById("missile");
-			       terrainCanvas = document.getElementById("terrain");
-			       bgCanvas = document.getElementById("background");
-			       tankCtxt = tankCanvas.getContext("2d");
-			       missileCtxt = missileCanvas.getContext("2d");
-			       terrainCtxt = terrainCanvas.getContext("2d");
-			       bgCtxt = bgCanvas.getContext("2d");
+			       var completeInit = function() {
+				       gameHeight = height;
+				       gameWidth = width;
+				       lastCycle = new Date().getTime();
+				       thisCycle = new Date().getTime();
+				       tankCanvas = document.getElementById("tank");
+				       missileCanvas = document.getElementById("missile");
+				       terrainCanvas = document.getElementById("terrain");
+				       bgCanvas = document.getElementById("background");
+				       tankCtxt = tankCanvas.getContext("2d");
+				       missileCtxt = missileCanvas.getContext("2d");
+				       terrainCtxt = terrainCanvas.getContext("2d");
+				       bgCtxt = bgCanvas.getContext("2d");
+				       gameOverFun = goFun;
+				       var tanks = new LinkedList();
+				       tanks.append(xPosMe);
+				       tanks.append(xPosYou);
+				       terrain = new Terrain(gameWidth, gameHeight, divs, tanks);
+				       keybindings = new KeyBindings(87,83,65,68,70);
+				       playerMe = new Player(idMe, xPosMe, nickMe, turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health, false);
+				       playerYou = new Player(idYou, xPosYou, nickYou, turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health, true);
+				       explosionList = new LinkedList();
+				       missileList = new LinkedList();
+				       playerList = new LinkedList();
+				       playerList.append(playerMe);
+				       playerList.append(playerYou);
+				       wind = new Wind(gameWidth, gameHeight, 20);
+				       wind.wind = initWind;
+				       initRender();
+				       loopId = setInterval(loop, framePause);
+			       };
+			       turnHandler = new TurnHandler(completeFun, idMe, idYou);
 			       connect = cnct;
-			       gameOverFun = goFun;
-			       terrain = new Terrain(terrainWidth, terrainHeight, divs);
-			       keybindings = new KeyBindings(87,83,65,68,70);
-			       playerMe = new Player(idMe, xPosMe, nickMe, turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health, false);
-			       playerYou = new Player(idYou, xPosYou, nickYou, turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health, true);
-			       explosionList = new LinkedList();
-			       missileList = new LinkedList();
-			       launchList = new LinkedList();
-			       playerList = new LinkedList();
-			       playerList.append(playerMe);
-			       playerList.append(playerYou);
-			       wind = new Wind(terrainWidth, terrainHeight, 20);
-			       wind.wind = initWind;
-			       initRender();
-			       loopId = setInterval(loop, framePause);
+			       connect.addMsgHandler(turnHandler);
+			       connect.sync(idMe, idYou, completeInit);
 		       },
 		     kill : function() {
 				    killPrivate();
@@ -102,22 +115,22 @@ function mkTankGame() {
 
 	function killPrivate() {
 		clearInterval(loopId);
-		tankCtxt.clearRect(0, 0, terrainWidth, terrainHeight);
-		missileCtxt.clearRect(0, 0, terrainWidth, terrainHeight);
-		terrainCtxt.clearRect(0, 0, terrainWidth, terrainHeight);
-		bgCtxt.clearRect(0, 0, terrainWidth, terrainHeight);
+		tankCtxt.clearRect(0, 0, gameWidth, gameHeight);
+		missileCtxt.clearRect(0, 0, gameWidth, gameHeight);
+		terrainCtxt.clearRect(0, 0, gameWidth, gameHeight);
+		bgCtxt.clearRect(0, 0, gameWidth, gameHeight);
 		gameOverFun();
 	}
 
 	function initRender() {
-		tankCanvas.width = terrainWidth;
-		tankCanvas.height = terrainHeight;
-		missileCanvas.width = terrainWidth;
-		missileCanvas.height = terrainHeight;
-		terrainCanvas.width = terrainWidth;
-		terrainCanvas.height = terrainHeight;
-		bgCanvas.width = terrainWidth;
-		bgCanvas.height = terrainHeight;
+		tankCanvas.width = gameWidth;
+		tankCanvas.height = gameHeight;
+		missileCanvas.width = gameWidth;
+		missileCanvas.height = gameHeight;
+		terrainCanvas.width = gameWidth;
+		terrainCanvas.height = gameHeight;
+		bgCanvas.width = gameWidth;
+		bgCanvas.height = gameHeight;
 		scaleCanvas();
 		tankCtxt.fillStyle = "rgba(255,30,40,1.0)";
 		tankCtxt.strokeStyle = "rgba(255,255,255,1.0)";
@@ -127,7 +140,7 @@ function mkTankGame() {
 		missileCtxt.lineWidth = 3;
 		terrainCtxt.fillStyle = "rgba(100,100,100,1.0)";
 		bgCtxt.fillStyle = "rgba(0,0,0,1.0)";
-		bgCtxt.fillRect(0, 0, terrainWidth, terrainHeight);
+		bgCtxt.fillRect(0, 0, gameWidth, gameHeight);
 		bgCtxt.strokeStyle = "rgba(255,255,255,1.0)";
 		bgCtxt.lineWidth = 3;
 		bgCtxt.globalAlpha = 0.3;
@@ -140,9 +153,9 @@ function mkTankGame() {
 		logInfo();
 		if (!gameOver) {
 			// Clear out each of the last frame's positions
-			playerList.forEach(function(p) {p.setClear(tankCtxt, terrainHeight);});
-			missileList.forEach(function(m) {m.setClear(missileCtxt, terrainHeight);});
-			explosionList.forEach(function(e) {e.setClear(missileCtxt, terrainHeight);});
+			playerList.forEach(function(p) {p.setClear(tankCtxt, gameHeight);});
+			missileList.forEach(function(m) {m.setClear(missileCtxt, gameHeight);});
+			explosionList.forEach(function(e) {e.setClear(missileCtxt, gameHeight);});
 			wind.setClear(bgCtxt);
 			// Filter removable elements from entity lists
 			playerList.filter(function(p) {return p.shouldRemove();});
@@ -152,34 +165,27 @@ function mkTankGame() {
 			playerList.forEach(function(p) {updatePlayer(p);});
 			missileList.forEach(function(m) {updateMissile(m);});
 			explosionList.forEach(function(e) {updateExplosion(e);});
-			// Check the turnQ to see if new turn messages have arrived
-			turnQ.forEach(function(msg) {if (msg.From == playerYou.id) {
-				launchList.append(msg.Content.player);
-				if (msg.Content.newWind) {
-					nextWind = msg.Content.newWind;
-				}
-			}
-			});
-			turnQ.clear();
-			if (launchList.length() == playerList.size) {
-				launchList.forEach(function(p) {if (p.id == playerYou.id) playerYou.arc = p.arc});
-				launchList.forEach(function(p) {launchMissile(p);});
-				launchList.clear();
+			if (turnHandler.isComplete()) {
+				var turn = turnHandler.getTurn();
+				turn.forEach(function(m) {if (m.Content.data.id == playerYou.id) playerYou.arc = m.Content.data.arc});
+				turn.forEach(function(m) {if (m.Content.data.isPlayer) launchMissile(m.Content.data);});
+				turn.forEach(function(m) {if ((typeof m.Content.data) == "number") nextWind = m.Content.data});
 			}
 			// If an explosion has caused the terrain to change clear out the affected region
 			terrain.setClear(terrainCtxt);
 			// Render game entities
 			terrain.render(terrainCtxt);
-			playerList.forEach(function(p){p.render(tankCtxt, terrainHeight)});
-			if (filtered > 0 && missileList.size == 0) {
+			playerList.forEach(function(p){p.render(tankCtxt, gameHeight)});
+			if (filtered.size > 0 && missileList.size == 0) {
+				playerMe.active = true;
 				missileCtxt.clearRect(0,0,missileCanvas.width,missileCanvas.height);
 				wind.wind = nextWind;
 			} else {
-				missileList.forEach(function(m){m.render(missileCtxt, terrainHeight)});
+				missileList.forEach(function(m){m.render(missileCtxt, gameHeight)});
 			}
 			wind.advance();
 			wind.render(bgCtxt);
-			explosionList.forEach(function(e){e.render(missileCtxt, terrainHeight)});
+			explosionList.forEach(function(e){e.render(missileCtxt, gameHeight)});
 			terrain.clearMods();
 			if (playerList.length() < 2) {
 				console.log(this);
@@ -191,8 +197,8 @@ function mkTankGame() {
 			explosionList.clear();
 			tankCtxt.font = "50px Calibri-bold";
 			var name = playerList.getFirst().name;
-			tankCtxt.clearRect(0,0,terrainWidth,terrainHeight);
-			tankCtxt.fillText(name + " wins!", terrainWidth/2, terrainHeight/2);
+			tankCtxt.clearRect(0,0,gameWidth,gameHeight);
+			tankCtxt.fillText(name + " wins!", gameWidth/2, gameHeight/2);
 		}
 	}
 
@@ -202,8 +208,7 @@ function mkTankGame() {
 		if (player.y <= 0) {
 			player.health = 0;
 		}
-		if (player === playerMe && missileList.length() == 0 && launchList.satAll(function(e){return player.id != e.id})) {
-			player.animate = true;
+		if (player.active) {
 			if (keybindings.left) {
 				player.rotateLeft();
 			}
@@ -217,14 +222,14 @@ function mkTankGame() {
 				player.decPower();
 			}
 			if (keybindings.firing) {
-				var newWind = 0;
 				if (playerMe.id > playerYou.id) {
-					newWind = windChange();
-					nextWind = newWind;
+					var windMsg = new TurnMsg(turnHandler.turnCount, windChange());
+					connect.sendMsg(idMe, windMsg);
+					connect.sendMsg(idYou, windMsg);
 				}
-				var playerMsg = new PlayerMsg(player, newWind);
-				launchList.append(player);
-				player.animate = false;
+				player.active = false;
+				var playerMsg = new TurnMsg(turnHandler.turnCount, player);
+				connect.sendMsg(idMe, playerMsg);
 				connect.sendMsg(idYou, playerMsg);
 			}
 		}
@@ -271,7 +276,7 @@ function mkTankGame() {
 				return;
 			}
 		}
-		if (missile.x > terrainWidth || missile.x < 0) {
+		if (missile.x > gameWidth || missile.x < 0) {
 			missile.finalFrame = true;
 		}
 		if (missile.y <= 0) {
@@ -281,7 +286,7 @@ function mkTankGame() {
 
 	function explodeMissile(missile, x, y) {
 		exp = new Explosion(x, y, expDuration, expRadius);
-		explode(exp);
+		causeDamage(exp);
 		explosionList.append(exp); 
 		missile.x = x;
 		missile.y = y;
@@ -293,14 +298,14 @@ function mkTankGame() {
 		explosion.deplete();
 	}
 
-	function explode(explosion) {
+	function causeDamage(explosion) {
 		hr = terrain.heightArray;
 		var x = Math.floor(explosion.x);
 		var y = Math.floor(explosion.y);
 		for (i = 0; i < expRadius; i++) {
 			var sub = Math.sqrt((expRadius*expRadius)-(i*i));
 			var bottom = y-sub;
-			if (x+i < terrainWidth && bottom < hr[x+i]) {
+			if (x+i < gameWidth && bottom < hr[x+i]) {
 				hr[x+i] -= Math.min(sub*2, hr[x+i]-bottom);
 			}
 			if (x-i >= 0 && i != 0 && bottom < hr[x-i]) {
@@ -308,10 +313,10 @@ function mkTankGame() {
 			}
 		}
 		terrain.notifyMod(x-expRadius, x+expRadius);
-		playerList.forEach(function(p) {explodePlayer(explosion, p)});
+		playerList.forEach(function(p) {damagePlayer(explosion, p)});
 	}
 
-	function explodePlayer(explosion, player) {
+	function damagePlayer(explosion, player) {
 		var xD = player.x - explosion.x;
 		var yD = player.y - explosion.y;
 		var dist = Math.sqrt((xD*xD) + (yD*yD));
@@ -384,9 +389,19 @@ function mkTankGame() {
 	}
 
 	function scaleCanvas() {
-		var viewWidth = window.innerWidth - 10;
-		var viewHeight = window.innerHeight - 10;
-
+		var viewWidth = Math.min(window.innerWidth - 10, gameWidth);
+		var viewHeight = Math.min(window.innerHeight - 10, gameHeight);
+		var ratioHeight = viewWidth * (gameHeight/gameWidth);
+		var ratioWidth = viewHeight * (gameWidth/gameHeight);
+		if (ratioHeight > viewHeight) {
+			viewWidth = ratioWidth;
+		} else {
+			viewHeight = ratioHeight;
+		}
+		if (viewWidth > gameWidth && viewHeight > gameHeight) {
+			viewWidth = gameWidth;
+			viewHeight = gameHeight;
+		}
 		tankCanvas.style.width = viewWidth;
 		tankCanvas.style.height = viewHeight;
 		missileCanvas.style.width = viewWidth;

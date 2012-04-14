@@ -5,11 +5,14 @@
 		<script type="text/javascript" src="../common/id.js"></script>
 		<script type="text/javascript" src="../common/linkedlist.js"></script>
 		<script type="text/javascript" src="../common/connect.js"></script>
-		<script type="text/javascript" src="messages.js"></script>
+		<script type="text/javascript" src="msgs/busy.js"></script>
+		<script type="text/javascript" src="msgs/name.js"></script>
+		<script type="text/javascript" src="msgs/start.js"></script>
+		<script type="text/javascript" src="msgs/turn.js"></script>
 		<script type="text/javascript" src="transitions.js"></script>
-		<script type="text/javascript" src="handlers/qhandler.js"></script>
-		<script type="text/javascript" src="findplayers.js"></script>
+		<script type="text/javascript" src="handlers/turnhandler.js"></script>
 		<script type="text/javascript" src="game.js"></script>
+		<script type="text/javascript" src="findplayers.js"></script>
 		<script type="text/javascript" src="model/explosion.js"></script>
 		<script type="text/javascript" src="model/keybindings.js"></script>
 		<script type="text/javascript" src="model/missile.js"></script>
@@ -33,7 +36,7 @@
 			</div>
 		</div>
 
-		<div id="game-div">
+		<div class="player-column" id="game-div">
 			<canvas id="background" style="position: absolute; z-index: 0"></canvas>
 			<canvas id="terrain" style="position: absolute; z-index: 1"></canvas>
 			<canvas id="tank" style="position: absolute; z-index: 2"></canvas>

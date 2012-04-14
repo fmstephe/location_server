@@ -1,16 +1,17 @@
-function Connect(msgListeners, locListeners) {
+function Connect(msgHandlers, locHandlers) {
 	var thisConn = this;
 	var handleLoc = function(loc) {
-		locListeners.forEach(function(listener) {listener.handleLoc(loc)});
+		locHandlers.forEach(function(handler) {handler.handleLoc(loc)});
 	}
 	var handleMsg = function(msg) {
 		msg.Content = JSON.parse(msg.Content);
-		msgListeners.forEach(function(listener) {listener.handleMsg(msg)});
+		msgHandlers.forEach(function(handler) {handler.handleMsg(msg)});
 	}
-	this.msgListeners = msgListeners;
-	this.locListeners = locListeners;
+	this.msgHandlers = msgHandlers;
+	this.locHandlers = locHandlers;
 	this.msgService = new WSClient("Message", "ws://178.79.176.206:8003/msg", handleMsg, function(){}, function() {});
 	this.locService = new WSClient("Location", "ws://178.79.176.206:8002/loc", handleLoc, function(){}, function() {});
+	this.handleMsgLocal = handleMsg;
 	this.msgService.connect();
 	this.locService.connect();
 	this.unackedMsgs = new LinkedList();
@@ -37,20 +38,20 @@ Connect.prototype.sendLoc = function(loc) {
 	this.locService.jsonsend(loc);
 }
 
-Connect.prototype.addMsgListener = function(listener) {
-	this.msgListeners.append(listener);
+Connect.prototype.addMsgHandler = function(handler) {
+	this.msgHandlers.append(handler);
 }
 
-Connect.prototype.rmvMsgListener = function(listener) {
-	this.msgListeners.filter(function(l) {return listener == l;});
+Connect.prototype.rmvMsgHandler = function(handler) {
+	this.msgHandlers.filter(function(l) {return handler == l;});
 }
 
-Connect.prototype.addLocListener = function(listener) {
-	this.locListeners.append(listener);
+Connect.prototype.addLocHandler = function(handler) {
+	this.locHandlers.append(handler);
 }
 
-Connect.prototype.rmvLocListener = function(listener) {
-	this.locListeners.filter(function(l) {return listener == l;});
+Connect.prototype.rmvLocHandler = function(handler) {
+	this.locHandlers.filter(function(l) {return handler == l;});
 }
 
 Connect.prototype.close = function() {
@@ -58,48 +59,45 @@ Connect.prototype.close = function() {
 	this.locService.close();
 }
 
-var requestCode = "sync-request";
-var responseCode = "sync-response";
-
-function SyncRequest(syncName) {
-	return {sync: requestCode, name: syncName};
+function SyncRequest() {
+	return {isSyncRequest: true};
 }
 
-function SyncResponse(syncName) {
-	return {sync: responseCode, name: syncName};
+function SyncResponse() {
+	return {isSyncResponse: true};
 }
 
-Connect.prototype.sync = function(idMe, idYou, syncName, fun) {
+Connect.prototype.sync = function(idMe, idYou, fun) {
 	var synced = false;
 	var thisConn = this;
 	// NB: The correctness of this approach relies on the interval function being unable to run even once before this function has completed
-	// Otherwise the SyncRequest might be sent, and responded to, before the syncListener is registered (just echos of threading paranoia)
-	var intervalId = setInterval(function() {thisConn.sendMsg(idYou, SyncRequest(syncName));}, 300);
-	var syncListener = function(msg) {
+	// Otherwise the SyncRequest might be sent, and responded to, before the syncHandler is registered (just echos of threading paranoia)
+	var intervalId = setInterval(function() {thisConn.sendMsg(idYou, SyncRequest());}, 300);
+	var syncHandler = function(msg) {
 		var from = msg.From;
 		var content = msg.Content;
-		if (content.sync == requestCode) {
+		if (content.isSyncRequest) {
 			var name = content.name;
-			if (name == syncName && from == idYou) {
+			if (from == idYou) {
 				clearInterval(intervalId);
-				thisConn.rmvMsgListener(syncListener);
-				thisConn.sendMsg(idYou, SyncResponse(syncName));
+				thisConn.rmvMsgHandler(syncHandler);
+				thisConn.sendMsg(idYou, SyncResponse());
 				fun();
 			} else {
 				console.log("Received 2sync request with unexpected id " + id + " from " + from);
 			}
-		} else if (content.sync == responseCode) {
+		} else if (content.isSyncResponse) {
 			var name = content.name;
-			if (name == syncName && from == idYou) {
+			if (from == idYou) {
 				clearInterval(intervalId);
-				thisConn.rmvMsgListener(syncListener);
+				thisConn.rmvMsgHandler(syncHandler);
 				fun();
 			} else {
 				console.log("Received 2sync response with unexpected id " + id + " from " + from);
 			}
 		}
 	}
-	this.addMsgListener({handleMsg: syncListener});
+	this.addMsgHandler({handleMsg: syncHandler});
 }
 
 function setInitCoords(initLoc) {

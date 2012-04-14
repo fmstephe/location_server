@@ -8,6 +8,8 @@ var findPlayers = (function() {
 	var divs;
 	var nickname = "anonymous";
 	var tankGame;
+	var height = 640;
+	var width = 960;
 
 	var locHandler = {
 		handleLoc: function(loc) {
@@ -35,8 +37,6 @@ var findPlayers = (function() {
 				   }
 			   }
 	}
-
-	var turnQHandler = new QHandler(function(msg) {return msg.Content.isPlayerMsg;});
 
 	var startHandler = {
 		handleMsg: function(msg) {
@@ -75,7 +75,7 @@ var findPlayers = (function() {
 						   nearbyUsers.forEach(function(u) {if (u.Id == from) {nickYou = u.nick;}});
 						   clearRequests();
 						   tankGame = mkTankGame();
-						   tankGame.init(idMe, from, nickname, nickYou, xPosMe, xPosYou, initWind, connect, divs, turnQHandler, escapeGame);
+						   tankGame.init(height, width, idMe, from, nickname, nickYou, xPosMe, xPosYou, initWind, connect, divs, escapeGame);
 					   }
 				   }
 			   }
@@ -176,7 +176,6 @@ var findPlayers = (function() {
 			      locHandlers.append(locHandler);
 			      msgHandlers.append(nameReqHandler);
 			      msgHandlers.append(nameRespHandler);
-			      msgHandlers.append(turnQHandler);
 			      msgHandlers.append(startHandler);
 			      msgHandlers.append(busyMsgHandler);
 			      msgHandlers.append(busyReqHandler);
@@ -190,10 +189,8 @@ var findPlayers = (function() {
 				if (committedToGame) {
 					return;
 				}
-				// Flush game q
-				turnQHandler.q.clear();
 				idYou = otherId;
-				var pair = positionPair(terrainWidth);
+				var pair = positionPair(width);
 				xPosMe = pair[0];
 				xPosYou = pair[1];
 				divs = genDivisors();
@@ -205,8 +202,6 @@ var findPlayers = (function() {
 			},
 
 		accept: function(otherId) {
-				// Flush game q
-				turnQHandler.q.clear();
 				idYou = otherId;
 				connect.sendMsg(otherId, mkAccept());
 				commitToGame();
@@ -216,7 +211,7 @@ var findPlayers = (function() {
 				nearbyUsers.forEach(function(u) {if (u.Id == otherId) u.inviteRcv = false;});
 				clearRequests();
 				tankGame = mkTankGame();
-				tankGame.init(idMe, idYou, nickname, nickYou, xPosMe, xPosYou, initWind, connect, divs, turnQHandler, escapeGame);
+				tankGame.init(height, width, idMe, idYou, nickname, nickYou, xPosMe, xPosYou, initWind, connect, divs, escapeGame);
 			},
 
 		decline: function(otherId) {
