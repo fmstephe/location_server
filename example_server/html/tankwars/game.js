@@ -118,7 +118,11 @@ function mkTankGame() {
 		tankCtxt.clearRect(0, 0, gameWidth, gameHeight);
 		missileCtxt.clearRect(0, 0, gameWidth, gameHeight);
 		terrainCtxt.clearRect(0, 0, gameWidth, gameHeight);
+		tankCtxt.clearRect(0, 0, gameWidth, gameHeight);
+		missileCtxt.clearRect(0, 0, gameWidth, gameHeight);
+		terrainCtxt.clearRect(0, 0, gameWidth, gameHeight);
 		bgCtxt.clearRect(0, 0, gameWidth, gameHeight);
+		connect.rmvMsgHandler(turnHandler);
 		gameOverFun();
 	}
 
