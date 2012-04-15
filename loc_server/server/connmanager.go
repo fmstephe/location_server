@@ -23,6 +23,11 @@ func (usr *user) eq(oUsr *user) bool {
 	return usr.id == oUsr.id
 }
 
+func (usr *user) dup() *user {
+	dup := *usr
+	return &dup
+}
+
 func newUser(ws *websocket.Conn) *user {
 	return &user{msgWriter: msgwriter.New(ws)}
 }
@@ -37,8 +42,8 @@ type task struct {
 // NB: The user here is a value, not a pointer
 // A copy has been made to avoid race conditions with
 // future user updates
-func newTask(tId uint, op msgdef.ClientOp, usr user) *task {
-	return &task{tId: tId, op: op, usr: &usr}
+func newTask(tId uint, op msgdef.ClientOp, usr *user) *task {
+	return &task{tId: tId, op: op, usr: usr.dup()}
 }
 
 //  Listen to ws
@@ -106,7 +111,7 @@ func removeId(tId *uint, usr *user) {
 
 func removeFromTree(tId *uint, usr *user) {
 	(*tId)++
-	msg := newTask(*tId, msgdef.CRemoveOp, *usr)
+	msg := newTask(*tId, msgdef.CRemoveOp, usr)
 	forwardMsg(msg)
 }
 
@@ -129,7 +134,7 @@ func processInitLoc(tId uint, initMsg *msgdef.CLocMsg, usr *user) error {
 		usr.olng = initMsg.Lng
 		usr.lat = initMsg.Lat
 		usr.lng = initMsg.Lng
-		msg := newTask(tId, msgdef.CInitLocOp, *usr)
+		msg := newTask(tId, msgdef.CInitLocOp, usr)
 		forwardMsg(msg)
 		return nil
 	}
@@ -140,7 +145,7 @@ func processInitLoc(tId uint, initMsg *msgdef.CLocMsg, usr *user) error {
 func processRequest(tId uint, locMsg *msgdef.CLocMsg, usr *user) error {
 	switch locMsg.Op {
 	case msgdef.CNearbyOp:
-		msg := newTask(tId, msgdef.CNearbyOp, *usr)
+		msg := newTask(tId, msgdef.CNearbyOp, usr)
 		forwardMsg(msg)
 		return nil
 	case msgdef.CMoveOp:
@@ -148,7 +153,7 @@ func processRequest(tId uint, locMsg *msgdef.CLocMsg, usr *user) error {
 		usr.olng = usr.lng
 		usr.lat = locMsg.Lat
 		usr.lng = locMsg.Lng
-		msg := newTask(tId, msgdef.CMoveOp, *usr)
+		msg := newTask(tId, msgdef.CMoveOp, usr)
 		forwardMsg(msg)
 		return nil
 	}
