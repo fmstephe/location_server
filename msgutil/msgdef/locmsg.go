@@ -11,9 +11,6 @@ const CInitLocOp = ClientOp("cInitLoc")
 // Change the location of the user
 const CMoveOp = ClientOp("cMove")
 
-// Query for all cNearby users
-const CNearbyOp = ClientOp("cNearby")
-
 // A structure for unmarshalling lat/lng messages
 type CLocMsg struct {
 	Op       ClientOp

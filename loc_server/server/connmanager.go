@@ -144,10 +144,6 @@ func processInitLoc(tId uint, initMsg *msgdef.CLocMsg, usr *user) error {
 // Handle request messages - cMove, cNearby
 func processRequest(tId uint, locMsg *msgdef.CLocMsg, usr *user) error {
 	switch locMsg.Op {
-	case msgdef.CNearbyOp:
-		msg := newTask(tId, msgdef.CNearbyOp, usr)
-		forwardMsg(msg)
-		return nil
 	case msgdef.CMoveOp:
 		usr.olat = usr.lat
 		usr.olng = usr.lng
