@@ -410,5 +410,7 @@ function mkTankGame() {
 		terrainCanvas.style.height = viewHeight;
 		bgCanvas.style.width = viewWidth;
 		bgCanvas.style.height = viewHeight;
+		$('game-div').style.height = viewHeight;
+		$('game-div').style.width = viewWidth;
 	}
 }
