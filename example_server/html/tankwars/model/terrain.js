@@ -71,7 +71,7 @@ function generateTerrain(width, height, divs) {
 			addWave(wave, oWave);
 		}
 	}
-	normaliseWave(wave, height*0.9, height*0.05);
+	normaliseWave(wave, height*0.7, height*0.05);
 	return wave
 }
 
