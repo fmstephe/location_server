@@ -11,8 +11,8 @@ function nickEnter(e) {
 
 function enterNickState() {
 	document.onkeypress = nickEnter;
-	$('intro-div').style.display='inline';
-	$('nick-div').style.display='inline';
+	$('intro-div').style.display='block';
+	$('nick-div').style.display='block';
 	$('player-div').style.display='none';
 	$('game-div').style.display='none';
 	$('nick-input').focus();
@@ -20,9 +20,9 @@ function enterNickState() {
 
 function findPlayersState() {
 	document.onkeypress = null;
-	$('intro-div').style.display='inline';
+	$('intro-div').style.display='block';
 	$('nick-div').style.display='none';
-	$('player-div').style.display='inline';
+	$('player-div').style.display='block';
 	$('game-div').style.display='none';
 }
 
@@ -31,5 +31,5 @@ function playGameState() {
 	$('intro-div').style.display='none';
 	$('nick-div').style.display='none';
 	$('player-div').style.display='none';
-	$('game-div').style.display='inline';
+	$('game-div').style.display='block';
 }
