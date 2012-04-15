@@ -9,11 +9,24 @@ function Wind(width, height, particleNum) {
 		var y = r(height);
 		this.particles[i] = [x,y,x,y];
 	}
-	this.wind = windChange();
 }
 
-function windChange() {
+function windValue() {
 	return r(30) - 15;
+}
+
+Wind.prototype.windChange = function() {
+	return r(14) - 7;
+}
+
+Wind.prototype.addWind = function(diff) {
+	this.wind += diff;
+	if (this.wind > 15) {
+		this.wind = 15;
+	}
+	if (this.wind < -15) {
+		this.wind = -15;
+	}
 }
 
 Wind.prototype.setClear = function(ctxt) {

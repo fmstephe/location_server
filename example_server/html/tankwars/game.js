@@ -43,7 +43,7 @@ function mkTankGame() {
 	var missileList;
 	var explosionList;
 	var wind;
-	var nextWind;
+	var windDiff;
 	//
 	var turnHandler;
 	//
@@ -169,7 +169,7 @@ function mkTankGame() {
 				var turn = turnHandler.getTurn();
 				turn.forEach(function(m) {if (m.Content.data.id == playerYou.id) playerYou.arc = m.Content.data.arc});
 				turn.forEach(function(m) {if (m.Content.data.isPlayer) launchMissile(m.Content.data);});
-				turn.forEach(function(m) {if ((typeof m.Content.data) == "number") nextWind = m.Content.data});
+				turn.forEach(function(m) {if ((typeof m.Content.data) == "number") windDiff = m.Content.data});
 			}
 			// If an explosion has caused the terrain to change clear out the affected region
 			terrain.setClear(terrainCtxt);
@@ -179,7 +179,7 @@ function mkTankGame() {
 			if (filtered.size > 0 && missileList.size == 0) {
 				playerMe.active = true;
 				missileCtxt.clearRect(0,0,missileCanvas.width,missileCanvas.height);
-				wind.wind = nextWind;
+				wind.addWind(windDiff);
 			} else {
 				missileList.forEach(function(m){m.render(missileCtxt, gameHeight)});
 			}
@@ -188,7 +188,6 @@ function mkTankGame() {
 			explosionList.forEach(function(e){e.render(missileCtxt, gameHeight)});
 			terrain.clearMods();
 			if (playerList.length() < 2) {
-				console.log(this);
 				setTimeout(killPrivate, 3000);
 				gameOver = true;
 			}
@@ -223,7 +222,7 @@ function mkTankGame() {
 			}
 			if (keybindings.firing) {
 				if (playerMe.id > playerYou.id) {
-					var windMsg = new TurnMsg(turnHandler.turnCount, windChange());
+					var windMsg = new TurnMsg(turnHandler.turnCount, wind.windChange());
 					connect.sendMsg(idMe, windMsg);
 					connect.sendMsg(idYou, windMsg);
 				}

@@ -194,7 +194,7 @@ var findPlayers = (function() {
 				xPosMe = pair[0];
 				xPosYou = pair[1];
 				divs = genDivisors();
-				initWind = windChange();
+				initWind = windValue();
 				commitToGame();
 				nearbyUsers.forEach(function(u) {if (u.Id == idYou) u.inviteSent = true;});
 				refreshUsers();
