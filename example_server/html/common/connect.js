@@ -76,24 +76,28 @@ Connect.prototype.sync = function(idMe, idYou, fun) {
 	var syncHandler = function(msg) {
 		var from = msg.From;
 		var content = msg.Content;
-		if (content.isSyncRequest) {
-			var name = content.name;
-			if (from == idYou) {
-				clearInterval(intervalId);
-				thisConn.rmvMsgHandler(syncHandler);
-				thisConn.sendMsg(idYou, SyncResponse());
-				fun();
-			} else {
-				console.log("Received 2sync request with unexpected id " + id + " from " + from);
-			}
-		} else if (content.isSyncResponse) {
-			var name = content.name;
-			if (from == idYou) {
-				clearInterval(intervalId);
-				thisConn.rmvMsgHandler(syncHandler);
-				fun();
-			} else {
-				console.log("Received 2sync response with unexpected id " + id + " from " + from);
+		if (!synced) {
+			if (content.isSyncRequest) {
+				var name = content.name;
+				if (from == idYou) {
+					clearInterval(intervalId);
+					thisConn.rmvMsgHandler(syncHandler);
+					thisConn.sendMsg(idYou, SyncResponse());
+					synced = true;
+					fun();
+				} else {
+					console.log("Received 2sync request with unexpected id " + id + " from " + from);
+				}
+			} else if (content.isSyncResponse) {
+				var name = content.name;
+				if (from == idYou) {
+					clearInterval(intervalId);
+					thisConn.rmvMsgHandler(syncHandler);
+					synced = true;
+					fun();
+				} else {
+					console.log("Received 2sync response with unexpected id " + id + " from " + from);
+				}
 			}
 		}
 	}
