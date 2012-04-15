@@ -5,7 +5,7 @@ function Terrain(width, height, divs, tanks) {
 	this.regionList = new LinkedList();
 	this.notifyMod(0,width);
 	var terrain = this;
-	if (tanks) tanks.forEach(function(x) {terrain.flatten(x,10)});
+	if (tanks) tanks.forEach(function(x) {terrain.flatten(x,15)});
 }
 
 Terrain.prototype.flatten = function(x,size) {
