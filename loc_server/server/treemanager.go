@@ -28,8 +28,6 @@ func TreeManager(minTreeMax int64, trackMovement bool) {
 			handleRemove(msg, tree)
 		case msgdef.CMoveOp:
 			handleMove(msg, tree, trackMovement)
-		case msgdef.CNearbyOp:
-			handleNearby(msg, tree)
 		}
 	}
 }
@@ -50,15 +48,6 @@ func handleRemove(rmv *task, tree quadtree.T) {
 	deleteUsr(mNS, mEW, usr, tree)
 	vs := []*quadtree.View{nearbyView(mNS, mEW)}
 	tree.Survey(vs, removeFun(rmv.tId, usr))
-}
-
-func handleNearby(nby *task, tree quadtree.T) {
-	usr := nby.usr
-	mNS, mEW := metresFromOrigin(usr.lat, usr.lng)
-	locLog(nby.tId, usr.id, "Nearby Request", mNS, mEW)
-	view := nearbyView(mNS, mEW)
-	vs := []*quadtree.View{view}
-	tree.Survey(vs, nearbyFun(nby.tId, usr))
 }
 
 func handleMove(mv *task, tree quadtree.T, trackMovement bool) {
