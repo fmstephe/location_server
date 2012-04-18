@@ -25,7 +25,7 @@ func (msg *CLocMsg) Validate() error {
 	if msg.Op == "" {
 		return errors.New("Missing Op in location message")
 	}
-	if msg.Op != CInitLocOp && msg.Op != CMoveOp && msg.Op != CNearbyOp {
+	if msg.Op != CInitLocOp && msg.Op != CMoveOp {
 		return errors.New("Invalid Op in location message")
 	}
 	if msg.Lat == math.NaN() || msg.Lng == math.NaN() {
