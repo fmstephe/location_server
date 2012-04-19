@@ -5,9 +5,9 @@ import (
 	"errors"
 	"github.com/fmstephe/simpleid"
 	"location_server/logutil"
-	"location_server/msgutil/jsonutil"
 	"location_server/msgutil/msgdef"
 	"location_server/msgutil/msgwriter"
+	"encoding/json"
 )
 
 var iOpErr = errors.New("Illegal Message Op. Operation unrecognised or provided in illegal order.")
@@ -52,15 +52,8 @@ func WebsocketUser(ws *websocket.Conn) {
 	var tId uint
 	usr := newUser(ws)
 	idMsg := &msgdef.CIdMsg{}
-	if err := jsonutil.JSONCodec.Receive(ws, idMsg); err != nil {
-		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
-		return
-	}
-	if err := idMsg.Validate(); err != nil {
-		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
-		return
-	}
-	if err := processReg(idMsg, usr); err != nil {
+	procReg := processReg(idMsg, usr)
+	if err := unmarshalAndProcess(tId, usr.id, ws, idMsg, procReg); err != nil {
 		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
 	}
@@ -72,15 +65,8 @@ func WebsocketUser(ws *websocket.Conn) {
 	defer removeId(&tId, usr)
 	tId++
 	initLocMsg := msgdef.EmptyCLocMsg()
-	if err := jsonutil.JSONCodec.Receive(ws, initLocMsg); err != nil {
-		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
-		return
-	}
-	if err := initLocMsg.Validate(); err != nil {
-		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
-		return
-	}
-	if err := processInitLoc(tId, initLocMsg, usr); err != nil {
+	procInit := processInitLoc(tId, initLocMsg, usr)
+	if err := unmarshalAndProcess(tId, usr.id, ws, initLocMsg, procInit); err != nil {
 		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 		return
 	}
@@ -88,19 +74,22 @@ func WebsocketUser(ws *websocket.Conn) {
 	for {
 		tId++
 		locMsg := msgdef.EmptyCLocMsg()
-		if err := jsonutil.JSONCodec.Receive(ws, locMsg); err != nil {
-			usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
-			return
-		}
-		if err := locMsg.Validate(); err != nil {
-			usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
-			return
-		}
-		if err := processRequest(tId, locMsg, usr); err != nil {
+		procReq := processRequest(tId, locMsg, usr)
+		if err := unmarshalAndProcess(tId, usr.id, ws, locMsg, procReq); err != nil {
 			usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 			return
 		}
 	}
+}
+
+func unmarshalAndProcess(tId uint, uId string, ws *websocket.Conn, msg interface{}, processFunc func() error) error {
+	var data string
+	if err := websocket.Message.Receive(ws, &data); err != nil {
+		return err
+	}
+	logutil.Log(tId, uId, data)
+	json.Unmarshal([]byte(data), msg)
+	return processFunc()
 }
 
 func removeId(tId *uint, usr *user) {
@@ -117,19 +106,28 @@ func removeFromTree(tId *uint, usr *user) {
 
 // Handle registration message
 // Success will leave usr with initialised Id field
-func processReg(idMsg *msgdef.CIdMsg, usr *user) error {
-	switch idMsg.Op {
-	case msgdef.CAddOp:
+func processReg(idMsg *msgdef.CIdMsg, usr *user) func() error {
+	return func() error {
+		if err := idMsg.Validate(); err != nil {
+			return err
+		}
+		if idMsg.Op != msgdef.CAddOp {
+			return iOpErr
+		}
 		usr.id = idMsg.Id
 		return nil
 	}
-	return iOpErr
 }
 
 // Handle initial location message
-func processInitLoc(tId uint, initMsg *msgdef.CLocMsg, usr *user) error {
-	switch initMsg.Op {
-	case msgdef.CInitLocOp:
+func processInitLoc(tId uint, initMsg *msgdef.CLocMsg, usr *user) func() error {
+	return func() error {
+		if err := initMsg.Validate(); err != nil {
+			return err
+		}
+		if initMsg.Op != msgdef.CInitLocOp {
+			return iOpErr
+		}
 		usr.olat = initMsg.Lat
 		usr.olng = initMsg.Lng
 		usr.lat = initMsg.Lat
@@ -138,13 +136,17 @@ func processInitLoc(tId uint, initMsg *msgdef.CLocMsg, usr *user) error {
 		forwardMsg(msg)
 		return nil
 	}
-	return iOpErr
 }
 
 // Handle request messages - cMove, cNearby
-func processRequest(tId uint, locMsg *msgdef.CLocMsg, usr *user) error {
-	switch locMsg.Op {
-	case msgdef.CMoveOp:
+func processRequest(tId uint, locMsg *msgdef.CLocMsg, usr *user) func() error {
+	return func() error {
+		if err := locMsg.Validate(); err != nil {
+			return err
+		}
+		if locMsg.Op != msgdef.CMoveOp {
+			return iOpErr
+		}
 		usr.olat = usr.lat
 		usr.olng = usr.lng
 		usr.lat = locMsg.Lat
@@ -153,7 +155,6 @@ func processRequest(tId uint, locMsg *msgdef.CLocMsg, usr *user) error {
 		forwardMsg(msg)
 		return nil
 	}
-	return iOpErr
 }
 
 func forwardMsg(msg *task) {
