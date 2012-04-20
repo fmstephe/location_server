@@ -70,7 +70,7 @@ function initialise(position) {
 
 function handleLoc(msg) {
 	var op = msg.Op;
-	var usrInfo = msg.Msg;
+	var usrInfo = {Id: msg.Id, Lat: msg.Lat, Lng: msg.Lng};
 	if (op == "sAdd" || op == "sMoved" || op == "sNearby" || op == "sVisible") {
 		usrInfo.Name = "?"
 		if (users[usrInfo.Id]) {
@@ -95,8 +95,8 @@ function findName(usr) {
 }
 
 function handleMsg(msg) {
-	var from = msg.Msg.From;
-	var content = msg.Msg.Content;
+	var from = msg.From;
+	var content = msg.Content;
 	if (content == "name?") {
 		reply = new Msg(from, $F("name"));
 		msgService.jsonsend(reply);
