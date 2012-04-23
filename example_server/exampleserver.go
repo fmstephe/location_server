@@ -41,7 +41,7 @@ func main() {
 	http.HandleFunc("/id", idProvider)
 	http.HandleFunc("/restart", restart)
 	http.Handle("/", http.FileServer(http.Dir(pwd+"/html/")))
-	if err := http.ListenAndServe(":8001", nil); err != nil {
+	if err := http.ListenAndServe(":80", nil); err != nil {
 		println(err.Error())
 	}
 }
