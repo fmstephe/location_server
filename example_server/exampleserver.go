@@ -22,15 +22,6 @@ func idProvider(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func restart(w http.ResponseWriter, r *http.Request) {
-	os.Chdir("scripts")
-	cmd := exec.Command("./update_servers.sh")
-	err := cmd.Run()
-	if err != nil {
-		println(err.Error())
-	}
-}
-
 func main() {
 	logutil.ServerStarted("Example")
 	pwd, err := os.Getwd()
@@ -39,7 +30,6 @@ func main() {
 		return
 	}
 	http.HandleFunc("/id", idProvider)
-	http.HandleFunc("/restart", restart)
 	http.Handle("/", http.FileServer(http.Dir(pwd+"/html/")))
 	if err := http.ListenAndServe(":80", nil); err != nil {
 		println(err.Error())
