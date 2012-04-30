@@ -12,6 +12,7 @@ import (
 
 var idMaker = simpleid.NewIdMaker()
 
+// Provides a unique id in a nice json msg (Op: "sIdOp", Id: $$$)
 func idProvider(w http.ResponseWriter, r *http.Request) {
 	id := idMaker.NewId()
 	idMsg := msgdef.SIdMsg{Op: msgdef.SIdOp, Id: id}
@@ -22,6 +23,8 @@ func idProvider(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Simple file server for serving up static content from the /html/ directory
+// Also provides a simple id service for AJAX convenience
 func main() {
 	logutil.ServerStarted("Example")
 	pwd, err := os.Getwd()

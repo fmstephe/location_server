@@ -2,52 +2,75 @@ package locserver
 
 import (
 	"code.google.com/p/go.net/websocket"
+	"encoding/json"
 	"errors"
 	"github.com/fmstephe/simpleid"
 	"location_server/logutil"
 	"location_server/msgutil/msgdef"
 	"location_server/msgutil/msgwriter"
-	"encoding/json"
 )
 
 var iOpErr = errors.New("Illegal Message Op. Operation unrecognised or provided in illegal order.")
 var idSet = simpleid.NewIdMap()
 
+// Identifies a user currently registered with this location service
+//
+// Valid states (A user moves from one state to the next, and never reverts to a previous state):
+// Unregistered: 	msgWriter non-zero
+// Registered:		id non-zero, msgWriter non-zero
+// Located:		lat/lng fields non-zero, id non-zero, msgWriter non-zero
+//
+// Since user structs may be part of a goroutines we must take care that only copies are sent.
+// NB: It is safe (and necessary) that two copies of the same user reference the same msgWriter
 type user struct {
 	id                   string
 	lat, olat, lng, olng float64
 	msgWriter            *msgwriter.W
 }
 
+// Indicates whether two user structs indicate the same user
+// This is based on the msgWriter pointer as this is the only stable user field
 func (usr *user) eq(oUsr *user) bool {
-	return usr.id == oUsr.id
+	return usr.msgWriter == oUsr.msgWriter
 }
 
+// Duplicates a user for sending as a message
 func (usr *user) dup() *user {
 	dup := *usr
 	return &dup
 }
 
+// Creates a new user
 func newUser(ws *websocket.Conn) *user {
 	return &user{msgWriter: msgwriter.New(ws)}
 }
 
-// A client request
+// Represents a task for the tree manager.
 type task struct {
-	tId uint
-	op  msgdef.ClientOp
-	usr *user
+	tId uint            // The transaction id for this task
+	op  msgdef.ClientOp // The operation to perform for this task
+	usr *user           // The state of the user for this task
 }
 
-// NB: The user here is a value, not a pointer
-// A copy has been made to avoid race conditions with
-// future user updates
+// Safely creates a new task struct, in particular duplicating usr
 func newTask(tId uint, op msgdef.ClientOp, usr *user) *task {
 	return &task{tId: tId, op: op, usr: usr.dup()}
 }
 
-//  Listen to ws
-//  Unmarshall json objects from ws and write to readChan
+// This is the websocket connection handling function
+// The following messages are required in this order
+// 1: User registration message (user id added to idSet)
+// 2: Initial location message 
+// 3: Move message
+//
+// Every incoming message (and subsequent actions performed) are associated with a transaction id
+//
+// Error handling:
+// Any error will result in these actions
+// 1: The user will be sent a server-error message
+// 2: The connection will be closed
+// 3: The user id will be removed from the idSet
+// 4: The user will be removed from the treemanager
 func WebsocketUser(ws *websocket.Conn) {
 	var tId uint
 	usr := newUser(ws)
@@ -74,7 +97,7 @@ func WebsocketUser(ws *websocket.Conn) {
 	for {
 		tId++
 		locMsg := msgdef.EmptyCLocMsg()
-		procReq := processRequest(tId, locMsg, usr)
+		procReq := processMove(tId, locMsg, usr)
 		if err := unmarshalAndProcess(tId, usr.id, ws, locMsg, procReq); err != nil {
 			usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
 			return
@@ -82,22 +105,29 @@ func WebsocketUser(ws *websocket.Conn) {
 	}
 }
 
+// Unmarshals a message as a string from the websocket connection
+// Unmarshals that string into msg
+// Calls processFunc provided for arbitrary handling
 func unmarshalAndProcess(tId uint, uId string, ws *websocket.Conn, msg interface{}, processFunc func() error) error {
 	var data string
 	if err := websocket.Message.Receive(ws, &data); err != nil {
 		return err
 	}
 	logutil.Log(tId, uId, data)
-	json.Unmarshal([]byte(data), msg)
+	if err := json.Unmarshal([]byte(data), msg); err != nil {
+		return err
+	}
 	return processFunc()
 }
 
+// Removes this user's id from idSet and logs the action
 func removeId(tId *uint, usr *user) {
 	(*tId)++
 	logutil.Deregistered(*tId, usr.id)
 	idSet.Remove(usr.id)
 }
 
+// Sends a remove message to the tree manager
 func removeFromTree(tId *uint, usr *user) {
 	(*tId)++
 	msg := newTask(*tId, msgdef.CRemoveOp, usr)
@@ -120,6 +150,7 @@ func processReg(idMsg *msgdef.CIdMsg, usr *user) func() error {
 }
 
 // Handle initial location message
+// Success results in this user's location being updated and an initial location message being sent to the tree manager
 func processInitLoc(tId uint, initMsg *msgdef.CLocMsg, usr *user) func() error {
 	return func() error {
 		if err := initMsg.Validate(); err != nil {
@@ -138,8 +169,9 @@ func processInitLoc(tId uint, initMsg *msgdef.CLocMsg, usr *user) func() error {
 	}
 }
 
-// Handle request messages - cMove, cNearby
-func processRequest(tId uint, locMsg *msgdef.CLocMsg, usr *user) func() error {
+// Handle move message
+// Success results in this user's location being updated and  a move message beging sent to the tree manager
+func processMove(tId uint, locMsg *msgdef.CLocMsg, usr *user) func() error {
 	return func() error {
 		if err := locMsg.Validate(); err != nil {
 			return err
@@ -157,6 +189,9 @@ func processRequest(tId uint, locMsg *msgdef.CLocMsg, usr *user) func() error {
 	}
 }
 
+// A small function which exists simply to give a level of indirection to this channel send.
+// This is clearly a significant bottleneck for the application and in the future this function
+// will likely not be a simple channel send.
 func forwardMsg(msg *task) {
 	msgChan <- msg
 }
