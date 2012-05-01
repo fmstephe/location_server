@@ -7,7 +7,6 @@ import (
 	"location_server/msgutil/msgdef"
 	"net/http"
 	"os"
-	"os/exec"
 )
 
 var idMaker = simpleid.NewIdMaker()
