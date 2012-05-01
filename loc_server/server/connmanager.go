@@ -192,6 +192,6 @@ func processMove(tId uint, locMsg *msgdef.CLocMsg, usr *user) func() error {
 // A small function which exists simply to give a level of indirection to this channel send.
 // This is clearly a significant bottleneck for the application and in the future this function
 // will likely not be a simple channel send.
-func forwardMsg(msg *task) {
-	msgChan <- msg
+func forwardMsg(tsk *task) {
+	taskChan <- tsk
 }

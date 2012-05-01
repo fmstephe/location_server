@@ -25,6 +25,6 @@ func init() {
 func main() {
 	logutil.ServerStarted("Location")
 	http.Handle("/loc", websocket.Handler(locserver.WebsocketUser))
-	go locserver.TreeManager(*minTreeMax, *trackMovement)
+	locserver.StartTreeManager(*minTreeMax, *trackMovement)
 	http.ListenAndServe(":8002", nil)
 }

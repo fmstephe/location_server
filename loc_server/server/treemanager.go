@@ -7,31 +7,40 @@ import (
 	"location_server/quadtree"
 )
 
+// Hardcoded values for the distance within which users are visible to each other
+// Should be configurable
 const (
 	nearbyMetresNS = 1000.0
 	nearbyMetresEW = 1000.0
 )
 
-//
-// Single Threaded Tree Manager Code 
-//
-var msgChan = make(chan *task, 255) // Global Channel for all requests
+// Single channel funnels all messages coming into the tree manager
+// As a simple global variable this is a bottleneck (top of the list for performance upgrade)
+var taskChan = make(chan *task, 255)
 
-func TreeManager(minTreeMax int64, trackMovement bool) {
-	tree := quadtree.NewQuadTree(maxSouthMetres, maxNorthMetres, maxWestMetres, maxEastMetres, minTreeMax)
-	for {
-		msg := <-msgChan
-		switch msg.op {
-		case msgdef.CInitLocOp:
-			handleInitLoc(msg, tree)
-		case msgdef.CRemoveOp:
-			handleRemove(msg, tree)
-		case msgdef.CMoveOp:
-			handleMove(msg, tree, trackMovement)
+// Starts a goroutine looping listening for messsages on taskChan to process
+func StartTreeManager(minTreeMax int64, trackMovement bool) {
+	go func() {
+		tree := quadtree.NewQuadTree(maxSouthMetres, maxNorthMetres, maxWestMetres, maxEastMetres, minTreeMax)
+		for {
+			msg := <-taskChan
+			switch msg.op {
+			case msgdef.CInitLocOp:
+				handleInitLoc(msg, tree)
+			case msgdef.CRemoveOp:
+				handleRemove(msg, tree)
+			case msgdef.CMoveOp:
+				handleMove(msg, tree, trackMovement)
+			}
 		}
-	}
+	}()
 }
 
+// Handles initial location tasks
+// An initial location message has the following effect
+// 1: The user is added to the quadtree at its initial location
+// 2: All nearby users to the new user and notified
+// 3: Symmetrically the new user is notified of all nearby users
 func handleInitLoc(initLoc *task, tree quadtree.T) {
 	usr := initLoc.usr
 	mNS, mEW := metresFromOrigin(usr.lat, usr.lng)
@@ -41,6 +50,10 @@ func handleInitLoc(initLoc *task, tree quadtree.T) {
 	tree.Insert(mNS, mEW, usr)
 }
 
+// Handles Remove tasks
+// A remove task has the following effect
+// 1: The user is removed from the quadtree
+// 2: All nearby users are notified
 func handleRemove(rmv *task, tree quadtree.T) {
 	usr := rmv.usr
 	mNS, mEW := metresFromOrigin(usr.lat, usr.lng)
@@ -50,6 +63,13 @@ func handleRemove(rmv *task, tree quadtree.T) {
 	tree.Survey(vs, removeFun(rmv.tId, usr))
 }
 
+// Handles move tasks
+// A move task has the following effect
+// 1: The user is removed from the quadtree at its old location
+// 2: The user is inserted into the quadtree at its new location
+// 3: All users who could see the user but can't now are notified
+// 4: All users who could not see the user but can now are notified
+// 5: if (trackMovement) All users who can see the user in both the old and new position are notified
 func handleMove(mv *task, tree quadtree.T, trackMovement bool) {
 	usr := mv.usr
 	oMNS, oMEW := metresFromOrigin(usr.olat, usr.olng)
@@ -82,16 +102,6 @@ func deleteUsr(mNS, mEW float64, usr *user, tree quadtree.T) {
 	tree.Delete(v, pred)
 }
 
-// Returns a function used for telling usr about each of the other users who are nearby
-func nearbyFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
-	return func(mNS, mEW float64, e interface{}) {
-		oUsr := e.(*user)
-		if !usr.eq(oUsr) {
-			broadcastSend(tId, msgdef.SNearbyOp, usr, oUsr)
-		}
-	}
-}
-
 // Returns a function used for alerting users that another user has been added to the system
 func initLocFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
@@ -104,7 +114,6 @@ func initLocFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 }
 
 // Returns a function used for alerting users that another user has been removed from the system
-// NB: Relies on the assumption that usr is not currently present in tree
 func removeFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
@@ -112,7 +121,7 @@ func removeFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 	}
 }
 
-// Returns a function used for alerting users that another user is going out of range and should be removed
+// Returns a function used for alerting users that another user has just left the visible range
 func notVisibleFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
@@ -121,7 +130,7 @@ func notVisibleFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 	}
 }
 
-// Returns a function used for alerting users that another user has just become visible and should be added
+// Returns a function used for alerting users that another user has entered the visible range
 func visibleFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
@@ -132,7 +141,7 @@ func visibleFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 	}
 }
 
-// Returns a function used for alerting users that another user has changed position and should be updated
+// Returns a function used for alerting users that another user, within visible range, has changed position
 func movedFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
@@ -151,16 +160,19 @@ func nearbyView(mNS, mEW float64) *quadtree.View {
 	return quadtree.NewViewP(sth, nth, wst, est)
 }
 
+// Sends a message to oUsr informing him/her of a notification involving usr
 func broadcastSend(tId uint, op msgdef.ServerOp, usr *user, oUsr *user) {
 	locMsg := msgdef.SLocMsg{Op: op, Id: usr.id, Lat: usr.lat, Lng: usr.lng}
 	sMsg := &msgdef.ServerMsg{Msg: locMsg, TId: tId, UId: usr.id}
 	oUsr.msgWriter.WriteMsg(sMsg)
 }
 
-func locLog(tId uint, uId, msgType string, mNS, mEW float64) {
-	logutil.Log(tId, uId, fmt.Sprintf("%s - mNS: %f mEW: %f", msgType, mNS, mEW))
+// Logs a task involving only a single location point
+func locLog(tId uint, uId, taskDesc string, mNS, mEW float64) {
+	logutil.Log(tId, uId, fmt.Sprintf("%s - mNS: %f mEW: %f", taskDesc, mNS, mEW))
 }
 
-func locLogL(tId uint, uId, msgType string, oMNS, oMEW, nMNS, nMEW float64) {
-	logutil.Log(tId, uId, fmt.Sprintf("%s - oMNS: %f oMEW %f nMNS: %f nMEW %f", msgType, oMNS, oMEW, nMNS, nMEW))
+// Logs a task involving an old and new location point
+func locLogL(tId uint, uId, taskDesc string, oMNS, oMEW, nMNS, nMEW float64) {
+	logutil.Log(tId, uId, fmt.Sprintf("%s - oMNS: %f oMEW %f nMNS: %f nMEW %f", taskDesc, oMNS, oMEW, nMNS, nMEW))
 }
