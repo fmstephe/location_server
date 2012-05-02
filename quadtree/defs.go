@@ -1,16 +1,15 @@
 package quadtree
 
 // Public interface for quadtrees.
-// Note that only root implements this interface, not leaf.
 type T interface {
 	View() *View
-	// Error may be returned to indicate that e could not be inserted if the 
-	// implementation has size restrictions
+	// Inserts e into this quadtree at point (x,y)
 	Insert(x, y float64, e interface{})
-	//
-	Survey(view []*View, fun func(x, y float64, e interface{}))
-	//
-	Delete(view *View, pred func(x, y float64, e interface{}) bool)
-	//
+	// Applies fun to every element in this quadtree that lies within any view in views
+	Survey(views []*View, fun func(x, y float64, e interface{}))
+	// Applies pred to every element in this quadtree that lies within any view in views
+	// If pred returns true that element is removed
+	Delete(views *View, pred func(x, y float64, e interface{}) bool)
+	// Provides a human readable (as far as possible) string representation of this tree
 	String() string
 }
