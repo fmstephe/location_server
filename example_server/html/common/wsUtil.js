@@ -26,8 +26,8 @@ function WSClient(name, url, msgFun, opnFun, clsFun) {
 		if (m.data) {
 			console.log(this.name + ": json msg received: "+m.data);
 			var msg = JSON.parse(m.data);
-			if (msg.Op == "sAck") {
-				this.unackedMsgs.filter(function(tsMsg) {return tsMsg.msg.Id == msg.Id});
+			if (msg.op == "sAck") {
+				this.unackedMsgs.filter(function(tsMsg) {return tsMsg.msg.id == msg.id});
 			} else {
 				this.msgFun(msg);
 			}

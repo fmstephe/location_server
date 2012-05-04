@@ -57,7 +57,6 @@ function initialise(position) {
 	msgService.connect();
 	locService.jsonsend(addMsg);
 	msgService.jsonsend(addMsg);
-	//var latlng = new google.maps.LatLng(54.97784, -1.612916);
 	var latlng = new google.maps.LatLng(lat, lng);
 	var myOptions = {control: false,
 		zoom: 15,
@@ -69,34 +68,34 @@ function initialise(position) {
 }
 
 function handleLoc(msg) {
-	var op = msg.Op;
-	var usrInfo = {Id: msg.Id, Lat: msg.Lat, Lng: msg.Lng};
+	var op = msg.op;
+	var usrInfo = {id: msg.id, Lat: msg.lat, Lng: msg.lng};
 	if (op == "sAdd" || op == "sMoved" || op == "sNearby" || op == "sVisible") {
 		usrInfo.Name = "?"
-		if (users[usrInfo.Id]) {
-			users[usrInfo.Id].marker.setMap(null);
-			usrInfo.Name = users[usrInfo.Id].usrInfo.Name;
+		if (users[usrInfo.id]) {
+			users[usrInfo.id].marker.setMap(null);
+			usrInfo.Name = users[usrInfo.id].usrInfo.Name;
 		}
-		var loc = new google.maps.LatLng(usrInfo.Lat, usrInfo.Lng);
+		var loc = new google.maps.LatLng(usrInfo.lat, usrInfo.lng);
 		var marker = new google.maps.Marker({position: loc, map: map, title: usrInfo.Name});
 		var usr = new User(usrInfo, marker); 
-		users[usrInfo.Id] = usr;
+		users[usrInfo.id] = usr;
 		google.maps.event.addListener(marker, 'click', function(event) { findName(usr) });
 	} else if (op == "sRemove" || op == "sNotVisible") {
-		users[usrInfo.Id].marker.setMap(null);
+		users[usrInfo.id].marker.setMap(null);
 	}
 }
 
 function findName(usr) {
-	var to = usr.usrInfo.Id;
+	var to = usr.usrInfo.id;
 	var content = "name?"
 	msg = new Msg(to, content);
 	msgService.jsonsend(msg);
 }
 
 function handleMsg(msg) {
-	var from = msg.From;
-	var content = msg.Content;
+	var from = msg.from;
+	var content = msg.content;
 	if (content == "name?") {
 		reply = new Msg(from, $F("name"));
 		msgService.jsonsend(reply);

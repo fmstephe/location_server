@@ -3,7 +3,7 @@ function Msg(to, content) {
 }
 
 function Add(id) {
-	return {Op: "cAdd", Id: id};
+	return {Op: "cAdd", id: id};
 }
 
 function Move(lat, lng) {

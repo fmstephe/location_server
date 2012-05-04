@@ -58,8 +58,8 @@ function mkTankGame() {
 	var devMode = false;
 
 	var completeFun = function(turnMsgs) {
-		var wind = turnMsgs.filter(function(m) {return (typeof m.Content.data) == "number"});
-		var players = turnMsgs.filter(function(m) {return m.Content.data.isPlayer;});
+		var wind = turnMsgs.filter(function(m) {return (typeof m.content.data) == "number"});
+		var players = turnMsgs.filter(function(m) {return m.content.data.isPlayer;});
 		return wind.size == 1 && players.size == 2;
 	}
 
@@ -171,9 +171,9 @@ function mkTankGame() {
 			explosionList.forEach(function(e) {updateExplosion(e);});
 			if (turnHandler.isComplete()) {
 				var turn = turnHandler.getTurn();
-				turn.forEach(function(m) {if (m.Content.data.id == playerYou.id) playerYou.arc = m.Content.data.arc});
-				turn.forEach(function(m) {if (m.Content.data.isPlayer) launchMissile(m.Content.data);});
-				turn.forEach(function(m) {if ((typeof m.Content.data) == "number") windDiff = m.Content.data});
+				turn.forEach(function(m) {if (m.content.data.id == playerYou.id) playerYou.arc = m.content.data.arc});
+				turn.forEach(function(m) {if (m.content.data.isPlayer) launchMissile(m.content.data);});
+				turn.forEach(function(m) {if ((typeof m.content.data) == "number") windDiff = m.content.data});
 			}
 			// If an explosion has caused the terrain to change clear out the affected region
 			terrain.setClear(terrainCtxt);

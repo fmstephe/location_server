@@ -4,7 +4,7 @@ function Connect(msgHandlers, locHandlers) {
 		locHandlers.forEach(function(handler) {handler.handleLoc(loc)});
 	}
 	var handleMsg = function(msg) {
-		msg.Content = JSON.parse(msg.Content);
+		msg.content = JSON.parse(msg.content);
 		msgHandlers.forEach(function(handler) {handler.handleMsg(msg)});
 	}
 	this.msgHandlers = msgHandlers;
@@ -74,8 +74,8 @@ Connect.prototype.sync = function(idMe, idYou, fun) {
 	// Otherwise the SyncRequest might be sent, and responded to, before the syncHandler is registered (just echos of threading paranoia)
 	var intervalId = setInterval(function() {thisConn.sendMsg(idYou, SyncRequest());}, 300);
 	var syncHandler = function(msg) {
-		var from = msg.From;
-		var content = msg.Content;
+		var from = msg.from;
+		var content = msg.content;
 		if (!synced) {
 			if (content.isSyncRequest) {
 				var name = content.name;

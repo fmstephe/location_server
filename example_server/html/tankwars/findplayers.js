@@ -13,19 +13,19 @@ var findPlayers = (function() {
 
 	var locHandler = {
 		handleLoc: function(loc) {
-				   var op = loc.Op;
+				   var op = loc.op;
 				   var usrInfo = loc;
 				   if (op == "sAdd" || op == "sNearby" || op == "sVisible") {
 					   usrInfo.isBusy = false;
 					   nearbyUsers.append(usrInfo);
-					   connect.sendMsg(usrInfo.Id, new NameReq());
-					   connect.sendMsg(usrInfo.Id, new BusyReq());
+					   connect.sendMsg(usrInfo.id, new NameReq());
+					   connect.sendMsg(usrInfo.id, new BusyReq());
 				   } else if (op == "sRemove" || op == "sNotVisible") {
-					   if (tankGame && idYou == usrInfo.Id) {
+					   if (tankGame && idYou == usrInfo.id) {
 						   tankGame.kill();
 						   escapeGame();
 					   }
-					   var filtered = nearbyUsers.filter(function(u) {return usrInfo.Id == u.Id});
+					   var filtered = nearbyUsers.filter(function(u) {return usrInfo.id == u.id});
 					   console.log("filtered " + filtered.size);
 					   if (filtered.satOne(function(u) {return u.inviteSent;})) {
 						   uncommitFromGame();
@@ -40,39 +40,39 @@ var findPlayers = (function() {
 
 	var startHandler = {
 		handleMsg: function(msg) {
-				   if (msg.Content.isStartMsg) {
-					   var from = msg.From;
-					   var startOp = msg.Content.startOp;
+				   if (msg.content.isStartMsg) {
+					   var from = msg.from;
+					   var startOp = msg.content.startOp;
 					   if (startOp == "invite") {
 						   if (committedToGame) {
 							   // If the start msg is from the same person we are currently inviting this will cause deadlock
 							   // Need to break the deadlock by ordering user-ids and breaking the tie
 							   connect.sendMsg(from, mkEnaged());
 						   } else {
-							   xPosMe = msg.Content.xPosYou;
-							   xPosYou = msg.Content.xPosMe;
-							   divs = msg.Content.divs;
-							   initWind = msg.Content.initWind;
-							   nearbyUsers.forEach(function(u) {if (u.Id == from) u.inviteRcv = true});
+							   xPosMe = msg.content.xPosYou;
+							   xPosYou = msg.content.xPosMe;
+							   divs = msg.content.divs;
+							   initWind = msg.content.initWind;
+							   nearbyUsers.forEach(function(u) {if (u.id == from) u.inviteRcv = true});
 							   refreshUsers();
 						   }
 					   }
 					   if (startOp == "engaged") {
 						   uncommitFromGame();
-						   nearbyUsers.forEach(function(u) {if (u.Id == from) u.isBusy = true; u.inviteSent = false;});
+						   nearbyUsers.forEach(function(u) {if (u.id == from) u.isBusy = true; u.inviteSent = false;});
 						   refreshUsers();
 					   }
 					   if (startOp == "decline") {
 						   uncommitFromGame();
-						   nearbyUsers.forEach(function(u) {if (u.Id == from) {u.inviteSent = false; u.declined = true;}});
-						   setTimeout(function(){nearbyUsers.forEach(function(u) {if (u.Id == from) {u.declined = false}}); refreshUsers();}, 2000);
+						   nearbyUsers.forEach(function(u) {if (u.id == from) {u.inviteSent = false; u.declined = true;}});
+						   setTimeout(function(){nearbyUsers.forEach(function(u) {if (u.id == from) {u.declined = false}}); refreshUsers();}, 2000);
 						   refreshUsers();
 					   }
 					   if (startOp == "accept") {
 						   playGameState();
 						   var nickYou;
-						   nearbyUsers.forEach(function(u) {if (u.Id == from) u.inviteSent = false;});
-						   nearbyUsers.forEach(function(u) {if (u.Id == from) {nickYou = u.nick;}});
+						   nearbyUsers.forEach(function(u) {if (u.id == from) u.inviteSent = false;});
+						   nearbyUsers.forEach(function(u) {if (u.id == from) {nickYou = u.nick;}});
 						   clearRequests();
 						   tankGame = mkTankGame();
 						   tankGame.init(height, width, idMe, from, nickname, nickYou, xPosMe, xPosYou, initWind, connect, divs, escapeGame);
@@ -83,9 +83,9 @@ var findPlayers = (function() {
 
 	var busyMsgHandler = {
 		handleMsg: function(msg) {
-				   if (msg.Content.isBusyMsg) {
-					   var from = msg.From;
-					   nearbyUsers.forEach(function(u) {if (u.Id == from) u.isBusy = msg.Content.isBusy});
+				   if (msg.content.isBusyMsg) {
+					   var from = msg.from;
+					   nearbyUsers.forEach(function(u) {if (u.id == from) u.isBusy = msg.content.isBusy});
 					   refreshUsers();
 				   }
 			   }
@@ -93,8 +93,8 @@ var findPlayers = (function() {
 
 	var busyReqHandler = {
 		handleMsg: function(msg) {
-				   if (msg.Content.isBusyReq) {
-					   var from = msg.From;
+				   if (msg.content.isBusyReq) {
+					   var from = msg.from;
 					   connect.sendMsg(from, new BusyMsg(committedToGame));
 				   }
 			   }
@@ -102,9 +102,9 @@ var findPlayers = (function() {
 
 	var nameRespHandler = {
 		handleMsg: function(msg) {
-				   var from = msg.From;
-				   if (msg.Content.isNameResp) {
-					   nearbyUsers.forEach(function(u) {if (u.Id == from) u.nick = msg.Content.nick;});
+				   var from = msg.from;
+				   if (msg.content.isNameResp) {
+					   nearbyUsers.forEach(function(u) {if (u.id == from) u.nick = msg.content.nick;});
 					   refreshUsers();
 				   }
 			   }
@@ -112,8 +112,8 @@ var findPlayers = (function() {
 
 	var nameReqHandler = {
 		handleMsg: function(msg) {
-				   var from = msg.From;
-				   if (msg.Content.isNameReq) {
+				   var from = msg.from;
+				   if (msg.content.isNameReq) {
 					   connect.sendMsg(from, new NameResp(nickname));
 				   }
 			   }
@@ -134,14 +134,14 @@ var findPlayers = (function() {
 
 	function userLiLink(usr) {
 		var inviteClass = usr.isBusy || committedToGame ? "busybutton" : "activebutton";
-		var inviteFunc = usr.isBusy || committedToGame ? "function() {return 0;}" : "findPlayers.invite('"+usr.Id+"');";
+		var inviteFunc = usr.isBusy || committedToGame ? "function() {return 0;}" : "findPlayers.invite('"+usr.id+"');";
 		var waitVis = usr.inviteSent ? "visible" : "hidden";
 		var responseVis = usr.inviteRcv || usr.declined ? "visible" : "hidden";
 		var waitGif =  "<img height='10' width='30' src='img/wait.gif' style='visibility: " + waitVis + "; margin-right:5px'>";
 		var inviteButton = "<button class='" + inviteClass + "'onclick=\""+inviteFunc+"\">Invite</button>";
 		var leftPad = "<span style='margin-left:35'>";
-		var acceptButton = "<button class='activebutton' onclick=\"findPlayers.accept('" + usr.Id + "')\">Accept</button>";
-		var declineButton = "<button class='activebutton' onclick=\"findPlayers.decline('" + usr.Id + "')\">Decline</button>";
+		var acceptButton = "<button class='activebutton' onclick=\"findPlayers.accept('" + usr.id + "')\">Accept</button>";
+		var declineButton = "<button class='activebutton' onclick=\"findPlayers.decline('" + usr.id + "')\">Decline</button>";
 		var declineMsg = "Invitation Declined :(<button class='activeButton' style='visibility: hidden'></button>";
 		var secondLine = usr.declined ? leftPad + declineMsg : leftPad + acceptButton + declineButton;
 		return "<div class='player-column'><div>" + waitGif + inviteButton + usr.nick + "</div><div style='visibility: " + responseVis + "'>" + secondLine + "</div></div>";
@@ -155,16 +155,16 @@ var findPlayers = (function() {
 
 	function commitToGame() {
 		committedToGame = true;
-		nearbyUsers.forEach(function(u) {connect.sendMsg(u.Id, new BusyMsg(true));});
+		nearbyUsers.forEach(function(u) {connect.sendMsg(u.id, new BusyMsg(true));});
 	}
 
 	function uncommitFromGame() {
 		committedToGame = false;
-		nearbyUsers.forEach(function(u) {connect.sendMsg(u.Id, new BusyMsg(false));});
+		nearbyUsers.forEach(function(u) {connect.sendMsg(u.id, new BusyMsg(false));});
 	}
 
 	function clearRequests() {
-		nearbyUsers.forEach(function(u) {if (u.inviteRcv) connect.sendMsg(u.Id, mkDecline());});
+		nearbyUsers.forEach(function(u) {if (u.inviteRcv) connect.sendMsg(u.id, mkDecline());});
 	}
 
 	// Public functions
@@ -196,7 +196,7 @@ var findPlayers = (function() {
 				divs = genDivisors();
 				initWind = windValue();
 				commitToGame();
-				nearbyUsers.forEach(function(u) {if (u.Id == idYou) u.inviteSent = true;});
+				nearbyUsers.forEach(function(u) {if (u.id == idYou) u.inviteSent = true;});
 				refreshUsers();
 				connect.sendMsg(idYou, mkInvite(divs, xPosMe, xPosYou, initWind));
 			},
@@ -207,8 +207,8 @@ var findPlayers = (function() {
 				commitToGame();
 				playGameState();
 				var nickYou;
-				nearbyUsers.forEach(function(u) {if (u.Id == idYou) {nickYou = u.nick}});
-				nearbyUsers.forEach(function(u) {if (u.Id == otherId) u.inviteRcv = false;});
+				nearbyUsers.forEach(function(u) {if (u.id == idYou) {nickYou = u.nick}});
+				nearbyUsers.forEach(function(u) {if (u.id == otherId) u.inviteRcv = false;});
 				clearRequests();
 				tankGame = mkTankGame();
 				tankGame.init(height, width, idMe, idYou, nickname, nickYou, xPosMe, xPosYou, initWind, connect, divs, escapeGame);
@@ -216,7 +216,7 @@ var findPlayers = (function() {
 
 		decline: function(otherId) {
 				 connect.sendMsg(otherId, mkDecline());
-				 nearbyUsers.forEach(function(u) {if (u.Id == otherId) u.inviteRcv = false;});
+				 nearbyUsers.forEach(function(u) {if (u.id == otherId) u.inviteRcv = false;});
 				 refreshUsers();
 			 }
 	}
