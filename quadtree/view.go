@@ -144,6 +144,7 @@ func (v *View) overlaps(ov *View) bool {
 	return false
 }
 
+// Returns the width of the View
 func (v *View) width() float64 {
 	if v == nil {
 		return 0
@@ -151,6 +152,7 @@ func (v *View) width() float64 {
 	return v.rx - v.lx
 }
 
+// Returns the width of the View
 func (v *View) height() float64 {
 	if v == nil {
 		return 0
@@ -158,6 +160,9 @@ func (v *View) height() float64 {
 	return v.by - v.ty
 }
 
+// Returns four views representing v divided into four non-overlapping equal sized sections
+// These four quarters completely cover v
+// TODO This function should return a slice of views created by dividing v an arbitrary number of times
 func (v *View) quarters() (v1, v2, v3, v4 *View) {
 	lx := v.lx
 	rx := v.rx
@@ -172,10 +177,17 @@ func (v *View) quarters() (v1, v2, v3, v4 *View) {
 	return
 }
 
+// Indicates whether v and ov are equivalent to each other
+// Two views are equivalent iff each of the four corners are equal in both views
 func (v *View) eq(ov *View) bool {
 	return v.lx == ov.lx && v.rx == ov.rx && v.ty == ov.ty && v.by == ov.by
 }
 
+// Returns a slice of views which satisfy:
+// 1: None are overlapping with themselves or with ov
+// 2: When combined with ov they completely cover v
+// Intuitively imagine v is make up every view in []*View returned plus ov
+// To subtract ov you just need to take it away and return the []*View
 func (v *View) Subtract(ov *View) []*View {
 	if v.eq(ov) {
 		return make([]*View, 0, 0)
@@ -199,6 +211,7 @@ func (v *View) Subtract(ov *View) []*View {
 	return vs
 }
 
+// Returns a view which represents the overlapping region of v and ov
 func (v *View) Intersect(ov *View) *View {
 	if v.eq(ov) {
 		return v
@@ -213,6 +226,7 @@ func (v *View) Intersect(ov *View) *View {
 	return NewViewP(ilx, irx, ity, iby)
 }
 
+// Human readable (sort of) representation of v
 func (v *View) String() string {
 	lx := strconv.FormatFloat(v.lx, 'f', 6, 64)
 	rx := strconv.FormatFloat(v.rx, 'f', 6, 64)
