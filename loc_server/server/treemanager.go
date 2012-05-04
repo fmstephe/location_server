@@ -107,8 +107,8 @@ func initLocFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
 		if !usr.eq(oUsr) {
-			broadcastSend(tId, msgdef.SAddOp, usr, oUsr)
-			broadcastSend(tId, msgdef.SAddOp, oUsr, usr)
+			broadcastSend(tId, msgdef.SVisibleOp, usr, oUsr)
+			broadcastSend(tId, msgdef.SVisibleOp, oUsr, usr)
 		}
 	}
 }
@@ -117,7 +117,7 @@ func initLocFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 func removeFun(tId uint, usr *user) func(mNS, mEW float64, e interface{}) {
 	return func(mNS, mEW float64, e interface{}) {
 		oUsr := e.(*user)
-		broadcastSend(tId, msgdef.SRemoveOp, usr, oUsr)
+		broadcastSend(tId, msgdef.SNotVisibleOp, usr, oUsr)
 	}
 }
 

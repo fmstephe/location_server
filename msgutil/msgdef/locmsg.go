@@ -35,20 +35,11 @@ func (msg *CLocMsg) Validate() error {
 	return nil
 }
 
-// Indicates that a user has just been added (and is visible to the receiver)
-const SAddOp = ServerOp("sAdd")
-
 // Indicates that a user has become visible to the receiver
 const SVisibleOp = ServerOp("sVisible")
 
 // Indicates that a user has become not visible to the receiver
 const SNotVisibleOp = ServerOp("sNotVisible")
-
-// Indicates that a user has been removed (and was visible to the receiver)
-const SRemoveOp = ServerOp("sRemove")
-
-// Indictes that a user is nearby (only sent as response to a nearby request)
-const SNearbyOp = ServerOp("sNearby")
 
 // Indicates that a user has moved (and is visible to the receiver)
 const SMovedOp = ServerOp("sMoved")

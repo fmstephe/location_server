@@ -70,7 +70,7 @@ function initialise(position) {
 function handleLoc(msg) {
 	var op = msg.op;
 	var usrInfo = {id: msg.id, Lat: msg.lat, Lng: msg.lng};
-	if (op == "sAdd" || op == "sMoved" || op == "sNearby" || op == "sVisible") {
+	if (op == "sMoved" || op == "sVisible") {
 		usrInfo.Name = "?"
 		if (users[usrInfo.id]) {
 			users[usrInfo.id].marker.setMap(null);
@@ -81,7 +81,7 @@ function handleLoc(msg) {
 		var usr = new User(usrInfo, marker); 
 		users[usrInfo.id] = usr;
 		google.maps.event.addListener(marker, 'click', function(event) { findName(usr) });
-	} else if (op == "sRemove" || op == "sNotVisible") {
+	} else if (op == "sNotVisible") {
 		users[usrInfo.id].marker.setMap(null);
 	}
 }

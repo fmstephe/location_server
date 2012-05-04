@@ -15,12 +15,12 @@ var findPlayers = (function() {
 		handleLoc: function(loc) {
 				   var op = loc.op;
 				   var usrInfo = loc;
-				   if (op == "sAdd" || op == "sNearby" || op == "sVisible") {
+				   if (op == "sVisible") {
 					   usrInfo.isBusy = false;
 					   nearbyUsers.append(usrInfo);
 					   connect.sendMsg(usrInfo.id, new NameReq());
 					   connect.sendMsg(usrInfo.id, new BusyReq());
-				   } else if (op == "sRemove" || op == "sNotVisible") {
+				   } else if (op == "sNotVisible") {
 					   if (tankGame && idYou == usrInfo.id) {
 						   tankGame.kill();
 						   escapeGame();
