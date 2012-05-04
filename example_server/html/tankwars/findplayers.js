@@ -134,14 +134,17 @@ var findPlayers = (function() {
 
 	function userLiLink(usr) {
 		var inviteClass = usr.isBusy || committedToGame ? "busybutton" : "activebutton";
-		var inviteFunc = usr.isBusy || committedToGame ? "function() {return 0;}" : "findPlayers.invite('"+usr.id+"');";
+		var inviteFunc = usr.isBusy || committedToGame ? "function() {return 0;}" : "findPlayers.invite('" + usr.id + "');";
 		var waitVis = usr.inviteSent ? "visible" : "hidden";
 		var responseVis = usr.inviteRcv || usr.declined ? "visible" : "hidden";
 		var waitGif =  "<img height='10' width='30' src='img/wait.gif' style='visibility: " + waitVis + "; margin-right:5px'>";
 		var inviteButton = "<button class='" + inviteClass + "'onclick=\""+inviteFunc+"\">Invite</button>";
 		var leftPad = "<span style='margin-left:35'>";
-		var acceptButton = "<button class='activebutton' onclick=\"findPlayers.accept('" + usr.id + "')\">Accept</button>";
-		var declineButton = "<button class='activebutton' onclick=\"findPlayers.decline('" + usr.id + "')\">Decline</button>";
+		var respondClass = committedToGame ? "busybutton" : "activebutton";
+		var acceptFunc = committedToGame ? "function() {return 0;}" : "findPlayers.accept('" + usr.id + "');";
+		var declineFunc = committedToGame ? "function() {return 0;}" : "findPlayers.decline('" + usr.id + "');";
+		var acceptButton = "<button class='" + respondClass +"' onclick=\"" + acceptFunc + "\">Accept</button>";
+		var declineButton = "<button class='" + respondClass +"' onclick=\"" + declineFunc + "\">Decline</button>";
 		var declineMsg = "Invitation Declined :(<button class='activeButton' style='visibility: hidden'></button>";
 		var secondLine = usr.declined ? leftPad + declineMsg : leftPad + acceptButton + declineButton;
 		return "<div class='player-column'><div>" + waitGif + inviteButton + usr.nick + "</div><div style='visibility: " + responseVis + "'>" + secondLine + "</div></div>";
