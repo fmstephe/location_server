@@ -164,7 +164,7 @@ var findPlayers = (function() {
 	}
 
 	function clearRequests() {
-		nearbyUsers.forEach(function(u) {if (u.inviteRcv) connect.sendMsg(u.id, mkDecline());});
+		nearbyUsers.forEach(function(u) {if (u.inviteRcv) { connect.sendMsg(u.id, mkDecline()); u.inviteRcv = false;}});
 	}
 
 	// Public functions
