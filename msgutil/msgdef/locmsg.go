@@ -13,9 +13,9 @@ const CMoveOp = ClientOp("cMove")
 
 // A structure for unmarshalling lat/lng messages
 type CLocMsg struct {
-	Op       ClientOp `json:"op"`
-	Lat float64 `json:"lat"`
-	Lng float64 `json:"lng"`
+	Op  ClientOp `json:"op"`
+	Lat float64  `json:"lat"`
+	Lng float64  `json:"lng"`
 }
 
 func EmptyCLocMsg() *CLocMsg {
@@ -45,8 +45,8 @@ const SNotVisibleOp = ServerOp("sNotVisible")
 const SMovedOp = ServerOp("sMoved")
 
 type SLocMsg struct {
-	Op       ServerOp `json:"op"`
-	Id       string `json:"id"`
-	Lat float64 `json:"lat"`
-	Lng float64 `json:"lng"`
+	Op  ServerOp `json:"op"`
+	Id  string   `json:"id"`
+	Lat float64  `json:"lat"`
+	Lng float64  `json:"lng"`
 }

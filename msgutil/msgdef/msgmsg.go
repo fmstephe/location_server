@@ -9,8 +9,8 @@ const CMsgOp = ClientOp("cMsg")
 
 type CMsgMsg struct {
 	Op      ClientOp `json:"op"`
-	To      string `json:"to"`
-	Content string `json:"content"`
+	To      string   `json:"to"`
+	Content string   `json:"content"`
 }
 
 func (msg *CMsgMsg) Validate() error {
@@ -31,8 +31,8 @@ const SMsgOp = ServerOp("sMsg")
 
 type SMsgMsg struct {
 	Op      ServerOp `json:"op"`
-	From    string `json:"from"`
-	Content string `json:"content"`
+	From    string   `json:"from"`
+	Content string   `json:"content"`
 }
 
 // Indicates that UserId is not registered on the msg_server
@@ -40,5 +40,5 @@ const SNotUserOp = ServerOp("sNotUser")
 
 type SNotUser struct {
 	Op     ServerOp `json:"op"`
-	UserId string `json:"user-id"`
+	UserId string   `json:"user-id"`
 }

@@ -13,7 +13,7 @@ const CRemoveOp = ClientOp("cRemove")
 // A structure for unmarshalling id based messages
 type CIdMsg struct {
 	Op ClientOp `json:"op"`
-	Id string `json:"id"`
+	Id string   `json:"id"`
 }
 
 func (msg *CIdMsg) Validate() error {
@@ -34,5 +34,5 @@ const SIdOp = ServerOp("sId")
 
 type SIdMsg struct {
 	Op ServerOp `json:"op"`
-	Id string `json:"id"`
+	Id string   `json:"id"`
 }
