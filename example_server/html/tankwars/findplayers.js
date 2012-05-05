@@ -47,7 +47,7 @@ var findPlayers = (function() {
 						   if (committedToGame) {
 							   // If the start msg is from the same person we are currently inviting this will cause deadlock
 							   // Need to break the deadlock by ordering user-ids and breaking the tie
-							   connect.sendMsg(from, mkEnaged());
+							   connect.sendMsg(from, mkEngaged());
 						   } else {
 							   xPosMe = msg.content.xPosYou;
 							   xPosYou = msg.content.xPosMe;
