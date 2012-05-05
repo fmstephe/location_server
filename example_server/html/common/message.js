@@ -1,15 +1,15 @@
 function Msg(to, content) {
-	return {Op: "cMsg", To: to, Content: content};
+	return {op: "cMsg", to: to, content: content};
 }
 
 function Add(id) {
-	return {Op: "cAdd", id: id};
+	return {op: "cAdd", id: id};
 }
 
 function Move(lat, lng) {
-	return {Op: "cMove", Lat: lat, Lng: lng};
+	return {op: "cMove", lat: lat, lng: lng};
 }
 
 function InitLoc(lat, lng) {
-	return {Op: "cInitLoc", Lat: lat, Lng: lng};
+	return {op: "cInitLoc", lat: lat, lng: lng};
 }
