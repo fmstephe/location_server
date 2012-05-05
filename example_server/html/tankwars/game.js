@@ -199,7 +199,10 @@ function mkTankGame() {
 			missileList.clear();
 			explosionList.clear();
 			tankCtxt.font = "50px Calibri-bold";
-			var name = playerList.getFirst().name;
+			var name = "Nobody";
+			if (playerList.size == 1) {
+				name = playerList.getFirst().name;
+			}
 			tankCtxt.clearRect(0,0,gameWidth,gameHeight);
 			tankCtxt.fillText(name + " wins!", gameWidth/2, gameHeight/2);
 		}
