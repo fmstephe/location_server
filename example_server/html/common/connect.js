@@ -43,7 +43,7 @@ Connect.prototype.addMsgHandler = function(handler) {
 }
 
 Connect.prototype.rmvMsgHandler = function(handler) {
-	this.msgHandlers.filter(function(l) {return handler == l;});
+	this.msgHandlers.filter(function(l) {return handler === l;});
 }
 
 Connect.prototype.addLocHandler = function(handler) {
@@ -51,7 +51,7 @@ Connect.prototype.addLocHandler = function(handler) {
 }
 
 Connect.prototype.rmvLocHandler = function(handler) {
-	this.locHandlers.filter(function(l) {return handler == l;});
+	this.locHandlers.filter(function(l) {return handler === l;});
 }
 
 Connect.prototype.close = function() {
@@ -59,49 +59,41 @@ Connect.prototype.close = function() {
 	this.locService.close();
 }
 
-function SyncRequest() {
-	return {isSyncRequest: true};
-}
-
-function SyncResponse() {
-	return {isSyncResponse: true};
-}
+var syncRequest = {isSyncRequest: true};
+var syncResponse = {isSyncResponse: true};
 
 Connect.prototype.sync = function(idMe, idYou, fun) {
-	var synced = false;
 	var thisConn = this;
 	// NB: The correctness of this approach relies on the interval function being unable to run even once before this function has completed
 	// Otherwise the SyncRequest might be sent, and responded to, before the syncHandler is registered (just echos of threading paranoia)
-	var intervalId = setInterval(function() {thisConn.sendMsg(idYou, SyncRequest());}, 300);
-	var syncHandler = function(msg) {
+	var intervalId = setInterval(function() {thisConn.sendMsg(idYou, syncRequest);}, 300);
+	var syncHandler = {}; // Predeclaration so we can refer to this object inside syncHandler
+	var handle = function(msg) {
 		var from = msg.from;
 		var content = msg.content;
-		if (!synced) {
-			if (content.isSyncRequest) {
-				var name = content.name;
-				if (from == idYou) {
-					clearInterval(intervalId);
-					thisConn.rmvMsgHandler(syncHandler);
-					thisConn.sendMsg(idYou, SyncResponse());
-					synced = true;
-					fun();
-				} else {
-					console.log("Received 2sync request with unexpected id " + id + " from " + from);
-				}
-			} else if (content.isSyncResponse) {
-				var name = content.name;
-				if (from == idYou) {
-					clearInterval(intervalId);
-					thisConn.rmvMsgHandler(syncHandler);
-					synced = true;
-					fun();
-				} else {
-					console.log("Received 2sync response with unexpected id " + id + " from " + from);
-				}
+		if (content.isSyncRequest) {
+			var name = content.name;
+			if (from == idYou) {
+				clearInterval(intervalId);
+				thisConn.rmvMsgHandler(syncHandler);
+				thisConn.sendMsg(idYou, syncResponse);
+				fun();
+			} else {
+				console.log("Received sync request from unexpected user:" + from);
+			}
+		} else if (content.isSyncResponse) {
+			var name = content.name;
+			if (from == idYou) {
+				clearInterval(intervalId);
+				thisConn.rmvMsgHandler(syncHandler);
+				fun();
+			} else {
+				console.log("Received sync response from unexpected user:" + from);
 			}
 		}
 	}
-	this.addMsgHandler({handleMsg: syncHandler});
+	syncHandler.handleMsg = handle;
+	this.addMsgHandler(syncHandler);
 }
 
 function setInitCoords(initLoc) {
