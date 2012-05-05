@@ -127,7 +127,7 @@ var findPlayers = (function() {
 		if (count > 0) {
 			nearbyUsers.forEach(function(u) {if (u.nick) users += userLiLink(u);});
 		} else {
-			users = "<div class='player-column'><button class='activeButton' style='visibility: hidden'></button>There's nobody nearby :(</div>";
+			users = "<div class='player-column'><button class='activeButton' style='visibility: hidden'></button>Waiting for an opponent...</div>";
 		}
 		document.getElementById("player-div").innerHTML = users;
 	}
