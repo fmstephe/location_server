@@ -1,10 +1,15 @@
+.nick-heading {
+	font-size:32px;
+	font-weight:bold;
+}
+
 .player-column {
 	margin-left: auto;
 	margin-right: auto;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	width: 270px;
+	width: 300px;
 }
 
 .busybutton {
@@ -58,12 +63,14 @@
 	text-decoration:none;
 	text-shadow:1px 1px 0px #f2f2f2;
 }
+
 .activebutton:hover {
 	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #ebebeb), color-stop(1, #ffffff) );
 	background:-moz-linear-gradient( center top, #ebebeb 5%, #ffffff 100% );
 	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ebebeb', endColorstr='#ffffff');
 	background-color:#ebebeb;
 }
+
 .activebutton:active {
 	position:relative;
 	top:1px;
