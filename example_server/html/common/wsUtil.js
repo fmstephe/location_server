@@ -14,6 +14,9 @@ function WSClient(name, url, msgFun, opnFun, clsFun) {
 			if (this.readyState == undefined || this.readyState == 0) { // in opening state
 				this.earlyMsgs.append(obj);
 				console.log(this.name + ": early message stored: "+JSON.stringify(obj));
+			} else if (this.readyState >= 2) {
+				msg = JSON.stringify(obj);
+				console.log(this.name + ": websocket closed: "+msg);
 			} else {
 				msg = JSON.stringify(obj);
 				this.send(msg);
