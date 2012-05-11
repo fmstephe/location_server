@@ -12,6 +12,30 @@
 	width: 300px;
 }
 
+.notabutton {
+	margin-left: 0px;
+	margin-right: 3px;
+	white-space: nowrap
+	overflow: hidden;
+	text-overflow: ellipsis;
+	-moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
+	-webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
+	box-shadow:inset 0px 1px 0px 0px #ffffff;
+	background-color:transparent;
+	-moz-border-radius:6px;
+	-webkit-border-radius:6px;
+	border-radius:6px;
+	border:1px solid #ffffff;
+	display:inline-block;
+	color:#6b6b6b;
+	font-family:arial;
+	font-size:15px;
+	font-weight:bold;
+	padding:6px 0px;
+	text-decoration:none;
+	text-shadow:1px 1px 0px #ffffff;
+}
+
 .busybutton {
 	margin-left: 0px;
 	margin-right: 3px;
