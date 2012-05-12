@@ -31,7 +31,7 @@ Missile.prototype.render = function(ctxt, hgt) {
 		//ctxt.strokeStyle = ctxt.createLinearGradient(Math.floor(pX),Math.floor(pY),Math.floor(x),Math.floor(y));
 		//ctxt.strokeStyle.addColorStop(0,"rgba(255,255,255,0.1)");
 		//ctxt.strokeStyle.addColorStop(1,"rgba(255,255,255,1)");
-		ctxt.strokeStyle = "rgba(255,255,255,1)";
+		ctxt.strokeStyle = "rgba(255,255,255,0.5)";
 		ctxt.beginPath();
 		ctxt.moveTo(pX,pY);
 		ctxt.lineTo(x,y);
