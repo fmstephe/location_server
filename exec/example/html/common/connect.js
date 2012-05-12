@@ -9,8 +9,8 @@ function Connect(msgHandlers, locHandlers) {
 	}
 	this.msgHandlers = msgHandlers;
 	this.locHandlers = locHandlers;
-	this.msgService = new WSClient("Message", "ws://178.79.176.206:8003/msg", handleMsg, function(){}, function() {});
-	this.locService = new WSClient("Location", "ws://178.79.176.206:8002/loc", handleLoc, function(){}, function() {});
+	this.msgService = new WSClient("Message", "ws://178.79.176.206/msg", handleMsg, function(){}, function() {});
+	this.locService = new WSClient("Location", "ws://178.79.176.206/loc", handleLoc, function(){}, function() {});
 	this.handleMsgLocal = handleMsg;
 	this.msgService.connect();
 	this.locService.connect();
