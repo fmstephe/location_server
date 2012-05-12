@@ -1,7 +1,10 @@
 package main
 
 import (
+	"code.google.com/p/go.net/websocket"
 	"encoding/json"
+	"location_server/locserver"
+	"location_server/msgserver"
 	"github.com/fmstephe/simpleid"
 	"location_server/logutil"
 	"location_server/msgutil/msgdef"
@@ -31,6 +34,9 @@ func main() {
 		println(err.Error())
 		return
 	}
+	locserver.StartTreeManager(10000, true)
+	http.Handle("/loc", websocket.Handler(locserver.HandleLocationService))
+	http.Handle("/msg", websocket.Handler(msgserver.HandleMessageService))
 	http.HandleFunc("/id", idProvider)
 	http.Handle("/", http.FileServer(http.Dir(pwd+"/html/")))
 	if err := http.ListenAndServe(":80", nil); err != nil {
