@@ -1,6 +1,5 @@
 function mkTankGame() {
 	// Global Constants
-	var host = "178.79.176.206";
 	var maxPower = 200;
 	var minPower = 0;
 	var initPower = 50;
@@ -90,7 +89,7 @@ function mkTankGame() {
 				       tanks.append(xPosMe);
 				       tanks.append(xPosYou);
 				       terrain = new Terrain(gameWidth, gameHeight, divs, tanks);
-				       keybindings = new KeyBindings(87,83,65,68,70);
+				       keybindings = new KeyBindings(38,40,37,39,32);
 				       playerMe = new Player(idMe, xPosMe, nickMe, turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health, false);
 				       playerYou = new Player(idYou, xPosYou, nickYou, turretLength, initPower, minPower, maxPower, powerInc, rotateInc, health, true);
 				       explosionList = new LinkedList();
