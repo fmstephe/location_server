@@ -50,12 +50,19 @@
 			</div>
 		</div>
 
-		<div class="player-column" id="game-div">
-			<canvas id="background" style="position: absolute; z-index: 0"></canvas>
-			<canvas id="terrain" style="position: absolute; z-index: 1"></canvas>
-			<canvas id="tank" style="position: absolute; z-index: 2"></canvas>
-			<canvas id="missile" style="position: absolute; z-index: 3"></canvas>
-		</div>
+			<div class="player-column" id="game-div" style='display:none'>
+				<canvas id="background" style="position: absolute; z-index: 0"></canvas>
+				<canvas id="terrain" style="position: absolute; z-index: 1"></canvas>
+				<canvas id="tank" style="position: absolute; z-index: 2"></canvas>
+				<canvas id="missile" style="position: absolute; z-index: 3"></canvas>
+			</div>
+			<div class="player-column" id="control-div" style='display:none'>
+				<table>
+					<tr><td>&#8678 &#8680 </td><td><span style='color:red'>Rotate Turret</span></td></tr>
+					<tr><td>&#8679 &#8681 </td><td><span style='color:red'>Change Power</span></td></tr>
+					<tr><td>SPACE </td><td><span style='color:red'>Fire</span></td></tr>
+				</table>
+			</div>
 
 	</body>
 </html>

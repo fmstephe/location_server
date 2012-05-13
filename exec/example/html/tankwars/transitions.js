@@ -15,6 +15,7 @@ function enterNickState() {
 	$('nick-div').style.display='block';
 	$('player-div').style.display='none';
 	$('game-div').style.display='none';
+	$('control-div').style.display='none';
 	$('nick-input').focus();
 }
 
@@ -24,6 +25,7 @@ function findPlayersState() {
 	$('nick-div').style.display='none';
 	$('player-div').style.display='block';
 	$('game-div').style.display='none';
+	$('control-div').style.display='none';
 }
 
 function playGameState() {
@@ -32,4 +34,5 @@ function playGameState() {
 	$('nick-div').style.display='none';
 	$('player-div').style.display='none';
 	$('game-div').style.display='block';
+	$('control-div').style.display='block';
 }
