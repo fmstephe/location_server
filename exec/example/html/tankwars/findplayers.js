@@ -137,7 +137,7 @@ var findPlayers = (function() {
 		var inviteFunc = usr.isBusy || committedToGame ? "function() {return 0;}" : "findPlayers.invite('" + usr.id + "');";
 		var waitVis = usr.inviteSent ? "visible" : "hidden";
 		var responseVis = usr.inviteRcv || usr.declined ? "visible" : "hidden";
-		var waitGif =  "<img height='10' width='30' src='img/wait.gif' style='visibility: " + waitVis + "; margin-right:5px'>";
+		var waitGif =  "<img height='10' width='30' src='tankwars/img/wait.gif' style='visibility: " + waitVis + "; margin-right:5px'>";
 		var inviteButton = "<button class='" + inviteClass + "'onclick=\""+inviteFunc+"\">Invite</button>";
 		var respondClass = committedToGame ? "busybutton" : "activebutton";
 		var acceptFunc = committedToGame ? "function() {return 0;}" : "findPlayers.accept('" + usr.id + "');";
