@@ -2,6 +2,7 @@ var findPlayers = (function() {
 
 	var nearbyUsers = new LinkedList();
 	var connect;
+	var located = false;
 	var committedToGame = false;
 	var xPosMe, xPosYou;
 	var initWind;
@@ -126,8 +127,10 @@ var findPlayers = (function() {
 		nearbyUsers.forEach(function(u) {if (u.nick) count++;});
 		if (count > 0) {
 			nearbyUsers.forEach(function(u) {if (u.nick) users += userLiLink(u);});
+		} else if (located) {
+			users = "<div class='wrap-column'>Waiting for an opponent...</div>";
 		} else {
-			users = "<div class='player-column'><button class='activeButton' style='visibility: hidden'></button>Waiting for an opponent...</div>";
+			users = "<div class='wrap-column'>Share your location to find nearby players</div>";
 		}
 		document.getElementById("player-div").innerHTML = users;
 	}
@@ -169,6 +172,10 @@ var findPlayers = (function() {
 		nearbyUsers.forEach(function(u) {if (u.inviteRcv) { connect.sendMsg(u.id, mkDecline()); u.inviteRcv = false;}});
 	}
 
+	function locatedFun() {
+		located = true;
+		refreshUsers();
+	}
 	// Public functions
 	return {
 		main: function() {
@@ -181,7 +188,7 @@ var findPlayers = (function() {
 			      msgHandlers.append(startHandler);
 			      msgHandlers.append(busyMsgHandler);
 			      msgHandlers.append(busyReqHandler);
-			      connect = new Connect(msgHandlers, locHandlers);
+			      connect = new Connect(msgHandlers, locHandlers, locatedFun);
 			      console.log("User Id: "+connect.usrId);
 			      idMe = connect.usrId;
 			      refreshUsers();

@@ -1,4 +1,4 @@
-function Connect(msgHandlers, locHandlers) {
+function Connect(msgHandlers, locHandlers, locatedFun) {
 	var thisConn = this;
 	var handleLoc = function(loc) {
 		locHandlers.forEach(function(handler) {handler.handleLoc(loc)});
@@ -24,7 +24,8 @@ function Connect(msgHandlers, locHandlers) {
 		lat = position.coords.latitude;
 		lng = position.coords.longitude;
 		var locMsg = new InitLoc(lat, lng);
-		lsvc.jsonsend(locMsg)
+		lsvc.jsonsend(locMsg);
+		locatedFun();
 	}
 	setInitCoords(initLoc);
 }
@@ -100,7 +101,7 @@ function setInitCoords(initLoc) {
 	if (navigator.geolocation) {
 		navigator.geolocation.getCurrentPosition(initLoc, function(error) { console.log(JSON.stringify(error)), initLoc({"coords": {"latitude":1, "longitude":1}}) }); 
 	} else {
-		alert("Your browser does not support websockets");
+		alert("Your browser does not support geo-location");
 	}
 }
 

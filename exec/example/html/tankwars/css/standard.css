@@ -12,6 +12,12 @@
 	width: 300px;
 }
 
+.wrap-column {
+	margin-left: auto;
+	margin-right: auto;
+	width: 300px;
+}
+
 .notabutton {
 	margin-left: 0px;
 	margin-right: 3px;
