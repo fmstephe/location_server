@@ -19,6 +19,9 @@
 		<script type="text/javascript" src="tankwars/model/player.js"></script>
 		<script type="text/javascript" src="tankwars/model/terrain.js"></script>
 		<script type="text/javascript" src="tankwars/model/wind.js"></script>
+		<script type="text/javascript" src="tankwars/text/nearby.js"></script>
+		<script type="text/javascript" src="tankwars/text/game.js"></script>
+		<script type="text/javascript" src="tankwars/text/nickname.js"></script>
 
 		<link rel="stylesheet" type="text/css" href="tankwars/css/standard.css"></link>
 
@@ -38,31 +41,49 @@
 	</head>
 
 	<body onload="enterNickState();">
-		<div id ="intro-div">
-			<div id="spacer-div" style="height: 20px"></div>
+		<!-- 50%-50% column pair -->
+		<div id="even-columns">
+			<div class="left-column">
+				<div id="intro-div" class="nowrap-column"> 
+					<div class="nick-heading">Enter A Nickname</div>
+					<div>
+						<input id="nick-input" type="text" name="nick" id="nickname"/>
+						<button class="activebutton" type="button" >Start!</button>
+					</div>
+				</div>
 
-			<div id="nick-div"> 
-				<div class="player-column nick-heading">Enter A Nickname</div>
-				<div class="player-column"><input id="nick-input" type="text" name="nick" id="nickname"/><button class="activebutton" type="button" >Start!</button></div>
+				<div id="player-div"></div>
+
 			</div>
 
-			<div id="player-div">
+			<div class="right-column">
+				<div id="comment-div" class="comment-column"></div>
 			</div>
 		</div>
 
-			<div class="player-column" id="game-div" style='display:none'>
-				<canvas id="background" style="position: absolute; z-index: 0"></canvas>
-				<canvas id="terrain" style="position: absolute; z-index: 1"></canvas>
-				<canvas id="tank" style="position: absolute; z-index: 2"></canvas>
-				<canvas id="missile" style="position: absolute; z-index: 3"></canvas>
-			</div>
-			<div class="player-column" id="control-div" style='display:none'>
-				<table>
-					<tr><td>&#8678 &#8680 </td><td><span style='color:red'>Rotate Turret</span></td></tr>
-					<tr><td>&#8679 &#8681 </td><td><span style='color:red'>Change Power</span></td></tr>
-					<tr><td>SPACE </td><td><span style='color:red'>Fire</span></td></tr>
-				</table>
+		<!-- 75%-25% column pair -->
+		<div id="game-columns">
+			<div class="large-left-column">
+				<div class="game-column" id="game-div" style="display:none">
+					<div id="canvas-div">
+						<canvas id="background" style="position: absolute; z-index: 0"></canvas>
+						<canvas id="terrain" style="position: absolute; z-index: 1"></canvas>
+						<canvas id="tank" style="position: absolute; z-index: 2"></canvas>
+						<canvas id="missile" style="position: absolute; z-index: 3"></canvas>
+					</div>
+
+					<table>
+						<tr><td>&#8678 &#8680</td><td><span style='color:red'>Rotate Turret</span></td></tr>
+						<tr><td>&#8679 &#8681</td><td><span style='color:red'>Change Power</span></td></tr>
+						<tr><td>SPACE</td><td><span style='color:red'>Fire</span></td></tr>
+					</table>
+
+				</div>
 			</div>
 
+			<div class="small-right-column">
+				<div id="small-comment-div" class="small-comment-column"></div>
+			</div>
+		</div>
 	</body>
 </html>

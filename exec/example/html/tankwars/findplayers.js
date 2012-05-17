@@ -149,7 +149,7 @@ var findPlayers = (function() {
 		var declineButton = "<button class='" + respondClass +"' onclick=\"" + declineFunc + "\">Decline</button>";
 		var declineMsg = "<button class='notabutton'>Invitation Declined :(</button>";
 		var secondLine = usr.declined && !usr.inviteRcv ? declineMsg : acceptButton + declineButton;
-		return "<div class='player-column'><div>" + waitGif + inviteButton + usr.nick + "</div><div style='padding-left:35; visibility: " + responseVis + "'>" + secondLine + "</div></div>";
+		return "<div class='nowrap-column'><div>" + waitGif + inviteButton + usr.nick + "</div><div style='padding-left:35; visibility: " + responseVis + "'>" + secondLine + "</div></div>";
 	}
 
 	function escapeGame() {

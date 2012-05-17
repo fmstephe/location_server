@@ -394,7 +394,7 @@ function mkTankGame() {
 	}
 
 	function scaleCanvas() {
-		var viewWidth = Math.min(window.innerWidth - 10, gameWidth);
+		var viewWidth = Math.min((window.innerWidth - 25)/2, gameWidth);
 		var viewHeight = Math.min(window.innerHeight - 10, gameHeight);
 		var ratioHeight = viewWidth * (gameHeight/gameWidth);
 		var ratioWidth = viewHeight * (gameWidth/gameHeight);
@@ -415,7 +415,8 @@ function mkTankGame() {
 		terrainCanvas.style.height = viewHeight;
 		bgCanvas.style.width = viewWidth;
 		bgCanvas.style.height = viewHeight;
-		$('game-div').style.height = viewHeight;
+		$('canvas-div').style.height = viewHeight;
+		$('canvas-div').style.width = viewWidth;
 		$('game-div').style.width = viewWidth;
 	}
 }
