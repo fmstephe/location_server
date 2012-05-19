@@ -1,1 +1,3 @@
 A location server using websockets to keep users aware of nearby users in real time.
+
+To see a demo of this in action have a look at <a href='battlewith.me.uk'>battlewith.me.uk</a>
