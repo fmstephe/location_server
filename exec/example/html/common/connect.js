@@ -1,4 +1,4 @@
-function Connect(msgHandlers, locHandlers, locatedFun) {
+function Connect(msgHandlers, locHandlers, clsFun, locatedFun) {
 	var thisConn = this;
 	var handleLoc = function(loc) {
 		locHandlers.forEach(function(handler) {handler.handleLoc(loc)});
@@ -9,8 +9,8 @@ function Connect(msgHandlers, locHandlers, locatedFun) {
 	}
 	this.msgHandlers = msgHandlers;
 	this.locHandlers = locHandlers;
-	this.msgService = new WSClient("Message", "ws://battlewith.me.uk/msg", handleMsg, function(){}, function() {});
-	this.locService = new WSClient("Location", "ws://battlewith.me.uk/loc", handleLoc, function(){}, function() {});
+	this.msgService = new WSClient("Message", "ws://battlewith.me.uk/msg", handleMsg, function(){}, clsFun);
+	this.locService = new WSClient("Location", "ws://battlewith.me.uk/loc", handleLoc, function(){}, clsFun);
 	this.handleMsgLocal = handleMsg;
 	this.msgService.connect();
 	this.locService.connect();

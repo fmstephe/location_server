@@ -176,6 +176,11 @@ var findPlayers = (function() {
 		located = true;
 		refreshUsers();
 	}
+
+	function disconnectFun() {
+		disconnectState();
+	}
+
 	// Public functions
 	return {
 		main: function() {
@@ -188,7 +193,7 @@ var findPlayers = (function() {
 			      msgHandlers.append(startHandler);
 			      msgHandlers.append(busyMsgHandler);
 			      msgHandlers.append(busyReqHandler);
-			      connect = new Connect(msgHandlers, locHandlers, locatedFun);
+			      connect = new Connect(msgHandlers, locHandlers, disconnectFun, locatedFun);
 			      console.log("User Id: "+connect.usrId);
 			      idMe = connect.usrId;
 			      refreshUsers();
