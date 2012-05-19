@@ -10,6 +10,10 @@ function nickEnter(e) {
 }
 
 function enterNickState() {
+	if (navigator.appName == 'Microsoft Internet Explorer') {
+		unsupportedState();
+		return;
+	}
 	document.onkeypress = nickEnter;
 	$('even-columns').style.display='block';
 	$('game-columns').style.display='none';
@@ -52,4 +56,15 @@ function disconnectState() {
 	$('game-div').style.display='none';
 	$('disconnect-div').style.display='block';
 	$('disconnect-div').innerHTML = disconnectText();
+}
+
+function unsupportedState() {
+	document.onkeypress = null;
+	$('even-columns').style.display='none';
+	$('game-columns').style.display='none';
+	$('intro-div').style.display='none';
+	$('player-div').style.display='none';
+	$('game-div').style.display='none';
+	$('disconnect-div').style.display='block';
+	$('disconnect-div').innerHTML = unsupportedText();
 }
