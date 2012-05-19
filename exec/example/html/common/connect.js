@@ -101,7 +101,7 @@ function setInitCoords(initLoc) {
 	if (navigator.geolocation) {
 		navigator.geolocation.getCurrentPosition(initLoc, function(error) { console.log(JSON.stringify(error)), initLoc({"coords": {"latitude":1, "longitude":1}}) }); 
 	} else {
-		alert("Your browser does not support geo-location");
+		initLoc({"coords": {"latitude":1, "longitude":1}});
 	}
 }
 
