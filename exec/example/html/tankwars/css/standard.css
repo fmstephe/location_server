@@ -16,40 +16,28 @@
 	display: inline-table;
 	float: left;
 	width: 50%;
-	padding-left: 0px;
-	padding-right: 5px;
-	padding-top: 10px;
-	padding-bottom: 10px;
+	padding: 0px;
 }
 
 .right-column {
 	display: inline-table;
 	float: right;
 	width: 50%;
-	padding-left: 5px;
-	padding-right: 0px;
-	padding-top: 10px;
-	padding-bottom: 10px;
+	padding: 0px;
 }
 
 .large-left-column {
 	display: inline-table;
 	float: left;
 	width: 75%;
-	padding-left: 0px;
-	padding-right: 5px;
-	padding-top: 10px;
-	padding-bottom: 10px;
+	padding: 0px;
 }
 
 .small-right-column {
 	display: inline-table;
 	float: right;
 	width: 25%;
-	padding-left: 5px;
-	padding-right: 0px;
-	padding-top: 10px;
-	padding-bottom: 10px;
+	padding: 0px;
 }
 
 .nowrap-column {
@@ -69,19 +57,13 @@
 	background-color: #efefef;
 	float: left;
 	width: 50%;
-	padding-left: 20px;
-	padding-right: 10px;
-	padding-top: 10px;
-	padding-bottom: 10px;
+	padding: 20px;
 }
 
 .small-comment-column {
 	background-color: #efefef;
 	float: left;
-	padding-left: 20px;
-	padding-right: 10px;
-	padding-top: 10px;
-	padding-bottom: 10px;
+	padding: 20px;
 }
 
 .center-comment-column {
@@ -89,10 +71,7 @@
 	width: 25%;
 	margin-left: auto;
 	margin-right: auto;
-	padding-left: 20px;
-	padding-right: 10px;
-	padding-top: 10px;
-	padding-bottom: 10px;
+	padding: 20px;
 }
 
 .game-column {
