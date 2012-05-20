@@ -82,7 +82,7 @@
 .notabutton {
 	margin-left: 0px;
 	margin-right: 3px;
-	white-space: nowrap
+	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	-moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
