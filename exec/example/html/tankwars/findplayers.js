@@ -128,9 +128,9 @@ var findPlayers = (function() {
 		if (count > 0) {
 			nearbyUsers.forEach(function(u) {if (u.nick) users += userLiLink(u);});
 		} else if (located) {
-			users = "<div class='wrap-column'>Waiting for an opponent...</div>";
+			users = "<div>Waiting for an opponent...</div>";
 		} else {
-			users = "<div class='wrap-column'>Share your location to find nearby players</div>";
+			users = "<div>Share your location to find nearby players</div>";
 		}
 		document.getElementById("player-div").innerHTML = users;
 	}
@@ -149,7 +149,7 @@ var findPlayers = (function() {
 		var declineButton = "<button class='" + respondClass +"' onclick=\"" + declineFunc + "\">Decline</button>";
 		var declineMsg = "<button class='notabutton'>Invitation Declined :(</button>";
 		var secondLine = usr.declined && !usr.inviteRcv ? declineMsg : acceptButton + declineButton;
-		return "<div class='nowrap-column'><div>" + waitGif + inviteButton + usr.nick + "</div><div style='padding-left:35; visibility: " + responseVis + "'>" + secondLine + "</div></div>";
+		return "<div><div class='nowrap'>" + waitGif + inviteButton + usr.nick + "</div><div style='padding-left:35; visibility: " + responseVis + "'>" + secondLine + "</div></div>";
 	}
 
 	function escapeGame() {

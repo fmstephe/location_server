@@ -40,17 +40,10 @@
 	padding: 0px;
 }
 
-.nowrap-column {
-	float: right;
+.nowrap {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	width: 50%;
-}
-
-.wrap-column {
-	float: right;
-	width: 50%;
 }
 
 .comment-column {
