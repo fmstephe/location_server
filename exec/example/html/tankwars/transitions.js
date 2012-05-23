@@ -10,7 +10,7 @@ function nickEnter(e) {
 }
 
 function enterNickState() {
-	if (navigator.appName == 'Microsoft Internet Explorer') {
+	if (!("WebSocket" in window) && !("MozWebsocket" in window)) {
 		unsupportedState();
 		return;
 	}
@@ -18,9 +18,9 @@ function enterNickState() {
 	$('even-columns').style.display='block';
 	$('game-columns').style.display='none';
 	$('intro-div').style.display='block';
-	$('player-div').style.display='none';
-	$('game-div').style.display='none';
-	$('disconnect-div').style.display='none';
+	$('opponent-div').style.display='none';
+	$('invite-div').style.display='none';
+	$('error-column').style.display='none';
 	$('nick-input').focus();
 	$('comment-div').innerHTML = nicknameText();
 }
@@ -30,9 +30,9 @@ function findPlayersState() {
 	$('even-columns').style.display='block';
 	$('game-columns').style.display='none';
 	$('intro-div').style.display='none';
-	$('player-div').style.display='block';
-	$('game-div').style.display='none';
-	$('disconnect-div').style.display='none';
+	$('opponent-div').style.display='block';
+	$('invite-div').style.display='block';
+	$('error-column').style.display='none';
 	$('comment-div').innerHTML = nearbyText();
 }
 
@@ -41,10 +41,10 @@ function playGameState() {
 	$('even-columns').style.display='none';
 	$('game-columns').style.display='block';
 	$('intro-div').style.display='none';
-	$('player-div').style.display='none';
-	$('game-div').style.display='block';
-	$('disconnect-div').style.display='none';
-	$('small-comment-div').innerHTML = gameText();
+	$('opponent-div').style.display='none';
+	$('invite-div').style.display='none';
+	$('error-column').style.display='none';
+	$('game-comment').innerHTML = gameText();
 }
 
 function disconnectState() {
@@ -52,10 +52,10 @@ function disconnectState() {
 	$('even-columns').style.display='none';
 	$('game-columns').style.display='none';
 	$('intro-div').style.display='none';
-	$('player-div').style.display='none';
-	$('game-div').style.display='none';
-	$('disconnect-div').style.display='block';
-	$('disconnect-div').innerHTML = disconnectText();
+	$('opponent-div').style.display='none';
+	$('invite-div').style.display='none';
+	$('error-column').style.display='block';
+	$('error-comment').innerHTML = disconnectText();
 }
 
 function unsupportedState() {
@@ -63,8 +63,8 @@ function unsupportedState() {
 	$('even-columns').style.display='none';
 	$('game-columns').style.display='none';
 	$('intro-div').style.display='none';
-	$('player-div').style.display='none';
-	$('game-div').style.display='none';
-	$('disconnect-div').style.display='block';
-	$('disconnect-div').innerHTML = unsupportedText();
+	$('opponent-div').style.display='none';
+	$('invite-div').style.display='none';
+	$('error-column').style.display='block';
+	$('error-comment').innerHTML = unsupportedText();
 }

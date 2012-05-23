@@ -1,4 +1,4 @@
-.nick-heading {
+.heading {
 	font-size:32px;
 	font-weight:bold;
 }
@@ -46,21 +46,13 @@
 	white-space: nowrap;
 }
 
-.comment-column {
-	background-color: #efefef;
-	float: left;
-	width: 50%;
-	padding: 20px;
-}
-
-.small-comment-column {
+.comment {
 	background-color: #efefef;
 	float: left;
 	padding: 20px;
 }
 
-.center-comment-column {
-	background-color: #efefef;
+.center-column {
 	width: 25%;
 	margin-left: auto;
 	margin-right: auto;

@@ -46,29 +46,46 @@
 		<!-- 50%-50% column pair -->
 		<div id="even-columns">
 			<div class="left-column">
-				<div id="intro-div" class="right-column"> 
-					<div class="nick-heading">Enter A Nickname</div>
-					<div>
-						<input id="nick-input" type="text" name="nick" id="nickname"/>
-						<button class="activebutton" type="button" >Start!</button>
+				<div id="far-left-column" class="left-column"></div>
+				<div id="middle-left-column" class="right-column">
+					<div id="intro-div">
+						<div class="heading">Enter A Nickname</div>
+						<div>
+							<input id="nick-input" type="text" name="nick" id="nickname"/>
+							<button class="activebutton" type="button" >Start!</button>
+						</div>
+					</div>
+					<div id="opponent-div" style="display:none">
+						<div id="opponent-heading" class="heading">Opponents</div>
+						<div id="opponents">
+						</div>
 					</div>
 				</div>
-
-				<div class="right-column" id="player-div"></div>
-
 			</div>
 
 			<div class="right-column">
-				<div id="comment-div" class="comment-column"></div>
+				<div id="middle-right-column" class="left-column">
+					<div id="invite-div" style="display:none">
+						<div id="invite-heading" class="heading">Invitations</div>
+						<div id="invites">
+							<p>Sorry, this column isn't used yet (layout is a bit ugly right now) :)</p>
+						</div>
+					</div>
+				</div>
+				<div id="far-right-column" class="right-column">
+					<div id="comment-div" class="comment"></div>
+				</div>
 			</div>
 		</div>
 
-		<div id="disconnect-div" class="center-comment-column" style="display:none"></div>
+		<div id="error-column" class="center-column" style="display:none">
+			<div id="error-comment" class="comment"></div>
+		</div>
 
 		<!-- 75%-25% column pair -->
-		<div id="game-columns">
+		<div id="game-columns" style="display:none">
 			<div class="large-left-column">
-				<div class="game-column" id="game-div" style="display:none">
+				<div class="game-column" id="game-div">
 					<div id="canvas-div">
 						<canvas id="background" style="position: absolute; z-index: 0"></canvas>
 						<canvas id="terrain" style="position: absolute; z-index: 1"></canvas>
@@ -81,12 +98,11 @@
 						<tr><td>&#8679 &#8681</td><td><span style='color:red'>Change Power</span></td></tr>
 						<tr><td>SPACE</td><td><span style='color:red'>Fire</span></td></tr>
 					</table>
-
 				</div>
 			</div>
 
 			<div class="small-right-column">
-				<div id="small-comment-div" class="small-comment-column"></div>
+				<div id="game-comment" class="comment"></div>
 			</div>
 		</div>
 	</body>

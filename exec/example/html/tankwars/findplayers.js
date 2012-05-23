@@ -132,7 +132,7 @@ var findPlayers = (function() {
 		} else {
 			users = "<div>Share your location to find nearby players</div>";
 		}
-		document.getElementById("player-div").innerHTML = users;
+		document.getElementById("opponents").innerHTML = users;
 	}
 
 	function userLiLink(usr) {
