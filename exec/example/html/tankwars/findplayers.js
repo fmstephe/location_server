@@ -193,7 +193,7 @@ var findPlayers = (function() {
 			      msgHandlers.append(startHandler);
 			      msgHandlers.append(busyMsgHandler);
 			      msgHandlers.append(busyReqHandler);
-			      connect = new Connect(msgHandlers, locHandlers, disconnectFun, locatedFun);
+			      connect = new Connect(msgHandlers, locHandlers, disconnectFun, locatedFun, 8001);
 			      console.log("User Id: "+connect.usrId);
 			      idMe = connect.usrId;
 			      refreshUsers();

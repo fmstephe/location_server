@@ -45,7 +45,7 @@ func main() {
 	http.HandleFunc("/id", idProvider)
 	http.Handle("/", http.FileServer(http.Dir(pwd+"/html/")))
 	portStr := fmt.Sprintf(":%d", *port)
-	println(portStr)
+	println(fmt.Sprintf("Listening on port %s", portStr))
 	if err := http.ListenAndServe(portStr, nil); err != nil {
 		println(err.Error())
 	}
