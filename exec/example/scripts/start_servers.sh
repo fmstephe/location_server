@@ -1,5 +1,5 @@
 #!/bin/bash
 
 cd ..
-example 2> scripts/example.log &
+example -port $1 2> scripts/example.log &
 cd -
