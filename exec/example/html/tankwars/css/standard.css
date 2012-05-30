@@ -13,6 +13,13 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	float: right;
+	margin-right: -35px;
+	width: 100%
+}
+
+.invite-wrapper {
+	margin-right: 35px;
 }
 
 .tech-text {

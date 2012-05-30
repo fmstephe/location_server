@@ -123,16 +123,19 @@ var findPlayers = (function() {
 	function refreshUsers() {
 		console.log("refresh users");
 		var users = "";
+		var invites = "";
 		var count = 0;
 		nearbyUsers.forEach(function(u) {if (u.nick) count++;});
 		if (count > 0) {
 			nearbyUsers.forEach(function(u) {if (u.nick) users += userLiLink(u);});
+			nearbyUsers.forEach(function(u) {if (u.nick) invites += inviteLiLink(u);});
 		} else if (located) {
 			users = "<div>Waiting for an opponent...</div>";
 		} else {
 			users = "<div>Share your location to find nearby players</div>";
 		}
 		document.getElementById("opponents").innerHTML = users;
+		document.getElementById("invites").innerHTML = invites;
 	}
 
 	function userLiLink(usr) {
@@ -140,16 +143,22 @@ var findPlayers = (function() {
 		var inviteFunc = usr.isBusy || committedToGame ? "function() {return 0;}" : "findPlayers.invite('" + usr.id + "');";
 		var waitVis = usr.inviteSent ? "visible" : "hidden";
 		var responseVis = usr.inviteRcv || usr.declined ? "visible" : "hidden";
-		var waitGif =  "<img height='10' width='30' src='tankwars/img/wait.gif' style='visibility: " + waitVis + "; margin-right:5px'>";
+		var waitGif =  "<img height='10' width='30' src='tankwars/img/wait.gif' style='float: left; visibility: " + waitVis + "; margin-right:5px'>";
 		var inviteButton = "<button class='" + inviteClass + "'onclick=\""+inviteFunc+"\">Invite</button>";
+		var declineMsg = "<button class='notabutton'>Invitation Declined :(</button>";
+		return "<div class='invite-wrapper'>" + waitGif + "<div class='invite' onclick=\""+inviteFunc+"\">" + "Send an invite to " + usr.nick + "</div></div>";
+	}
+
+	function inviteLiLink(usr) {
+		if (!usr.inviteRcv) {
+		       return "";
+		}
 		var respondClass = committedToGame ? "busybutton" : "activebutton";
 		var acceptFunc = committedToGame ? "function() {return 0;}" : "findPlayers.accept('" + usr.id + "');";
 		var declineFunc = committedToGame ? "function() {return 0;}" : "findPlayers.decline('" + usr.id + "');";
 		var acceptButton = "<button class='" + respondClass +"' onclick=\"" + acceptFunc + "\">Accept</button>";
 		var declineButton = "<button class='" + respondClass +"' onclick=\"" + declineFunc + "\">Decline</button>";
-		var declineMsg = "<button class='notabutton'>Invitation Declined :(</button>";
-		var secondLine = usr.declined && !usr.inviteRcv ? declineMsg : acceptButton + declineButton;
-		return "<div><div class='nowrap'>" + waitGif + inviteButton + usr.nick + "</div><div style='padding-left:35; visibility: " + responseVis + "'>" + secondLine + "</div></div>";
+		return "<div><div>" + usr.nick + "</div><div>" + acceptButton + declineButton + "</div>";
 	}
 
 	function escapeGame() {
