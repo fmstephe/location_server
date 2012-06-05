@@ -130,35 +130,35 @@ var findPlayers = (function() {
 			nearbyUsers.forEach(function(u) {if (u.nick) users += userLiLink(u);});
 			nearbyUsers.forEach(function(u) {if (u.nick) invites += inviteLiLink(u);});
 		} else if (located) {
-			users = "<div>Waiting for an opponent...</div>";
+			users = "<div class='invite'>Waiting for an opponent...</div>";
 		} else {
-			users = "<div>Share your location to find nearby players</div>";
+			users = "<div class='invite'>Share your location to find nearby players</div>";
 		}
-		document.getElementById("opponents").innerHTML = users;
-		document.getElementById("invites").innerHTML = invites;
+		document.getElementById("middle-left-column").innerHTML = users;
+		document.getElementById("middle-right-column").innerHTML = invites;
 	}
 
 	function userLiLink(usr) {
-		var inviteClass = usr.isBusy || committedToGame ? "busybutton" : "activebutton";
-		var inviteFunc = usr.isBusy || committedToGame ? "function() {return 0;}" : "findPlayers.invite('" + usr.id + "');";
-		var waitVis = usr.inviteSent ? "visible" : "hidden";
-		var responseVis = usr.inviteRcv || usr.declined ? "visible" : "hidden";
-		var waitGif =  "<img height='10' width='30' src='tankwars/img/wait.gif' style='float: left; visibility: " + waitVis + "; margin-right:5px'>";
-		var inviteButton = "<button class='" + inviteClass + "'onclick=\""+inviteFunc+"\">Invite</button>";
-		var declineMsg = "<button class='notabutton'>Invitation Declined :(</button>";
-		return "<div class='invite-wrapper'>" + waitGif + "<div class='invite' onclick=\""+inviteFunc+"\">" + "Send an invite to " + usr.nick + "</div></div>";
+		var onclick = usr.isBusy || committedToGame ? "" : "onclick=\"findPlayers.invite('" + usr.id + "');\"";
+		var inviteClass = usr.isBusy || committedToGame ? "invite invite-disabled" : "invite invite-send";
+		if (usr.inviteSent) {
+		       	inviteClass = "invite invite-sent";
+		}
+		//var declineMsg = "<button class='notabutton'>Invitation Declined :(</button>";
+		return "<div class='" + inviteClass + "' " + onclick +">" + "Invite " + usr.nick + "</div>";
 	}
 
 	function inviteLiLink(usr) {
 		if (!usr.inviteRcv) {
 		       return "";
 		}
-		var respondClass = committedToGame ? "busybutton" : "activebutton";
-		var acceptFunc = committedToGame ? "function() {return 0;}" : "findPlayers.accept('" + usr.id + "');";
-		var declineFunc = committedToGame ? "function() {return 0;}" : "findPlayers.decline('" + usr.id + "');";
-		var acceptButton = "<button class='" + respondClass +"' onclick=\"" + acceptFunc + "\">Accept</button>";
-		var declineButton = "<button class='" + respondClass +"' onclick=\"" + declineFunc + "\">Decline</button>";
-		return "<div><div>" + usr.nick + "</div><div>" + acceptButton + declineButton + "</div>";
+		var acceptClass = committedToGame ? "" : "response-buttons response-accept";
+		var declineClass = committedToGame ? "" : "response-buttons response-decline";
+		var acceptOnclick = committedToGame ? "" : "onclick=\"findPlayers.accept('" + usr.id + "');\"";
+		var declineOnclick = committedToGame ? "" : "onclick=\"findPlayers.decline('" + usr.id + "');\"";
+		var acceptButton = "<div class='" + acceptClass + "' " + acceptOnclick + "\">Accept</div>";
+		var declineButton = "<div class='" + declineClass + "' " + declineOnclick + "\">Decline</div>";
+		return "<div class='response'><div class='response-text'>Invitation from " + usr.nick + "</div><div>" + acceptButton + declineButton + "</div></div>";
 	}
 
 	function escapeGame() {
