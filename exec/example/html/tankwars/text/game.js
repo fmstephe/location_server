@@ -7,5 +7,5 @@ function gameText() {
 		+
 		"<p>This means that I can run the game server with very little memory (because I have very little money).</p>"
 		+
-		"<p class='tech-text'>This was fun to make - race conditions everywhere I looked and plenty to learn</p>"
+		"<p class='tech-text'>This was a lot of fun to make - race conditions everywhere I looked and plenty to learn</p>";
 }

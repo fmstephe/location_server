@@ -134,31 +134,34 @@ var findPlayers = (function() {
 		} else {
 			users = "<div class='invite'>Share your location to find nearby players</div>";
 		}
-		document.getElementById("middle-left-column").innerHTML = users;
-		document.getElementById("middle-right-column").innerHTML = invites;
+		document.getElementById("middle-column").innerHTML = users;
+		document.getElementById("right-column").innerHTML = invites;
 	}
 
 	function userLiLink(usr) {
-		var onclick = usr.isBusy || committedToGame ? "" : "onclick=\"findPlayers.invite('" + usr.id + "');\"";
-		var inviteClass = usr.isBusy || committedToGame ? "invite invite-disabled" : "invite invite-send";
+		var onclick = usr.declined || usr.isBusy || committedToGame ? "" : "onclick=\"findPlayers.invite('" + usr.id + "');\"";
+		var inviteClass = usr.declined || usr.isBusy || committedToGame ? "invite invite-disabled" : "invite invite-send";
 		if (usr.inviteSent) {
-		       	inviteClass = "invite invite-sent";
+			inviteClass = "invite invite-sent";
 		}
-		//var declineMsg = "<button class='notabutton'>Invitation Declined :(</button>";
-		return "<div class='" + inviteClass + "' " + onclick +">" + "Invite " + usr.nick + "</div>";
+		var inviteMsg = "Invite " + usr.nick;
+		var declineMsg = "Invitation Declined";
+		var msg = usr.declined ? declineMsg : inviteMsg; 
+		return  "<div class='" + inviteClass + "' " + onclick +">" + msg + "</div>";
 	}
 
 	function inviteLiLink(usr) {
 		if (!usr.inviteRcv) {
-		       return "";
+			return "";
 		}
-		var acceptClass = committedToGame ? "" : "response-buttons response-accept";
-		var declineClass = committedToGame ? "" : "response-buttons response-decline";
+		var textClass= committedToGame ? "response-text-disabled" : "response-text";
+		var acceptClass = committedToGame ? "response-buttons-disabled response-accept-disabled" : "response-buttons response-accept";
+		var declineClass = committedToGame ? "response-buttons-disabled response-decline-disabled" : "response-buttons response-decline";
 		var acceptOnclick = committedToGame ? "" : "onclick=\"findPlayers.accept('" + usr.id + "');\"";
 		var declineOnclick = committedToGame ? "" : "onclick=\"findPlayers.decline('" + usr.id + "');\"";
 		var acceptButton = "<div class='" + acceptClass + "' " + acceptOnclick + "\">Accept</div>";
 		var declineButton = "<div class='" + declineClass + "' " + declineOnclick + "\">Decline</div>";
-		return "<div class='response'><div class='response-text'>Invitation from " + usr.nick + "</div><div>" + acceptButton + declineButton + "</div></div>";
+		return "<div class='response'><div class='" + textClass + "'>Invitation from " + usr.nick + "</div><div>" + acceptButton + declineButton + "</div></div>";
 	}
 
 	function escapeGame() {
@@ -183,6 +186,7 @@ var findPlayers = (function() {
 
 	function locatedFun() {
 		located = true;
+		findPlayersState();
 		refreshUsers();
 	}
 

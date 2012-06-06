@@ -26,6 +26,7 @@
 		<script type="text/javascript" src="tankwars/text/nickname.js"></script>
 		<script type="text/javascript" src="tankwars/text/disconnect.js"></script>
 		<script type="text/javascript" src="tankwars/text/unsupported.js"></script>
+		<script type="text/javascript" src="tankwars/text/shareLocation.js"></script>
 
 		<script type="text/javascript">
 			var _gaq = _gaq || [];
@@ -42,26 +43,23 @@
 	</head>
 
 	<body onload="enterNickState();">
-		<!-- 50%-50% column pair -->
-		<div id="even-columns">
-			<div class="left-column">
-				<div id="far-left-column" class="left-column"></div>
-				<div id="middle-left-column" class="fixed-column-right">
-					<div id="intro-div">
-						<div class="heading">Enter A Nickname</div>
-						<div>
-							<input id="nick-input" type="text" name="nick" id="nickname"/>
-							<button class="activebutton" type="button" >Start!</button>
-						</div>
+		<div id="three-columns" class="container">
+			<div id="left-column" class="fixed-column">
+				<div id="comment-div" class="comment"></div>
+			</div>
+
+			<div id="middle-column" class="fixed-column">
+				<div id="intro-div">
+					<div class="heading">Enter A Nickname</div>
+					<div>
+						<input id="nick-input" type="text" name="nick" id="nickname"/>
+						<button class="activebutton" type="button" >Start!</button>
 					</div>
 				</div>
 			</div>
 
-			<div class="right-column">
-				<div id="middle-right-column" class="fixed-column-left">
-				</div>
+			<div id="right-column" class="fixed-column">
 				<div id="far-right-column" class="right-column">
-					<div id="comment-div" class="comment"></div>
 				</div>
 			</div>
 		</div>
@@ -71,9 +69,13 @@
 		</div>
 
 		<!-- 75%-25% column pair -->
-		<div id="game-columns" style="display:none">
-			<div class="large-left-column">
-				<div class="game-column" id="game-div">
+		<div id="game-columns" style="display:none" class="container">
+			<div class="small-column">
+				<div id="game-comment" class="comment"></div>
+			</div>
+
+			<div class="large-column">
+				<div id="game-div">
 					<div id="canvas-div">
 						<canvas id="background" style="position: absolute; z-index: 0"></canvas>
 						<canvas id="terrain" style="position: absolute; z-index: 1"></canvas>
@@ -81,16 +83,12 @@
 						<canvas id="missile" style="position: absolute; z-index: 3"></canvas>
 					</div>
 
-					<table>
-						<tr><td>&#8678 &#8680</td><td><span style='color:red'>Rotate Turret</span></td></tr>
-						<tr><td>&#8679 &#8681</td><td><span style='color:red'>Change Power</span></td></tr>
-						<tr><td>SPACE</td><td><span style='color:red'>Fire</span></td></tr>
-					</table>
+					<div style="margin:auto;text-align:center">
+						<div>&#8678 &#8680 <span style='color:red'>Rotate Turret</span></div>
+						<div>&#8679 &#8681 <span style='color:red'>Change Power</span></div>
+						<div>SPACE <span style='color:red'>Fire</span></div>
+					</div>
 				</div>
-			</div>
-
-			<div class="small-right-column">
-				<div id="game-comment" class="comment"></div>
 			</div>
 		</div>
 	</body>
