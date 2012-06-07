@@ -1,6 +1,7 @@
-function getId(port) {
+function getId() {
 	var idReq = new XMLHttpRequest();
-	idReq.open("GET", "http://battlewith.me.uk:"+port+"/id", false);
+	var url = document.URL;
+	idReq.open("GET", url+"id", false);
 	idReq.send();
 	idMsg = JSON.parse(idReq.responseText);
 	return idMsg.id;

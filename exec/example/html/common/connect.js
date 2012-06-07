@@ -1,5 +1,7 @@
-function Connect(msgHandlers, locHandlers, clsFun, locatedFun, port) {
+function Connect(userId, msgHandlers, locHandlers, clsFun, locatedFun) {
 	var thisConn = this;
+	var url = document.URL;
+	url = url.replace("http", "ws");
 	var handleLoc = function(loc) {
 		locHandlers.forEach(function(handler) {handler.handleLoc(loc)});
 	}
@@ -9,13 +11,13 @@ function Connect(msgHandlers, locHandlers, clsFun, locatedFun, port) {
 	}
 	this.msgHandlers = msgHandlers;
 	this.locHandlers = locHandlers;
-	this.msgService = new WSClient("Message", "ws://battlewith.me.uk:"+port+"/msg", handleMsg, function(){}, clsFun);
-	this.locService = new WSClient("Location", "ws://battlewith.me.uk:"+port+"/loc", handleLoc, function(){}, clsFun);
+	this.msgService = new WSClient("Message", url + "msg", handleMsg, function(){}, clsFun);
+	this.locService = new WSClient("Location", url + "loc", handleLoc, function(){}, clsFun);
 	this.handleMsgLocal = handleMsg;
 	this.msgService.connect();
 	this.locService.connect();
 	this.unackedMsgs = new LinkedList();
-	this.usrId = getId(port);
+	this.usrId = userId;
 	var addMsg = new Add(this.usrId);
 	this.msgService.jsonsend(addMsg);
 	this.locService.jsonsend(addMsg);

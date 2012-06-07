@@ -202,9 +202,9 @@ var findPlayers = (function() {
 			      msgHandlers.append(startHandler);
 			      msgHandlers.append(busyMsgHandler);
 			      msgHandlers.append(busyReqHandler);
-			      connect = new Connect(msgHandlers, locHandlers, disconnectFun, locatedFun, 8001);
+			      idMe = getId();
+			      connect = new Connect(idMe, msgHandlers, locHandlers, disconnectFun, locatedFun);
 			      console.log("User Id: "+connect.usrId);
-			      idMe = connect.usrId;
 			      refreshUsers();
 		      },
 
