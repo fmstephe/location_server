@@ -1,10 +1,24 @@
+.body-style {
+	background-color: rgb(255,255,255);
+	font-family: helvetica, ariel, sans-serif;
+}
+
+.container {
+	margin: 0 auto;
+	width: 1024px;
+}
+
 .heading {
-	font-size: 32px;
+	text-align: center;
+	color: rgb(70,70,70);
+	font-size: 24px;
 	font-weight: bold;
 }
 
-.comment-heading {
-	font-weight: bold;
+.nick-input {
+	margin: 0 auto;
+	width: 200px;
+	display: block;
 }
 
 .invite {
@@ -21,15 +35,14 @@
 	padding-right: 5px;
 	border-style: solid;
 	border-width: 2px;
-	border-color: rgb(255,255,255);
-	width: 341px;
+	border-color: rgb(250,250,250);
 }
 
 .invite-send {
 }
 
 .invite-send:hover {
-	color: rgb(0,0,0);
+	color: rgb(40,40,80);
 	cursor: pointer;
 	border-color: rgb(120,120,240);
 }
@@ -39,19 +52,18 @@
 }
 
 @-webkit-keyframes pulse {
-	0% {color: rgb(70,70,70)}
-	50% {color: rgb(170,170,170)}
-	100% {color: rgb(70,70,70)}
+	0% {color: rgb(70,70,120)}
+	50% {color: rgb(170,170,255)}
+	100% {color: rgb(70,70,120)}
 }
 
 @-moz-keyframes pulse {
-	0% {color: rgb(70,70,70)}
-	50% {color: rgb(170,170,170)}
-	100% {color: rgb(70,70,70)}
+	0% {color: rgb(70,70,120)}
+	50% {color: rgb(170,170,255)}
+	100% {color: rgb(70,70,120)}
 }
 
 .invite-sent {
-	border-color: rgb(160,160,160);
 	-webkit-animation: pulse;
 	-webkit-animation-duration: 2500ms;
 	-webkit-animation-iteration-count: infinite;
@@ -94,11 +106,18 @@
 	padding-left: 5px;
 	padding-right: 5px;
 	width: 331px;
+	-webkit-animation: pulse;
+	-webkit-animation-duration: 2500ms;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-timing-function: linear;
+	-moz-animation: pulse;
+	-moz-animation-duration: 2500ms;
+	-moz-animation-iteration-count: infinite;
+	-moz-animation-timing-function: linear;
 }
 
 .response-buttons {
 	border-radius: 3px;
-	color: rgb(70,70,70);
 	font-weight: bold;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -109,13 +128,11 @@
 	padding-right: 5px;
 	border-style: solid;
 	border-width: 2px;
-	border-color: rgb(255,255,255);
-	width: 156px;
+	border-color: rgb(250,250,250);
+	width: 65px;
 }
 
 .response-buttons:hover {
-	color: rgb(0,0,0);
-	cursor: pointer;
 }
 
 .response-buttons-disabled {
@@ -131,16 +148,19 @@
 	padding-right: 5px;
 	border-style: solid;
 	border-width: 2px;
-	border-color: rgb(255,255,255);
-	width: 156px;
+	border-color: rgb(250,250,250);
+	width: 65px;
 }
 
 .response-accept {
-	float: left;
-	text-align: right;
+	cursor: pointer;
+	color: rgb(70,70,70);
+	float: right;
+	text-align: center;
 }
 
 .response-accept:hover {
+	color: rgb(40,40,80);
 	border-color: rgb(120,120,240);
 }
 
@@ -150,10 +170,14 @@
 }
 
 .response-decline {
-	float: right;
+	cursor: pointer;
+	color: rgb(70,70,70);
+	float: left;
+	text-align: center;
 }
 
 .response-decline:hover {
+	color: rgb(80,40,40);
 	border-color: rgb(240,120,120);
 }
 
@@ -166,14 +190,10 @@
 	color: rgb(70,70,70);
 }
 
-.container {
-	margin: 0 auto;
-	width: 1024px;
-}
-
 .fixed-column {
+	margin: 4px;
 	float: left;
-	width: 341px;
+	width: 330px;
 }
 
 .large-column {
@@ -191,9 +211,13 @@
 }
 
 .comment {
-	background-color: #efefef;
+	color: rgb(120,120,120);
 	float: left;
-	padding: 20px;
+	padding: 4px 20px;
+}
+
+.comment-heading {
+	font-weight: bold;
 }
 
 .center-column {

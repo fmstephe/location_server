@@ -159,8 +159,8 @@ var findPlayers = (function() {
 		var declineClass = committedToGame ? "response-buttons-disabled response-decline-disabled" : "response-buttons response-decline";
 		var acceptOnclick = committedToGame ? "" : "onclick=\"findPlayers.accept('" + usr.id + "');\"";
 		var declineOnclick = committedToGame ? "" : "onclick=\"findPlayers.decline('" + usr.id + "');\"";
-		var acceptButton = "<div class='" + acceptClass + "' " + acceptOnclick + "\">Accept</div>";
-		var declineButton = "<div class='" + declineClass + "' " + declineOnclick + "\">Decline</div>";
+		var acceptButton = "<div style='width:50%;float:left'><div class='" + acceptClass + "' " + acceptOnclick + "\">Accept</div></div>";
+		var declineButton = "<div style='width:50%;float:left'><div class='" + declineClass + "' " + declineOnclick + "\">Decline</div></div>";
 		return "<div class='response'><div class='" + textClass + "'>Invitation from " + usr.nick + "</div><div>" + acceptButton + declineButton + "</div></div>";
 	}
 
