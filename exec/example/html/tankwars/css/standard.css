@@ -165,8 +165,8 @@
 }
 
 .response-accept-disabled {
-	float: left;
-	text-align: right;
+	float: right;
+	text-align: center;
 }
 
 .response-decline {
@@ -182,7 +182,8 @@
 }
 
 .response-decline-disabled {
-	float: right;
+	float: left;
+	text-align: center;
 }
 
 .tech-text {
