@@ -191,23 +191,15 @@
 }
 
 .fixed-column {
-	margin: 4px;
 	float: left;
+	margin: 4px;
 	width: 330px;
 }
 
 .large-column {
-	display: inline-table;
 	float: left;
-	width: 75%;
-	padding: 0px;
-}
-
-.small-column {
-	display: inline-table;
-	float: left;
-	width: 25%;
-	padding: 0px;
+	margin: 8px;
+	width: 660px;
 }
 
 .comment {

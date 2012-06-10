@@ -394,8 +394,8 @@ function mkTankGame() {
 	}
 
 	function scaleCanvas() {
-		var viewWidth = Math.min((window.innerWidth - 25)/2, gameWidth);
-		var viewHeight = Math.min(window.innerHeight - 10, gameHeight);
+		var viewWidth = Math.min(660, gameWidth);
+		var viewHeight = Math.min(660, gameHeight);
 		var ratioHeight = viewWidth * (gameHeight/gameWidth);
 		var ratioWidth = viewHeight * (gameWidth/gameHeight);
 		if (ratioHeight > viewHeight) {
