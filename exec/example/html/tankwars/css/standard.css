@@ -1,5 +1,5 @@
 .body-style {
-	background-color: rgb(255,255,255);
+	background-color: rgb(250,250,255);
 	font-family: helvetica, ariel, sans-serif;
 }
 
@@ -8,20 +8,44 @@
 	width: 1024px;
 }
 
+.title {
+	text-align: center;
+	color: rgb(120,120,240);
+	padding-bottom: 5px;
+	margin-top: 5px;
+	margin-bottom: 20px;
+	margin-left: auto;
+	margin-right: auto;
+	font-size: 30px;
+	font-weight: bold;
+	border-bottom-style: solid;
+	border-width: 2px;
+	border-color: rgb(190,190,240);
+}
+
 .heading {
 	text-align: center;
-	color: rgb(70,70,70);
+	color: rgb(120,120,120);
 	font-size: 24px;
 	font-weight: bold;
 }
 
-.nick-input {
-	margin: 0 auto;
-	width: 200px;
+.nick-input-virgin {
+	margin: 5 auto;
+	width: 210px;
 	display: block;
+	color: rgb(120,120,120);
+}
+
+.nick-input {
+	margin: 5 auto;
+	width: 210px;
+	display: block;
+	color: rgb(70,70,70);
 }
 
 .invite {
+	width: 200px;
 	text-align: center;
 	border-radius: 3px;
 	color: rgb(70,70,70);
@@ -29,6 +53,7 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	margin: 0 auto;
 	padding-top: 2px;
 	padding-bottom: 2px;
 	padding-left: 5px;

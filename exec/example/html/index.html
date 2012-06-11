@@ -44,15 +44,15 @@
 
 	<body onload="enterNickState();" class="body-style">
 		<div id="three-columns" class="container">
+			<div class="title">Multiplayer Tankwars</div>
 			<div id="left-column" class="fixed-column">
 				<div id="comment-div" class="comment"></div>
 			</div>
 
 			<div id="middle-column" class="fixed-column">
 				<div id="intro-div">
-					<div class="heading">Enter A Nickname</div>
 					<div>
-						<input class="nick-input" id="nick-input" type="text" name="nick"/>
+						<input class="nick-input-virgin" id="nick-input" type="text" name="nick" value="Enter your nickname here..." onfocus="nickSelect();"/>
 						<div class="invite invite-send" onclick="shareLocationState();findPlayers.main();">Click to Start!</div>
 					</div>
 				</div>

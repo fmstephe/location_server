@@ -9,6 +9,14 @@ function nickEnter(e) {
 	}
 }
 
+function nickSelect() {
+	var input = $("nick-input");
+	if (input.value == "Enter your nickname here...") {
+		input.value = "";
+		input.className = "nick-input";
+	}
+}
+
 function enterNickState() {
 	if (!("WebSocket" in window) && !("MozWebsocket" in window)) {
 		unsupportedState();
@@ -18,7 +26,6 @@ function enterNickState() {
 	$('three-columns').style.display='block';
 	$('game-columns').style.display='none';
 	$('error-column').style.display='none';
-	$('nick-input').focus();
 	$('comment-div').innerHTML = nicknameText();
 }
 
