@@ -4,8 +4,7 @@ function $() {
 
 function nickEnter(e) {
 	if (e.keyCode == 13) {
-		shareLocationState();
-		findPlayers.main();
+		tryNick();
 	}
 }
 
@@ -14,6 +13,20 @@ function nickSelect() {
 	if (input.value == "Enter your nickname here...") {
 		input.value = "";
 		input.className = "nick-input";
+	}
+}
+
+function tryNick() {
+	var input = $("nick-input");
+	if (input.value == "Enter your nickname here..." || input.value == "") {
+		if (document.activeElement != input) {
+			input.value = "Enter your nickname here...";
+			input.className = "nick-input-virgin";
+		}
+		return;
+	} else {
+		shareLocationState();
+		findPlayers.main();
 	}
 }
 
