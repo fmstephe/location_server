@@ -130,9 +130,9 @@ var findPlayers = (function() {
 			nearbyUsers.forEach(function(u) {if (u.nick) users += userLiLink(u);});
 			nearbyUsers.forEach(function(u) {if (u.nick) invites += inviteLiLink(u);});
 		} else if (located) {
-			users = "<div class='invite'>Waiting for an opponent...</div>";
+			users = "<div class='invite-text'>Waiting for opponents...</div>";
 		} else {
-			users = "<div class='invite'>Share your location to find nearby players</div>";
+			users = "<div class='invite-text'>Share your location to find nearby players</div>";
 		}
 		document.getElementById("middle-column").innerHTML = users;
 		document.getElementById("right-column").innerHTML = invites;

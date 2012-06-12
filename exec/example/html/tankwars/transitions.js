@@ -10,7 +10,7 @@ function nickEnter(e) {
 
 function nickSelect() {
 	var input = $("nick-input");
-	if (input.value == "Enter your nickname here...") {
+	if (input.value == "Enter a nickname here...") {
 		input.value = "";
 		input.className = "nick-input";
 	}
@@ -18,9 +18,9 @@ function nickSelect() {
 
 function tryNick() {
 	var input = $("nick-input");
-	if (input.value == "Enter your nickname here..." || input.value == "") {
+	if (input.value == "Enter a nickname here..." || input.value == "") {
 		if (document.activeElement != input) {
-			input.value = "Enter your nickname here...";
+			input.value = "Enter a nickname here...";
 			input.className = "nick-input-virgin";
 		}
 		return;
@@ -39,7 +39,6 @@ function enterNickState() {
 	$('three-columns').style.display='block';
 	$('game-columns').style.display='none';
 	$('error-column').style.display='none';
-	$('comment-div').innerHTML = nicknameText();
 }
 
 function shareLocationState() {
