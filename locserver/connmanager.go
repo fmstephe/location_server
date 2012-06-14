@@ -7,54 +7,22 @@ import (
 	"github.com/fmstephe/simpleid"
 	"location_server/logutil"
 	"location_server/msgutil/msgdef"
-	"location_server/msgutil/msgwriter"
+	"location_server/user"
 )
 
 var iOpErr = errors.New("Illegal Message Op. Operation unrecognised or provided in illegal order.")
 var idSet = simpleid.NewIdMap()
 
-// Identifies a user currently registered with this location service
-//
-// Valid states (A user moves from one state to the next, and never reverts to a previous state):
-// Unregistered: 	msgWriter non-zero
-// Registered:		id non-zero, msgWriter non-zero
-// Located:		lat/lng fields non-zero, id non-zero, msgWriter non-zero
-//
-// Since user structs may be part of a goroutines we must take care that only copies are sent.
-// NB: It is safe (and necessary) that two copies of the same user reference the same msgWriter
-type user struct {
-	id                   string
-	lat, olat, lng, olng float64
-	msgWriter            *msgwriter.W
-}
-
-// Indicates whether two user structs indicate the same user
-// This is based on the msgWriter pointer as this is the only stable user field
-func (usr *user) eq(oUsr *user) bool {
-	return usr.msgWriter == oUsr.msgWriter
-}
-
-// Duplicates a user for sending as a message
-func (usr *user) dup() *user {
-	dup := *usr
-	return &dup
-}
-
-// Creates a new user
-func newUser(ws *websocket.Conn) *user {
-	return &user{msgWriter: msgwriter.New(ws)}
-}
-
 // Represents a task for the tree manager.
 type task struct {
 	tId uint            // The transaction id for this task
 	op  msgdef.ClientOp // The operation to perform for this task
-	usr *user           // The state of the user for this task
+	usr *user.U           // The state of the user for this task
 }
 
 // Safely creates a new task struct, in particular duplicating usr
-func newTask(tId uint, op msgdef.ClientOp, usr *user) *task {
-	return &task{tId: tId, op: op, usr: usr.dup()}
+func newTask(tId uint, op msgdef.ClientOp, usr *user.U) *task {
+	return &task{tId: tId, op: op, usr: usr.Copy()}
 }
 
 // This is the websocket connection handling function
@@ -73,24 +41,24 @@ func newTask(tId uint, op msgdef.ClientOp, usr *user) *task {
 // 4: The user will be removed from the treemanager
 func HandleLocationService(ws *websocket.Conn) {
 	var tId uint
-	usr := newUser(ws)
+	usr := user.New(ws)
 	idMsg := &msgdef.CIdMsg{}
 	procReg := processReg(idMsg, usr)
-	if err := unmarshalAndProcess(tId, usr.id, ws, idMsg, procReg); err != nil {
-		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
+	if err := unmarshalAndProcess(tId, usr.Id, ws, idMsg, procReg); err != nil {
+		usr.MsgWriter.ErrorAndClose(tId, usr.Id, err.Error())
 		return
 	}
-	if err := idSet.Add(usr.id, usr); err != nil {
-		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
+	if err := idSet.Add(usr.Id, usr); err != nil {
+		usr.MsgWriter.ErrorAndClose(tId, usr.Id, err.Error())
 		return
 	}
-	logutil.Registered(tId, usr.id)
+	logutil.Registered(tId, usr.Id)
 	defer removeId(&tId, usr)
 	tId++
 	initLocMsg := msgdef.EmptyCLocMsg()
 	procInit := processInitLoc(tId, initLocMsg, usr)
-	if err := unmarshalAndProcess(tId, usr.id, ws, initLocMsg, procInit); err != nil {
-		usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
+	if err := unmarshalAndProcess(tId, usr.Id, ws, initLocMsg, procInit); err != nil {
+		usr.MsgWriter.ErrorAndClose(tId, usr.Id, err.Error())
 		return
 	}
 	defer removeFromTree(&tId, usr)
@@ -98,8 +66,8 @@ func HandleLocationService(ws *websocket.Conn) {
 		tId++
 		locMsg := msgdef.EmptyCLocMsg()
 		procReq := processMove(tId, locMsg, usr)
-		if err := unmarshalAndProcess(tId, usr.id, ws, locMsg, procReq); err != nil {
-			usr.msgWriter.ErrorAndClose(tId, usr.id, err.Error())
+		if err := unmarshalAndProcess(tId, usr.Id, ws, locMsg, procReq); err != nil {
+			usr.MsgWriter.ErrorAndClose(tId, usr.Id, err.Error())
 			return
 		}
 	}
@@ -121,14 +89,14 @@ func unmarshalAndProcess(tId uint, uId string, ws *websocket.Conn, msg interface
 }
 
 // Removes this user's id from idSet and logs the action
-func removeId(tId *uint, usr *user) {
+func removeId(tId *uint, usr *user.U) {
 	(*tId)++
-	logutil.Deregistered(*tId, usr.id)
-	idSet.Remove(usr.id)
+	logutil.Deregistered(*tId, usr.Id)
+	idSet.Remove(usr.Id)
 }
 
 // Sends a remove message to the tree manager
-func removeFromTree(tId *uint, usr *user) {
+func removeFromTree(tId *uint, usr *user.U) {
 	(*tId)++
 	msg := newTask(*tId, msgdef.CRemoveOp, usr)
 	forwardMsg(msg)
@@ -136,7 +104,7 @@ func removeFromTree(tId *uint, usr *user) {
 
 // Handle registration message
 // Success will leave usr with initialised Id field
-func processReg(idMsg *msgdef.CIdMsg, usr *user) func() error {
+func processReg(idMsg *msgdef.CIdMsg, usr *user.U) func() error {
 	return func() error {
 		if err := idMsg.Validate(); err != nil {
 			return err
@@ -144,14 +112,14 @@ func processReg(idMsg *msgdef.CIdMsg, usr *user) func() error {
 		if idMsg.Op != msgdef.CAddOp {
 			return iOpErr
 		}
-		usr.id = idMsg.Id
+		usr.Id = idMsg.Id
 		return nil
 	}
 }
 
 // Handle initial location message
 // Success results in this user's location being updated and an initial location message being sent to the tree manager
-func processInitLoc(tId uint, initMsg *msgdef.CLocMsg, usr *user) func() error {
+func processInitLoc(tId uint, initMsg *msgdef.CLocMsg, usr *user.U) func() error {
 	return func() error {
 		if err := initMsg.Validate(); err != nil {
 			return err
@@ -159,10 +127,7 @@ func processInitLoc(tId uint, initMsg *msgdef.CLocMsg, usr *user) func() error {
 		if initMsg.Op != msgdef.CInitLocOp {
 			return iOpErr
 		}
-		usr.olat = initMsg.Lat
-		usr.olng = initMsg.Lng
-		usr.lat = initMsg.Lat
-		usr.lng = initMsg.Lng
+		usr.InitLoc(initMsg.Lat, initMsg.Lng)
 		msg := newTask(tId, msgdef.CInitLocOp, usr)
 		forwardMsg(msg)
 		return nil
@@ -170,8 +135,8 @@ func processInitLoc(tId uint, initMsg *msgdef.CLocMsg, usr *user) func() error {
 }
 
 // Handle move message
-// Success results in this user's location being updated and  a move message beging sent to the tree manager
-func processMove(tId uint, locMsg *msgdef.CLocMsg, usr *user) func() error {
+// Success results in this user's location being updated and a move message beging sent to the tree manager
+func processMove(tId uint, locMsg *msgdef.CLocMsg, usr *user.U) func() error {
 	return func() error {
 		if err := locMsg.Validate(); err != nil {
 			return err
@@ -179,10 +144,7 @@ func processMove(tId uint, locMsg *msgdef.CLocMsg, usr *user) func() error {
 		if locMsg.Op != msgdef.CMoveOp {
 			return iOpErr
 		}
-		usr.olat = usr.lat
-		usr.olng = usr.lng
-		usr.lat = locMsg.Lat
-		usr.lng = locMsg.Lng
+		usr.Move(locMsg.Lat, locMsg.Lng)
 		msg := newTask(tId, msgdef.CMoveOp, usr)
 		forwardMsg(msg)
 		return nil
