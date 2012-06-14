@@ -1,12 +1,8 @@
 package quadtree
 
 import (
-	"errors"
 	"fmt"
 )
-
-var noLeaves = errors.New("No leaves available")
-var noNodes = errors.New("No nodes available")
 
 // Private interface for quadtree nodes. Implemented by both node and leaf.
 type subtree interface {
