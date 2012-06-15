@@ -6,7 +6,6 @@ function Connect(userId, msgHandlers, locHandlers, clsFun, locatedFun) {
 		locHandlers.forEach(function(handler) {handler.handleLoc(loc)});
 	}
 	var handleMsg = function(msg) {
-		msg.content = JSON.parse(msg.content);
 		msgHandlers.forEach(function(handler) {handler.handleMsg(msg)});
 	}
 	this.msgHandlers = msgHandlers;
@@ -33,7 +32,7 @@ function Connect(userId, msgHandlers, locHandlers, clsFun, locatedFun) {
 }
 
 Connect.prototype.sendMsg = function(to, content) {
-	var msg = new Msg(to, JSON.stringify(content));
+	var msg = new Msg(to, content);
 	this.msgService.jsonsend(msg);
 }
 

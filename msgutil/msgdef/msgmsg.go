@@ -10,7 +10,7 @@ const CMsgOp = ClientOp("cMsg")
 type CMsgMsg struct {
 	Op      ClientOp `json:"op"`
 	To      string   `json:"to"`
-	Content string   `json:"content"`
+	Content interface{}   `json:"content"`
 }
 
 func (msg *CMsgMsg) Validate() error {
@@ -32,7 +32,7 @@ const SMsgOp = ServerOp("sMsg")
 type SMsgMsg struct {
 	Op      ServerOp `json:"op"`
 	From    string   `json:"from"`
-	Content string   `json:"content"`
+	Content interface{}   `json:"content"`
 }
 
 // Indicates that UserId is not registered on the msg_server
