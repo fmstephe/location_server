@@ -1,3 +1,3 @@
 #!/bin/bash
 
-example -port $1 2> example.log &
+example -port $1 2> log.log &
