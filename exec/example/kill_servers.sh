@@ -1,3 +1,3 @@
 #!/bin/bash
 
-kill -9 `pidof example`
+kill -9 `lsof -t -i:$1`
