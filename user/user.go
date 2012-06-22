@@ -1,8 +1,8 @@
 package user
 
 import (
-	"location_server/msgutil/msgwriter"
 	"code.google.com/p/go.net/websocket"
+	"location_server/msgutil/msgwriter"
 )
 
 // Identifies a user identifed with a lat/lng location currently registered with this service

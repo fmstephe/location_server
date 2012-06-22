@@ -17,35 +17,52 @@ func HandleMessageService(ws *websocket.Conn) {
 	var tId uint
 	usr := user.New(ws)
 	idMsg := &msgdef.CIdMsg{}
-	if err := jsonutil.JSONCodec.Receive(ws, idMsg); err != nil {
+	procReg := processReg(tId, idMsg, usr)
+	if err := jsonutil.UnmarshalAndProcess(tId, usr.Id, ws, idMsg, procReg); err != nil {
 		usr.MsgWriter.ErrorAndClose(tId, usr.Id, err.Error())
 		return
 	}
-	if err := idMsg.Validate(); err != nil {
-		usr.MsgWriter.ErrorAndClose(tId, usr.Id, err.Error())
-		return
-	}
-	processReg(idMsg, usr)
-	if err := idMap.Add(usr.Id, usr); err != nil {
-		usr.MsgWriter.ErrorAndClose(tId, usr.Id, err.Error())
-		return
-	}
-	logutil.Registered(tId, usr.Id)
 	defer removeUser(&tId, usr.Id)
 	for {
 		tId++
 		msg := &msgdef.CMsgMsg{}
-		if err := jsonutil.JSONCodec.Receive(ws, msg); err != nil {
+		procMsg := processMsg(tId, msg, usr)
+		if err := jsonutil.UnmarshalAndProcess(tId, usr.Id, ws, msg, procMsg); err != nil {
 			usr.MsgWriter.ErrorAndClose(tId, usr.Id, err.Error())
 			return
 		}
+	}
+}
+
+func processReg(tId uint, idMsg *msgdef.CIdMsg, usr *user.U) func() error {
+	return func() error {
+		if idMsg.Op != msgdef.CAddOp {
+			return errors.New("Incorrect op-code for id registration: " + string(idMsg.Op))
+		}
+		if err := idMsg.Validate(); err != nil {
+			return err
+		}
+		usr.Id = idMsg.Id
+		if err := idMap.Add(usr.Id, usr); err != nil {
+			return err
+		}
+		logutil.Registered(tId, usr.Id)
+		return nil
+	}
+}
+
+func processMsg(tId uint, msg *msgdef.CMsgMsg, usr *user.U) func() error {
+	return func() error {
+		if msg.Op != msgdef.CMsgOp {
+			return errors.New("Incorrect op-code for msg: " + string(msg.Op))
+		}
 		if err := msg.Validate(); err != nil {
-			usr.MsgWriter.ErrorAndClose(tId, usr.Id, err.Error())
-			return
+			return err
 		}
 		if idMap.Contains(msg.To) {
 			forUser := idMap.Get(msg.To).(*user.U)
-			msgMsg := &msgdef.SMsgMsg{Op: msgdef.SMsgOp, From: usr.Id, Content: msg.Content}
+			safeContent := jsonutil.SanitiseJSON(msg.Content)
+			msgMsg := &msgdef.SMsgMsg{Op: msgdef.SMsgOp, From: usr.Id, Content: safeContent}
 			sMsg := &msgdef.ServerMsg{Msg: msgMsg, TId: tId, UId: usr.Id}
 			forUser.MsgWriter.WriteMsg(sMsg)
 			logutil.Log(tId, usr.Id, fmt.Sprintf("Content: '%s' sent to: '%s'", msg.Content, msg.To))
@@ -54,16 +71,8 @@ func HandleMessageService(ws *websocket.Conn) {
 			sMsg := &msgdef.ServerMsg{Msg: nuMsg, TId: tId, UId: usr.Id}
 			usr.MsgWriter.WriteMsg(sMsg)
 		}
-	}
-}
-
-func processReg(idMsg *msgdef.CIdMsg, usr *user.U) error {
-	switch idMsg.Op {
-	case msgdef.CAddOp:
-		usr.Id = idMsg.Id
 		return nil
 	}
-	return errors.New("Incorrect op-code for id registration: " + string(idMsg.Op))
 }
 
 func removeUser(tId *uint, uId string) {

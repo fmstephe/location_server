@@ -3,15 +3,15 @@ package main
 import (
 	"code.google.com/p/go.net/websocket"
 	"encoding/json"
-	"location_server/locserver"
-	"location_server/msgserver"
+	"flag"
+	"fmt"
 	"github.com/fmstephe/simpleid"
+	"location_server/locserver"
 	"location_server/logutil"
+	"location_server/msgserver"
 	"location_server/msgutil/msgdef"
 	"net/http"
 	"os"
-	"flag"
-	"fmt"
 )
 
 var port = flag.Int("port", 80, "Sets the port the server will attach to")
@@ -22,7 +22,7 @@ var idMaker = simpleid.NewIdMaker()
 func idProvider(w http.ResponseWriter, r *http.Request) {
 	id := idMaker.NewId()
 	idMsg := msgdef.SIdMsg{Op: msgdef.SIdOp, Id: id}
-	if buf, err := json.MarshalForHTML(idMsg); err != nil {
+	if buf, err := json.Marshal(idMsg); err != nil {
 		println(err.Error())
 	} else {
 		w.Write(buf)

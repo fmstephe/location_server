@@ -2,22 +2,22 @@ package locserver
 
 import (
 	"code.google.com/p/go.net/websocket"
-	"encoding/json"
 	"errors"
 	"github.com/fmstephe/simpleid"
 	"location_server/logutil"
+	"location_server/msgutil/jsonutil"
 	"location_server/msgutil/msgdef"
 	"location_server/user"
 )
 
 var iOpErr = errors.New("Illegal Message Op. Operation unrecognised or provided in illegal order.")
-var idSet = simpleid.NewIdMap()
+var idMap = simpleid.NewIdMap()
 
 // Represents a task for the tree manager.
 type task struct {
 	tId uint            // The transaction id for this task
 	op  msgdef.ClientOp // The operation to perform for this task
-	usr *user.U           // The state of the user for this task
+	usr *user.U         // The state of the user for this task
 }
 
 // Safely creates a new task struct, in particular duplicating usr
@@ -27,7 +27,7 @@ func newTask(tId uint, op msgdef.ClientOp, usr *user.U) *task {
 
 // This is the websocket connection handling function
 // The following messages are required in this order
-// 1: User registration message (user id added to idSet)
+// 1: User registration message (user id added to idMap)
 // 2: Initial location message 
 // 3: Move message
 //
@@ -37,27 +37,22 @@ func newTask(tId uint, op msgdef.ClientOp, usr *user.U) *task {
 // Any error will result in these actions
 // 1: The user will be sent a server-error message
 // 2: The connection will be closed
-// 3: The user id will be removed from the idSet
+// 3: The user id will be removed from the idMap
 // 4: The user will be removed from the treemanager
 func HandleLocationService(ws *websocket.Conn) {
 	var tId uint
 	usr := user.New(ws)
 	idMsg := &msgdef.CIdMsg{}
-	procReg := processReg(idMsg, usr)
-	if err := unmarshalAndProcess(tId, usr.Id, ws, idMsg, procReg); err != nil {
+	procReg := processReg(tId, idMsg, usr)
+	if err := jsonutil.UnmarshalAndProcess(tId, usr.Id, ws, idMsg, procReg); err != nil {
 		usr.MsgWriter.ErrorAndClose(tId, usr.Id, err.Error())
 		return
 	}
-	if err := idSet.Add(usr.Id, usr); err != nil {
-		usr.MsgWriter.ErrorAndClose(tId, usr.Id, err.Error())
-		return
-	}
-	logutil.Registered(tId, usr.Id)
 	defer removeId(&tId, usr)
 	tId++
 	initLocMsg := msgdef.EmptyCLocMsg()
 	procInit := processInitLoc(tId, initLocMsg, usr)
-	if err := unmarshalAndProcess(tId, usr.Id, ws, initLocMsg, procInit); err != nil {
+	if err := jsonutil.UnmarshalAndProcess(tId, usr.Id, ws, initLocMsg, procInit); err != nil {
 		usr.MsgWriter.ErrorAndClose(tId, usr.Id, err.Error())
 		return
 	}
@@ -66,33 +61,18 @@ func HandleLocationService(ws *websocket.Conn) {
 		tId++
 		locMsg := msgdef.EmptyCLocMsg()
 		procReq := processMove(tId, locMsg, usr)
-		if err := unmarshalAndProcess(tId, usr.Id, ws, locMsg, procReq); err != nil {
+		if err := jsonutil.UnmarshalAndProcess(tId, usr.Id, ws, locMsg, procReq); err != nil {
 			usr.MsgWriter.ErrorAndClose(tId, usr.Id, err.Error())
 			return
 		}
 	}
 }
 
-// Unmarshals a message as a string from the websocket connection
-// Unmarshals that string into msg
-// Calls processFunc provided for arbitrary handling
-func unmarshalAndProcess(tId uint, uId string, ws *websocket.Conn, msg interface{}, processFunc func() error) error {
-	var data string
-	if err := websocket.Message.Receive(ws, &data); err != nil {
-		return err
-	}
-	logutil.Log(tId, uId, data)
-	if err := json.Unmarshal([]byte(data), msg); err != nil {
-		return err
-	}
-	return processFunc()
-}
-
-// Removes this user's id from idSet and logs the action
+// Removes this user's id from idMap and logs the action
 func removeId(tId *uint, usr *user.U) {
 	(*tId)++
 	logutil.Deregistered(*tId, usr.Id)
-	idSet.Remove(usr.Id)
+	idMap.Remove(usr.Id)
 }
 
 // Sends a remove message to the tree manager
@@ -104,15 +84,19 @@ func removeFromTree(tId *uint, usr *user.U) {
 
 // Handle registration message
 // Success will leave usr with initialised Id field
-func processReg(idMsg *msgdef.CIdMsg, usr *user.U) func() error {
+func processReg(tId uint, idMsg *msgdef.CIdMsg, usr *user.U) func() error {
 	return func() error {
+		if idMsg.Op != msgdef.CAddOp {
+			return errors.New("Incorrect op-code for id registration: " + string(idMsg.Op))
+		}
 		if err := idMsg.Validate(); err != nil {
 			return err
 		}
-		if idMsg.Op != msgdef.CAddOp {
-			return iOpErr
-		}
 		usr.Id = idMsg.Id
+		if err := idMap.Add(usr.Id, usr); err != nil {
+			return err
+		}
+		logutil.Registered(tId, usr.Id)
 		return nil
 	}
 }
