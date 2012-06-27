@@ -1,0 +1,23 @@
+<html>
+
+	<head>
+		<script type="text/javascript" src="../common/wsUtil.js"></script>
+		<script type="text/javascript" src="../common/message.js"></script>
+		<script type="text/javascript" src="../common/connect.js"></script>
+		<script type="text/javascript" src="../common/load.js"></script>
+		<script type="text/javascript" src="../common/linkedlist.js"></script>
+	</head>
+
+	<body onload="runProfile();">
+		<script type="text/javascript">
+function runProfile() {
+	var randId = Math.random();
+	for (var i = 0; i < 50; i++) {
+		makeConnection(randId+"_id_"+i, 100, 5000);
+	}
+}
+
+</script>
+<p id="results"></p>
+	</body>
+</html>
