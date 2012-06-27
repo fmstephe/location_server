@@ -1,7 +1,9 @@
 function Connect(userId, msgHandlers, locHandlers, clsFun, locatedFun) {
 	var thisConn = this;
 	var url = document.URL;
-	url = url.replace("http", "ws");
+	url = url.split("/")[2];
+	url = "ws://" + url + "/";
+	console.log("Base Websocket URL: " + url);
 	var handleLoc = function(loc) {
 		locHandlers.forEach(function(handler) {handler.handleLoc(loc)});
 	}
