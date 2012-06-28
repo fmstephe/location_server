@@ -9,11 +9,11 @@
 		</style>
 		<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
 		<script type="text/javascript" src="../common/id.js"></script>
+		<script type="text/javascript" src="../common/url.js"></script>
 		<script type="text/javascript" src="../common/wsUtil.js"></script>
 		<script type="text/javascript" src="../common/message.js"></script>
 		<script type="text/javascript" src="../common/linkedlist.js"></script>
 		<script type="text/javascript">
-			// Request Objects
 function $() { 
 	return document.getElementById(arguments[0]);
 }
@@ -27,7 +27,6 @@ function User(usrInfo, marker) {
 	this.marker = marker;
 }
 
-var host = "178.79.176.206"
 var inited = false;
 var id;
 var map;
@@ -51,8 +50,8 @@ function initialise(position) {
 	id = getId();
 	console.log(id);
 	addMsg = new Add(id);
-	locService = new WSClient("Location", "ws://"+host+":8002/loc", handleLoc, function(){}, function() {});
-	msgService = new WSClient("Message", "ws://"+host+":8003/msg", handleMsg, function(){}, function() {});
+	locService = new WSClient("Location", "ws://" + nakedURL() + "/loc", handleLoc, function(){}, function() {});
+	msgService = new WSClient("Message", "ws://" + nakedURL() + "/msg", handleMsg, function(){}, function() {});
 	locService.connect();
 	msgService.connect();
 	locService.jsonsend(addMsg);
