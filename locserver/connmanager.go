@@ -8,6 +8,7 @@ import (
 	"location_server/msgutil/jsonutil"
 	"location_server/msgutil/msgdef"
 	"location_server/user"
+	"math"
 )
 
 var iOpErr = errors.New("Illegal Message Op. Operation unrecognised or provided in illegal order.")
@@ -18,11 +19,17 @@ type task struct {
 	tId uint            // The transaction id for this task
 	op  msgdef.ClientOp // The operation to perform for this task
 	usr *user.U         // The state of the user for this task
+	olat, olng float64 // The position of the user, if it has changed
 }
 
 // Safely creates a new task struct, in particular duplicating usr
 func newTask(tId uint, op msgdef.ClientOp, usr *user.U) *task {
-	return &task{tId: tId, op: op, usr: usr.Copy()}
+	return &task{tId: tId, op: op, usr: usr.Copy(), olat: math.NaN(), olng: math.NaN()}
+}
+
+// Safely creates a new task struct, in particular duplicating usr
+func newMoveTask(tId uint, op msgdef.ClientOp, usr *user.U, olat, olng float64) *task {
+	return &task{tId: tId, op: op, usr: usr.Copy(), olat: olat, olng: olng}
 }
 
 // This is the websocket connection handling function
@@ -128,8 +135,10 @@ func processMove(tId uint, locMsg *msgdef.CLocMsg, usr *user.U) func() error {
 		if locMsg.Op != msgdef.CMoveOp {
 			return iOpErr
 		}
+		olat := usr.Lat
+		olng := usr.Lng
 		usr.Move(locMsg.Lat, locMsg.Lng)
-		msg := newTask(tId, msgdef.CMoveOp, usr)
+		msg := newMoveTask(tId, msgdef.CMoveOp, usr, olat, olng)
 		forwardMsg(msg)
 		return nil
 	}

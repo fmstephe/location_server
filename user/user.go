@@ -16,7 +16,7 @@ import (
 // NB: It is safe (and necessary) that two copies of the same user reference the same MsgWriter
 type U struct {
 	Id                   string
-	Lat, OLat, Lng, OLng float64
+	Lat, Lng float64
 	MsgWriter            *msgwriter.W
 }
 
@@ -24,14 +24,10 @@ type U struct {
 func (usr *U) InitLoc(lat, lng float64) {
 	usr.Lat = lat
 	usr.Lng = lng
-	usr.OLat = lat
-	usr.OLng = lng
 }
 
 // Moves the user to a new location. The previous location is saved in the OLat/OLng fields.
 func (usr *U) Move(lat, lng float64) {
-	usr.OLat = usr.Lat
-	usr.OLng = usr.Lng
 	usr.Lat = lat
 	usr.Lng = lng
 }

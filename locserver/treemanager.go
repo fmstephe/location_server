@@ -73,7 +73,7 @@ func handleRemove(rmv *task, tree quadtree.T) {
 // 5: if (trackMovement) All users who can see the user in both the old and new position are notified
 func handleMove(mv *task, tree quadtree.T, trackMovement bool) {
 	usr := mv.usr
-	oMNS, oMEW := metresFromOrigin(usr.OLat, usr.OLng)
+	oMNS, oMEW := metresFromOrigin(mv.olat, mv.olng)
 	nMNS, nMEW := metresFromOrigin(usr.Lat, usr.Lng)
 	locLogL(mv.tId, usr.Id, "Relocate Request", oMNS, oMEW, nMNS, oMEW)
 	deleteUsr(oMNS, oMEW, usr, tree)
