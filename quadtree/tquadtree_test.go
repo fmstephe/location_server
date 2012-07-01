@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"strconv"
 	"testing"
-	"time"
 )
 
 type dim struct {
@@ -21,7 +20,9 @@ type point struct {
 	x, y float64
 }
 
-var testRand = rand.New(rand.NewSource(time.Now().UnixNano()))
+// testRand will produce the same random numbers every time
+// This is done to make the benchmarks consistent between runs
+var testRand = rand.New(rand.NewSource(1))
 
 func init() {
 	testTrees = []T{
