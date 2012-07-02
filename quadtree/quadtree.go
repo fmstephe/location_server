@@ -11,7 +11,7 @@ type subtree interface {
 	//
 	survey(view []*View, fun func(x, y float64, e interface{}))
 	//
-	delete(view *View, pred func(x, y float64, e interface{}) bool, p *subtree, r *root)
+	del(view *View, pred func(x, y float64, e interface{}) bool, p *subtree, r *root)
 	//
 	isEmptyLeaf() bool
 	//
@@ -133,17 +133,17 @@ func (l *leaf) survey(vs []*View, fun func(x, y float64, e interface{})) {
 	}
 }
 
-// Deletes each element, e, in this leaf which satisfies two conditions
+// Dels each element, e, in this leaf which satisfies two conditions
 // 	1: e lies within view
 //	2: pred(e) returns true
-// pred may have side-effects allowing for arbitrary processing of deleted elements.
+// pred may have side-effects allowing for arbitrary processing of deld elements.
 // It is worth noting that if this leaf becomes empty it is the responsibility
 // of this leaf's parent node to recycle it (when it chooses).
-func (l *leaf) delete(view *View, pred func(x, y float64, e interface{}) bool, _ *subtree, _ *root) {
+func (l *leaf) del(view *View, pred func(x, y float64, e interface{}) bool, _ *subtree, _ *root) {
 	for i := range l.ps {
 		point := &l.ps[i]
 		if !point.zeroed() && view.contains(point.x, point.y) {
-			delete(point, pred)
+			del(point, pred)
 			if len(point.elems) == 0 {
 				point.zeroOut()
 			}
@@ -153,11 +153,11 @@ func (l *leaf) delete(view *View, pred func(x, y float64, e interface{}) bool, _
 	return
 }
 
-// Deletes each element, e, from elems where pred(e) returns true.
-func delete(p *vpoint, pred func(x, y float64, e interface{}) bool) {
+// Dels each element, e, from elems where pred(e) returns true.
+func del(p *vpoint, pred func(x, y float64, e interface{}) bool) {
 	for i := len(p.elems) - 1; i >= 0; i-- {
 		if pred(p.x, p.y, p.elems[i]) {
-			// Fast delete from slice
+			// Fast del from slice
 			last := len(p.elems) - 1
 			p.elems[i] = p.elems[last]
 			p.elems = p.elems[:last]
@@ -239,12 +239,12 @@ func (n *node) survey(vs []*View, fun func(x, y float64, e interface{})) {
 	}
 }
 
-// Calls delete on each child subtree whose view overlaps view
-func (n *node) delete(view *View, pred func(x, y float64, e interface{}) bool, inPtr *subtree, r *root) {
+// Calls del on each child subtree whose view overlaps view
+func (n *node) del(view *View, pred func(x, y float64, e interface{}) bool, inPtr *subtree, r *root) {
 	allEmpty := true
 	for i := range n.children {
 		if n.children[i].View().overlaps(view) {
-			n.children[i].delete(view, pred, &n.children[i], r)
+			n.children[i].del(view, pred, &n.children[i], r)
 		}
 		allEmpty = allEmpty && n.children[i].isEmptyLeaf()
 	}
@@ -413,12 +413,12 @@ func (r *root) Insert(x, y float64, nval interface{}) {
 	r.rootNode.insert(x, y, elems, nil, r)
 }
 
-// Deletes each element, e, under this node which satisfies two conditions
+// Dels each element, e, under this node which satisfies two conditions
 // 	1: e lies within view
 //	2: pred(e) returns true
-// pred may have side-effects allowing for arbitrary processing of deleted elements.
-func (r *root) Delete(view *View, pred func(x, y float64, e interface{}) bool) {
-	r.rootNode.delete(view, pred, nil, r)
+// pred may have side-effects allowing for arbitrary processing of deld elements.
+func (r *root) Del(view *View, pred func(x, y float64, e interface{}) bool) {
+	r.rootNode.del(view, pred, nil, r)
 }
 
 // Applies fun to every element occurring within view in this tree

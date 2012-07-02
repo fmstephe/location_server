@@ -34,7 +34,7 @@ func main() {
 			col = append(col, e)
 		}
 		tree.Survey(vs, fun)
-		tree.Delete(tree.View(), quadtree.SimpleDelete())
+		tree.Del(tree.View(), quadtree.SimpleDelete())
 		println(col)
 	}
 }

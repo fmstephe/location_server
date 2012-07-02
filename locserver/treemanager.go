@@ -100,7 +100,7 @@ func deleteUsr(mNS, mEW float64, usr *user.U, tree quadtree.T) {
 		oUsr := e.(*user.U)
 		return usr.Equiv(oUsr)
 	}
-	tree.Delete(v, pred)
+	tree.Del(v, pred)
 }
 
 // Returns a function used for alerting users that another user has been added to the system

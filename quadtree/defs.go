@@ -9,7 +9,7 @@ type T interface {
 	Survey(views []*View, fun func(x, y float64, e interface{}))
 	// Applies pred to every element in this quadtree that lies within any view in views
 	// If pred returns true that element is removed
-	Delete(views *View, pred func(x, y float64, e interface{}) bool)
+	Del(views *View, pred func(x, y float64, e interface{}) bool)
 	// Provides a human readable (as far as possible) string representation of this tree
 	String() string
 }
