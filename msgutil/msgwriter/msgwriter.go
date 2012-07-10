@@ -4,8 +4,8 @@ import (
 	"code.google.com/p/go.net/websocket"
 	"encoding/json"
 	"fmt"
-	"location_server/logutil"
-	"location_server/msgutil/msgdef"
+	"github.com/fmstephe/location_server/logutil"
+	"github.com/fmstephe/location_server/msgutil/msgdef"
 )
 
 // This message instructs the message writer to shutdown after writing errMsg back to its websocket

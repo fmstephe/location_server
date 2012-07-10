@@ -2,10 +2,10 @@ package locserver
 
 import (
 	"fmt"
-	"location_server/logutil"
-	"location_server/msgutil/msgdef"
-	"location_server/quadtree"
-	"location_server/user"
+	"github.com/fmstephe/location_server/logutil"
+	"github.com/fmstephe/location_server/msgutil/msgdef"
+	"github.com/fmstephe/location_server/quadtree"
+	"github.com/fmstephe/location_server/user"
 )
 
 // Hardcoded values for the distance within which users are visible to each other

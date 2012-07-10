@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"location_server/quadtree"
+	"github.com/fmstephe/location_server/quadtree"
 	"math/rand"
 	"os"
 	"runtime/pprof"

@@ -3,11 +3,11 @@ package locserver
 import (
 	"code.google.com/p/go.net/websocket"
 	"errors"
+	"github.com/fmstephe/location_server/logutil"
+	"github.com/fmstephe/location_server/msgutil/jsonutil"
+	"github.com/fmstephe/location_server/msgutil/msgdef"
+	"github.com/fmstephe/location_server/user"
 	"github.com/fmstephe/simpleid"
-	"location_server/logutil"
-	"location_server/msgutil/jsonutil"
-	"location_server/msgutil/msgdef"
-	"location_server/user"
 	"math"
 )
 
@@ -16,10 +16,10 @@ var idMap = simpleid.NewIdMap()
 
 // Represents a task for the tree manager.
 type task struct {
-	tId uint            // The transaction id for this task
-	op  msgdef.ClientOp // The operation to perform for this task
-	usr *user.U         // The state of the user for this task
-	olat, olng float64 // The position of the user, if it has changed
+	tId        uint            // The transaction id for this task
+	op         msgdef.ClientOp // The operation to perform for this task
+	usr        *user.U         // The state of the user for this task
+	olat, olng float64         // The position of the user, if it has changed
 }
 
 // Safely creates a new task struct, in particular duplicating usr

@@ -2,8 +2,8 @@ package logserver
 
 import (
 	"code.google.com/p/go.net/websocket"
-	"location_server/msgutil/msgwriter"
-	"location_server/msgutil/jsonutil"
+	"github.com/fmstephe/location_server/msgutil/jsonutil"
+	"github.com/fmstephe/location_server/msgutil/msgwriter"
 )
 
 func HandleLogService(ws *websocket.Conn) {

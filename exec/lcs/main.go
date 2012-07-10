@@ -3,8 +3,8 @@ package main
 import (
 	"code.google.com/p/go.net/websocket"
 	"flag"
-	"location_server/locserver"
-	"location_server/logutil"
+	"github.com/fmstephe/location_server/locserver"
+	"github.com/fmstephe/location_server/logutil"
 	"net/http"
 	_ "net/http/pprof"
 	"runtime"

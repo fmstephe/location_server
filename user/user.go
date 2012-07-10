@@ -2,7 +2,7 @@ package user
 
 import (
 	"code.google.com/p/go.net/websocket"
-	"location_server/msgutil/msgwriter"
+	"github.com/fmstephe/location_server/msgutil/msgwriter"
 )
 
 // Identifies a user identifed with a lat/lng location currently registered with this service
@@ -15,9 +15,9 @@ import (
 // U is not thread safe. When sharing between goroutines care must be taken to only send copies.
 // NB: It is safe (and necessary) that two copies of the same user reference the same MsgWriter
 type U struct {
-	Id                   string
-	Lat, Lng float64
-	MsgWriter            *msgwriter.W
+	Id        string
+	Lat, Lng  float64
+	MsgWriter *msgwriter.W
 }
 
 // Initialises the location of a user

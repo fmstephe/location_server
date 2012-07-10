@@ -3,8 +3,8 @@ package jsonutil
 import (
 	"code.google.com/p/go.net/websocket"
 	"encoding/json"
+	"github.com/fmstephe/location_server/logutil"
 	"html"
-	"location_server/logutil"
 )
 
 // Unmarshals a websocket message into msgi as JSON.

@@ -4,11 +4,11 @@ import (
 	"code.google.com/p/go.net/websocket"
 	"errors"
 	"fmt"
+	"github.com/fmstephe/location_server/logutil"
+	"github.com/fmstephe/location_server/msgutil/jsonutil"
+	"github.com/fmstephe/location_server/msgutil/msgdef"
+	"github.com/fmstephe/location_server/user"
 	"github.com/fmstephe/simpleid"
-	"location_server/logutil"
-	"location_server/msgutil/jsonutil"
-	"location_server/msgutil/msgdef"
-	"location_server/user"
 )
 
 var idMap = simpleid.NewIdMap()
