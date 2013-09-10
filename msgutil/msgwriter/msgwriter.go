@@ -14,7 +14,7 @@ type shutdown struct {
 	errMsg    *msgdef.ServerMsg
 }
 
-// A message writer listens on a channel for messages to write to a websocket 
+// A message writer listens on a channel for messages to write to a websocket
 // A message writer listen until it receives an error message
 // then it will write the error message to the websocket  and terminate
 type W struct {
@@ -33,13 +33,13 @@ func New(ws *websocket.Conn) *W {
 	return msgWriter
 }
 
-// Asks the message writer to write msg back to its websocket 
+// Asks the message writer to write msg back to its websocket
 func (msgWriter *W) WriteMsg(msg *msgdef.ServerMsg) {
 	msgWriter.msgChan <- msg
 }
 
 // Asks the message writer to write the error message to its websocket  and terminate
-// This function waits on a message from the closeChan to ensure that  
+// This function waits on a message from the closeChan to ensure that
 func (msgWriter *W) ErrorAndClose(tId uint, uId, errMsg string) {
 	logutil.Log(tId, uId, "Connection Terminated: "+errMsg)
 	closeChan := make(chan bool, 1)

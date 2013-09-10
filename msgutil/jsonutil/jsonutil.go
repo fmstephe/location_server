@@ -25,7 +25,7 @@ func UnmarshalAndProcess(tId uint, uId string, ws *websocket.Conn, msg interface
 	return processFunc()
 }
 
-// 
+//
 func SanitiseJSON(v interface{}) interface{} {
 	if v == nil {
 		return nil

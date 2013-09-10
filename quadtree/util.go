@@ -38,7 +38,7 @@ func CollectingDelete() (pred func(x, y float64, e interface{}) bool, col *list.
 	return
 }
 
-// 
+//
 //	Determines if a point lies inside at least one of a slice of *View
 //
 func contains(vs []*View, x, y float64) bool {

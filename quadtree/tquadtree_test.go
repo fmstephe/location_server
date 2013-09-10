@@ -42,7 +42,7 @@ func init() {
 
 func clearTrees() {
 	for i := range testTrees {
-		testTrees[i].Delete(testTrees[i].View(), SimpleDelete())
+		testTrees[i].Del(testTrees[i].View(), SimpleDelete())
 	}
 }
 
@@ -66,8 +66,8 @@ func testOneElement(tree T, t *testing.T) {
 
 // Test that if we add 5 elements into a single quadrant of a fresh tree
 // We can successfully retrieve those elements. This test is tied to
-// the implementation detail that a quadrant with 5 elements will 
-// over-load a single leaf and must rearrange itself to fit the 5th 
+// the implementation detail that a quadrant with 5 elements will
+// over-load a single leaf and must rearrange itself to fit the 5th
 // element in.
 func TestFullLeaf(t *testing.T) {
 	clearTrees()
@@ -128,7 +128,7 @@ func testScatter(tree T, t *testing.T) {
 }
 
 // Tests that we can add multiple elements to the same location
-// and still retrieve all elements, including duplicates, using 
+// and still retrieve all elements, including duplicates, using
 // randomly generated views.
 func testScatterDup(tree T, t *testing.T) {
 	ps := fillView(tree.View(), 1000)
@@ -198,7 +198,7 @@ func testAddDeleteMulti(tree T, t *testing.T) {
 }
 
 // Tests a very limited deletion scenario. Here we will insert every element in 'insert' into the tree at a
-// single random point. Then we will delete every element in delete from the tree. 
+// single random point. Then we will delete every element in delete from the tree.
 // If exact == true then the view used to delete covers eactly the insertion point. Otherwise, it covers the
 // entire tree.
 // We assert that every element of delete has been deleted from the tree (testDelete)
@@ -326,7 +326,7 @@ func disabledTestInsertLimits(t *testing.T) {
 */
 
 func testDelete(tree T, view *View, pred func(x, y float64, e interface{}) bool, deleted, expDel *list.List, t *testing.T, errPfx string) {
-	tree.Delete(view, pred)
+	tree.Del(view, pred)
 	if deleted.Len() != expDel.Len() {
 		t.Errorf("%s: Expecting %v deleted element(s), found %v", errPfx, expDel.Len(), deleted.Len())
 	}

@@ -13,7 +13,7 @@ func init() {
 }
 
 // A View is a rectangle defined by four points, from two x coords and two y
-// coords. The coordinate system places the origin (0,0) in the top left 
+// coords. The coordinate system places the origin (0,0) in the top left
 // hand corner if you drew it on a piece of paper. However, it is allowed
 // to have view's above and to the left of origin extending into negative coords.
 // Valid is initially false, and is used to construct Views which cover no area at all.
@@ -33,7 +33,7 @@ type View struct {
 }
 
 // Returns a new View struct with top left-hand corner
-// at the point (0,0) and with the width and height as provided 
+// at the point (0,0) and with the width and height as provided
 // Providing negative values for width or height will cause a panic
 func OrigView(width, height float64) View {
 	if width < 0 || height < 0 {
@@ -62,7 +62,7 @@ func PointViewP(x, y float64) *View {
 	return &v
 }
 
-// Returns a new View struct with the four 
+// Returns a new View struct with the four
 func NewView(lx, rx, ty, by float64) View {
 	if rx < lx || by < ty {
 		msg := fmt.Sprintf("Cannot create view with inverted corners. lx : %10.3f rx : %10.3f, ty : %10.3f by %10.3f", lx, rx, ty, by)

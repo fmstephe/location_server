@@ -35,7 +35,7 @@ func newMoveTask(tId uint, op msgdef.ClientOp, usr *user.U, olat, olng float64) 
 // This is the websocket connection handling function
 // The following messages are required in this order
 // 1: User registration message (user id added to idMap)
-// 2: Initial location message 
+// 2: Initial location message
 // 3: Move message
 //
 // Every incoming message (and subsequent actions performed) are associated with a transaction id

@@ -63,11 +63,11 @@ const LEAF_SIZE = 16
 // a leaf contains a View defining the rectangular area in which each vpoint
 // could legally be located. A leaf struct may contain up to LEAF_SIZE non-zeroed
 // vpoints.
-// If any vpoint is non-empty, return false to zeroed(), then all vpoints 
+// If any vpoint is non-empty, return false to zeroed(), then all vpoints
 // of lesser index are also non-empty i.e. if ps[3] is non-empty then so
 // are ps[2], ps[1] and ps[0], while ps[4] or greater have no such constraints.
 // The vpoints are not ordered in any way with respect to their geometric locations.
-// A leaf is disposable if it was allocated outside the static leaf array, see root 
+// A leaf is disposable if it was allocated outside the static leaf array, see root
 // below. If a leaf is marked as disposable it will not be recycled, but abandoned to
 // the whimsy of the garbage collector.
 type leaf struct {
@@ -81,12 +81,12 @@ type leaf struct {
 // NB: We don't check that (x,y) is contained by this leaf's view, we rely of the parent
 // node to ensure this.
 // cases.
-// If:			We find a non-empty vpoint at the exact location (x,y) 
+// If:			We find a non-empty vpoint at the exact location (x,y)
 //					- Append elems to this vpoint
-// Else-If:		We find an empty vpoint available 
+// Else-If:		We find an empty vpoint available
 //					- Append elems to this vpoint and set the vpoint's location to (x,y)
-// Else:		This leaf has overflowed 
-//					- Replace this leaf with an intermediate node and re-allocate 
+// Else:		This leaf has overflowed
+//					- Replace this leaf with an intermediate node and re-allocate
 //					all of the elements in this leaf as well as those in elems into
 //					the new node
 func (l *leaf) insert(x, y float64, elems []interface{}, inPtr *subtree, r *root) {
@@ -106,8 +106,8 @@ func (l *leaf) insert(x, y float64, elems []interface{}, inPtr *subtree, r *root
 	newIntNode(x, y, elems, inPtr, l, r)
 }
 
-// This function creates a new node and adds all of the elements contained in l to it, 
-// plus the new elements in elems. The pointer which previously pointed to l is 
+// This function creates a new node and adds all of the elements contained in l to it,
+// plus the new elements in elems. The pointer which previously pointed to l is
 // pointed at the new node. l is recycled.
 func newIntNode(x, y float64, elems []interface{}, inPtr *subtree, l *leaf, r *root) {
 	var newNode subtree
@@ -166,7 +166,7 @@ func del(p *vpoint, pred func(x, y float64, e interface{}) bool) {
 	return
 }
 
-// Restores the leaf invariant that "if any vpoint is non-empty, then all vpoints 
+// Restores the leaf invariant that "if any vpoint is non-empty, then all vpoints
 // of lesser index are also non-empty" by rearranging the elements of ps.
 func restoreOrder(ps *[LEAF_SIZE]vpoint) {
 	for i := range ps {
@@ -207,7 +207,7 @@ func (l *leaf) String() string {
 }
 
 // A node struct implements the subtree interface.
-// A node is the intermediate, non-leaf, storage structure for a 
+// A node is the intermediate, non-leaf, storage structure for a
 // quadtree.
 // It contains a View, indicating the rectangular area this node covers.
 // Each subtree will have a view containing one of four quarters of
@@ -229,7 +229,7 @@ func (n *node) insert(x, y float64, elems []interface{}, _ *subtree, r *root) {
 	}
 }
 
-// Calls survey on each child subtree whose view overlaps with vs 
+// Calls survey on each child subtree whose view overlaps with vs
 func (n *node) survey(vs []*View, fun func(x, y float64, e interface{})) {
 	for i := range n.children {
 		child := n.children[i]
@@ -347,7 +347,7 @@ func (r *root) newNode(view *View) (n *node) {
 
 // Recycles n.
 // If n is disposable this is a no-op, n should be garbage collected
-// Otherwise n becomes r's next free node. r's old free node becomes 
+// Otherwise n becomes r's next free node. r's old free node becomes
 // n's next free node.
 // Each of n's children are recycled and n's children array is cleared.
 // n's view is reset.
@@ -380,7 +380,7 @@ func (r *root) newLeaf(view *View) (l *leaf) {
 	return
 }
 
-// Fills the array provided with new leaves each occupying 
+// Fills the array provided with new leaves each occupying
 // a quarter of the view provided.
 func (r *root) newLeaves(view *View, leaves *[4]subtree) {
 	v0, v1, v2, v3 := view.quarters()
@@ -393,7 +393,7 @@ func (r *root) newLeaves(view *View, leaves *[4]subtree) {
 
 // Recycles l.
 // If l is disposable this is a no-op, l should be garbage collected
-// Otherwise, l becomes r's next free leaf. r's old free leaf becomes 
+// Otherwise, l becomes r's next free leaf. r's old free leaf becomes
 // l's next free leaf.
 // l's view is reset. l's array of vpoints is reset.
 func (r *root) recycleLeaf(l *leaf) {

@@ -105,10 +105,10 @@ func benchmarkDelete(b *testing.B, pointNum, repNum int) {
 				deleted = append(deleted, e)
 				return true
 			}
-			tree.Delete(q1, pred)
-			tree.Delete(q2, pred)
-			tree.Delete(q3, pred)
-			tree.Delete(q4, pred)
+			tree.Del(q1, pred)
+			tree.Del(q2, pred)
+			tree.Del(q3, pred)
+			tree.Del(q4, pred)
 		}
 	}
 }
