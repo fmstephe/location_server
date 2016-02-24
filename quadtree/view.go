@@ -55,8 +55,7 @@ func PointView(x, y float64) View {
 	return NewView(x, x, y, y)
 }
 
-// Returns a new View which covers a single point
-// i.e. a view with no area
+// Returns a pointer to what PointView returns directly
 func PointViewP(x, y float64) *View {
 	v := PointView(x, y)
 	return &v
